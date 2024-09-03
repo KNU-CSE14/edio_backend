@@ -1,5 +1,6 @@
-package com.edio.test.testController;
+package com.edio.test.controller;
 
+import com.edio.common.model.response.SwaggerCommonResponses;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -20,10 +21,7 @@ public class TestController {
     @Operation(summary = "ID 조회", description = "Path ID를 조회합니다.")
 //  Header Token 설정
 //  security = @SecurityRequirement(name = "bearerAuth"))
-    @ApiResponse(responseCode = "200", description = "성공")
-    @ApiResponse(responseCode = "400", description = "파라미터 오류")
-    @ApiResponse(responseCode = "403", description = "권한 부족")
-    @ApiResponse(responseCode = "404", description = "리소스를 찾을 수 없음")
+    @SwaggerCommonResponses //Swagger 공통 응답 어노테이션
     public Long test(@Parameter(required = true, description = "path ID") @PathVariable long id){
         return id;
     }
