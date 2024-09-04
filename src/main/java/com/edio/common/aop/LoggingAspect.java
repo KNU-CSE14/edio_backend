@@ -6,12 +6,14 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
+
 @Aspect
 @Component
 @Slf4j
 public class LoggingAspect {
 
-    @Around("execution(* com.edio.*.controller..*(..))")
+    @Around("execution(* com.edio.*.controller..*(..)) || execution(* com.edio.*.*.controller..*(..))")
     public Object logExecutionTime(ProceedingJoinPoint joinPoint) throws Throwable {
         long startTime = System.currentTimeMillis();
 
@@ -20,11 +22,14 @@ public class LoggingAspect {
         long endTime = System.currentTimeMillis();
         long duration = endTime - startTime;
 
-        log.info("Request to {} took {} ms (received at {}, responded at {})",
+        log.info(
+                "API Call - Method: {}, Duration: {} ms, Start Time: {}, End Time: {}, Arguments: {}",
                 joinPoint.getSignature(),
                 duration,
                 startTime,
-                endTime);
+                endTime,
+                Arrays.toString(joinPoint.getArgs())
+        );
 
         return proceed;
     }
