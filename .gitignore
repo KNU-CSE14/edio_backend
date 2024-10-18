@@ -85,4 +85,8 @@ gradle-app.setting
 # Java heap dump
 *.hprof
 
+#환경변수 숨김
+.env
+
+
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle
