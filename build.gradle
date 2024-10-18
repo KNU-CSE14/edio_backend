@@ -25,16 +25,19 @@ repositories {
 }
 
 dependencies {
-	//implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	// Dotenv(환경 변수 숨김)
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+	// JPA
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	// Swagger UI
 	implementation group: 'org.springdoc', name: 'springdoc-openapi-starter-webmvc-ui', version: '2.6.0'
 	// AOP
 	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-aop', version: '3.3.3'
-	// JPA
-//	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa', version: '3.3.3'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+	// MySQL
+	runtimeOnly 'mysql:mysql-connector-java:8.0.33'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
