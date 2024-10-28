@@ -25,13 +25,13 @@ public class EdioBackendApplication {
 
 	}
 
-	@Bean
-	public CommandLineRunner logDatabaseProperties() {
-		return args -> {
-			logger.info("DB Username: " + System.getProperty("spring.datasource.username"));
-			logger.info("DB Password: " + System.getProperty("spring.datasource.password"));
-			logger.info("DB URL: " + System.getProperty("spring.datasource.url"));
-		};
-	}
+//	@Bean
+//	public CommandLineRunner logDatabaseProperties() {
+//		return args -> {
+//			logger.info("DB Username: " + System.getProperty("spring.datasource.username"));
+//			logger.info("DB Password: " + System.getProperty("spring.datasource.password"));
+//			logger.info("DB URL: " + System.getProperty("spring.datasource.url"));
+//		};
+//	}
 
 }
