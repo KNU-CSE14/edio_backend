@@ -36,29 +36,9 @@ public class CardController {
     }
 
     @GetMapping("/card/select")
-    @Operation(summary = "Card ID 조회", description = "카드 ID를 조회합니다.")
-//  Header Token 설정
-//  security = @SecurityRequirement(name = "bearerAuth"))
+    @Operation(summary = "DB 호출 테스트", description = "DB 호출을 테스트 합니다.")
     @SwaggerCommonResponses //Swagger 공통 응답 어노테이션
     public List<String> getCarTest(){
         return cardService.getCardTest();
-    }
-
-
-
-    @Autowired
-    private DataSource dataSource;
-
-    @GetMapping("/health/db")
-    public ResponseEntity<String> checkDatabaseConnection() {
-        try (Connection connection = dataSource.getConnection()) {
-            if (connection != null && !connection.isClosed()) {
-                return ResponseEntity.ok("Database connection is OK");
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database connection is not established");
-            }
-        } catch (SQLException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to connect to database: " + e.getMessage());
-        }
     }
 }

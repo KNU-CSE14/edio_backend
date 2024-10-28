@@ -15,4 +15,6 @@ public class ApiController {
     protected ErrorResponse handleBaseException(BaseException e){
         return new ErrorResponse(e.isSuccess(), e.getDetailMessage());
     }
+
+
 }

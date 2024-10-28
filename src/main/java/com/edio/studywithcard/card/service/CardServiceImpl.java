@@ -17,9 +17,11 @@ public class CardServiceImpl implements CardService{
     }
 
 
+    /*
+        DB 호출 테스트
+     */
     @Override
     public List<String> getCardTest() {
-        // Card 엔티티에서 title만 추출하여 반환
         return cardRepository.findAll().stream()
                 .map(Card::getTitle)  // title 필드가 있다고 가정
                 .collect(Collectors.toList());
