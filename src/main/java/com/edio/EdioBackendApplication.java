@@ -14,7 +14,7 @@ public class EdioBackendApplication {
 
 	public static void main(String[] args) {
 		// .env 파일 로드
-		Dotenv dotenv = Dotenv.configure().directory("./").load();
+		Dotenv dotenv = Dotenv.load();
 
 		// 환경 변수 값으로 시스템 속성 설정
 		System.setProperty("spring.datasource.username", dotenv.get("DB_USERNAME"));
