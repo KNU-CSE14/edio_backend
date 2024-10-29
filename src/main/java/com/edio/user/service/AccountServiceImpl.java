@@ -25,19 +25,8 @@ public class AccountServiceImpl implements AccountService{
     @Transactional(readOnly = true)
     @Override
     public AccountResponse findOneAccount(String loginId) {
-        try {
-            Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
-                    .orElseThrow(() -> new AccountNotFoundException(loginId));
-            return AccountResponse.from(account);
-        } catch (AccountNotFoundException e) {
-            throw e;
-        } catch (DataAccessException e) {
-            throw new BaseException(HttpStatus.INTERNAL_SERVER_ERROR, "Database operation failed: " + e.getMessage());
-        } catch (IllegalArgumentException e) {
-            throw new BaseException(HttpStatus.BAD_REQUEST, "Invalid argument: " + e.getMessage());
-        } catch (Exception e) {
-            throw new BaseException(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred: " + e.getMessage());
-        }
+        Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
+                .orElseThrow(() -> new AccountNotFoundException(loginId));
+        return AccountResponse.from(account);
     }
-
 }
