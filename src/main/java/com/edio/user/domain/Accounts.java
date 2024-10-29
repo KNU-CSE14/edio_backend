@@ -23,12 +23,15 @@ public class Accounts {
     private String password;
 
     @Column(name = "created_at", nullable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(nullable = false)
     private String status;
+
+    @Column(name = "login_type", nullable = false)
+    private String loginType;
 
 }
