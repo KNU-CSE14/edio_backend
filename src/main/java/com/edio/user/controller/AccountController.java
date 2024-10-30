@@ -25,7 +25,7 @@ public class AccountController {
         this.accountService = accountService;
     }
 
-    @GetMapping("/auth/account")
+    @GetMapping("/account")
     @Operation(summary = "Account 정보 조회", description = "Account 정보를 조회합니다.")
     @SwaggerCommonResponses
     public AccountResponse getAccount(@Parameter(required = true, description = "사용자 아이디") String loginId){
