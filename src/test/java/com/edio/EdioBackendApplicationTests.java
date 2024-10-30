@@ -17,10 +17,10 @@ class EdioBackendApplicationTests {
 		System.setProperty("spring.datasource.password", dotenv.get("DB_PASSWORD"));
 		System.setProperty("spring.datasource.url", dotenv.get("DB_URL"));
 
-		System.setProperty("GOOGLE_CLIENT_ID", dotenv.get("GOOGLE_CLIENT_ID"));
-		System.setProperty("GOOGLE_CLIENT_SECRET", dotenv.get("GOOGLE_CLIENT_SECRET"));
+		System.setProperty("google.client-id", dotenv.get("GOOGLE_CLIENT_ID"));
+		System.setProperty("google.client-secret", dotenv.get("GOOGLE_CLIENT_SECRET"));
 
-		System.setProperty("JWT_SECRET", dotenv.get("JWT_SECRET"));
+		System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
 	}
 
 	@Test
