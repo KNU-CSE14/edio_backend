@@ -8,7 +8,7 @@ import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import org.springframework.context.annotation.Configuration;
 
 /*
-    http://localhost:8080/swagger-ui/index.html#/
+    http://ec2-43-203-169-54.ap-northeast-2.compute.amazonaws.com:8080/swagger-ui/index.html#/
  */
 @Configuration
 @OpenAPIDefinition(
