@@ -22,7 +22,7 @@ public class Accounts {
     @Column(nullable = true)
     private String password;
 
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", updatable = false, insertable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "deleted_at")
@@ -33,5 +33,8 @@ public class Accounts {
 
     @Column(name = "login_type", nullable = false)
     private String loginType;
+
+    @Column(name = "roles", nullable = false)
+    private String roles;
 
 }

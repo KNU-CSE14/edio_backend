@@ -21,6 +21,7 @@ public class AccountResponse {
     private LocalDateTime deletedAt;
     private String status;
     private String loginType;
+    private String roles;
 
     public static AccountResponse from(Accounts account) {
         return AccountResponse.builder()
@@ -31,6 +32,7 @@ public class AccountResponse {
                 .deletedAt(account.getDeletedAt())
                 .status(account.getStatus())
                 .loginType(account.getLoginType())
+                .roles(account.getRoles())
                 .build();
     }
 }

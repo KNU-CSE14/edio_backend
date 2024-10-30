@@ -21,7 +21,11 @@ public class EdioBackendApplication {
 		System.setProperty("spring.datasource.password", dotenv.get("DB_PASSWORD"));
 		System.setProperty("spring.datasource.url", dotenv.get("DB_URL"));
 
-		SpringApplication.run(EdioBackendApplication.class, args);
+		System.setProperty("google.client-id", dotenv.get("GOOGLE_CLIENT_ID"));
+		System.setProperty("google.client-secret", dotenv.get("GOOGLE_CLIENT_SECRET"));
 
+		System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
+
+		SpringApplication.run(EdioBackendApplication.class, args);
 	}
 }
