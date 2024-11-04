@@ -34,6 +34,8 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
 
@@ -62,7 +64,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
-                            System.out.println("로그인 성공!");
+                            logger.info("로그인 성공!");
                             OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
                             JwtToken jwtToken = jwtTokenProvider.createToken(auth);
 
@@ -85,7 +87,7 @@ public class SecurityConfig {
                             response.addCookie(accessTokenCookie);
                             response.addCookie(refreshTokenCookie);
 
-                            System.out.println("jwt 성공!");
+                            logger.info("jwt 성공!");
 //                          response.sendRedirect("http://localhost:3000/oauth2/redirect");
                         })
                 )
