@@ -1,8 +1,9 @@
 package com.edio.user.domain;
 
+import com.edio.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
@@ -10,31 +11,28 @@ import java.time.LocalDateTime;
 @Table(name = "accounts")
 @Getter
 @Setter
-public class Accounts {
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+public class Accounts extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "login_id", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String loginId;
 
     @Column(nullable = true)
     private String password;
 
-    @Column(name = "created_at", updatable = false, insertable = false)
+    @CreatedDate
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(nullable = false)
     private String status;
 
-    @Column(name = "login_type", nullable = false)
+    @Column(nullable = false)
     private String loginType;
 
-    @Column(name = "roles", nullable = false)
+    @Column(nullable = false)
     private String roles;
-
 }

@@ -6,6 +6,7 @@ import com.edio.user.model.reponse.AccountResponse;
 import com.edio.user.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Accounts", description = "Accounts 관련 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api")
 public class AccountController {
