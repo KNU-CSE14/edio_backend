@@ -37,9 +37,6 @@ public class UserControllerTests extends BaseTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    @Autowired
-    private Validator validator;
-
     @BeforeEach
     void clearData() {
         accountRepository.deleteAll();
