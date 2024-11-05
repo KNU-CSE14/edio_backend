@@ -43,6 +43,10 @@ jobs:
 
       - name: Build and Test
         run: ./gradlew build test
+        env:
+          SPRING_DATASOURCE_URL: ${{ secrets.DB_URL }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
       - name: Make zip file
         run: zip -r $GITHUB_SHA.zip .
