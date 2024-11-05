@@ -23,7 +23,6 @@ import org.springframework.validation.Validator;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @AutoConfigureMockMvc
 @Transactional
 public class UserControllerTests extends BaseTest {
