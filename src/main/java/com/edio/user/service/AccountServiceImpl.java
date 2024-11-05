@@ -1,6 +1,7 @@
 package com.edio.user.service;
 
 import com.edio.common.exception.BaseException;
+import com.edio.common.exception.NotFoundException;
 import com.edio.user.exception.AccountNotFoundException;
 import com.edio.user.model.reponse.AccountResponse;
 import com.edio.user.repository.AccountRepository;
@@ -26,7 +27,7 @@ public class AccountServiceImpl implements AccountService{
     @Override
     public AccountResponse findOneAccount(String loginId) {
         Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
-                .orElseThrow(() -> new AccountNotFoundException(loginId));
+                .orElseThrow(() -> new NotFoundException("account", loginId));
         return AccountResponse.from(account);
     }
 }
