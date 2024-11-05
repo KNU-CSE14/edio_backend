@@ -7,8 +7,6 @@ public abstract class BaseTest {
 
     @BeforeAll
     static void setUp() throws InterruptedException {
-        Thread.sleep(30000); // 30초 대기
-
         // .env 파일 로드
         Dotenv dotenv = Dotenv.configure().load();
 

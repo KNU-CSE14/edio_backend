@@ -20,6 +20,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import org.springframework.validation.Validator;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -42,6 +46,19 @@ public class UserControllerTests extends BaseTest {
     void clearData() {
         accountRepository.deleteAll();
         memberRepository.deleteAll();
+    }
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Test
+    void testDatabaseConnection() {
+        try (Connection connection = dataSource.getConnection()) {
+            assertNotNull(connection);
+            logger.info("Database connected successfully!");
+        } catch (SQLException e) {
+            fail("Database connection failed: " + e.getMessage());
+        }
     }
 
     /*
