@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface AccountService {
     //회원 조회
     AccountResponse findOneAccount(String loginId);
+
+    AccountResponse createAccount(Accounts account);
 }
