@@ -8,9 +8,9 @@ import lombok.*;
 @Entity
 @Table(name = "members")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class Members extends BaseEntity {
 
     @Column(nullable = false)
@@ -20,13 +20,13 @@ public class Members extends BaseEntity {
     private String email;
 
     @Column(nullable = false)
-    private String fullName;
+    private String name;
 
     @Column(nullable = false)
-    private String firstName;
+    private String givenName;
 
     @Column(nullable = false)
-    private String lastName;
+    private String familyName;
 
     private String profileUrl;
 }

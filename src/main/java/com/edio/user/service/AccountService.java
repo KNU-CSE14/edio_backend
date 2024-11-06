@@ -6,8 +6,8 @@ import com.edio.user.model.reponse.AccountResponse;
 import java.util.Optional;
 
 public interface AccountService {
-    //회원 조회
+    // Account 조회
     AccountResponse findOneAccount(String loginId);
-
+    // Account 등록
     AccountResponse createAccount(Accounts account);
 }

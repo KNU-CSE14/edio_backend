@@ -1,6 +1,8 @@
 package com.edio.user.domain;
 
 import com.edio.common.domain.BaseEntity;
+import com.edio.user.domain.enums.AccountLoginType;
+import com.edio.user.domain.enums.AccountRole;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
@@ -10,9 +12,9 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "accounts")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class Accounts extends BaseEntity {
 
     @Column(nullable = false, unique = true)
@@ -21,18 +23,15 @@ public class Accounts extends BaseEntity {
     @Column(nullable = true)
     private String password;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime deletedAt;
-
     @Column(nullable = false)
-    private String status;
+    @Builder.Default
+    private boolean status = true;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String loginType;
+    private AccountLoginType loginType;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String roles;
+    private AccountRole roles;
 }

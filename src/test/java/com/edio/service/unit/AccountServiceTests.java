@@ -1,4 +1,4 @@
-package com.edio.user;
+package com.edio.service.unit;
 
 import com.edio.user.domain.Accounts;
 import com.edio.user.model.reponse.AccountResponse;
@@ -9,20 +9,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.AuditorAware;
+
 import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class UserControllerUnitTests {
+public class AccountServiceTests {
 
     @Mock
     private AccountRepository accountRepository;
-
-    @Mock
-    private AuditorAware<String> auditorAware;
 
     @InjectMocks
     private AccountServiceImpl accountService;
@@ -30,8 +27,9 @@ public class UserControllerUnitTests {
     @Test
     public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
         // given
-        Accounts account = new Accounts();
-        account.setLoginId("testUser");
+        Accounts account = Accounts.builder()
+                .loginId("testUser")
+                .build();
 
         // when
         when(accountRepository.findByLoginIdAndStatus(account.getLoginId(), "active")).thenReturn(Optional.empty());
@@ -43,6 +41,6 @@ public class UserControllerUnitTests {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.getLoginId()).isEqualTo("testUser");
+        assertThat(response.loginId()).isEqualTo("testUser");
     }
 }
