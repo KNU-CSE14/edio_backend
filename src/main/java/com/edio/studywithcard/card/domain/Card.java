@@ -7,11 +7,11 @@ import lombok.*;
 @Entity
 @Table(name = "card")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class Card extends BaseEntity {
 
-    private String title;  // 제목 필드 추가
+    private String title;
 
 }

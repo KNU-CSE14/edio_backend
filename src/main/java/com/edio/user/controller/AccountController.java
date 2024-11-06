@@ -33,7 +33,7 @@ public class AccountController {
     }
 
     @PostMapping("/account")
-    @Operation(summary = "Account 둥록", description = "Account를 등록합니다.")
+    @Operation(summary = "Account 등록", description = "Account를 등록합니다.")
     public AccountResponse createAccount(@RequestBody Accounts account){
         return accountService.createAccount(account);
     }
