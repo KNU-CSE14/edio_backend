@@ -1,13 +1,9 @@
 package com.edio.user.service;
 
-import com.edio.common.exception.BaseException;
 import com.edio.common.exception.NotFoundException;
-import com.edio.user.exception.AccountNotFoundException;
 import com.edio.user.model.reponse.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.domain.Accounts;
-import org.springframework.dao.DataAccessException;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +23,7 @@ public class AccountServiceImpl implements AccountService{
     @Override
     public AccountResponse findOneAccount(String loginId) {
         Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
-                .orElseThrow(() -> new NotFoundException("account", loginId));
+                .orElseThrow(() -> new NotFoundException(Accounts.class, loginId));
         return AccountResponse.from(account);
     }
 }
