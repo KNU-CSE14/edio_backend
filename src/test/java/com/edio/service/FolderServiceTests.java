@@ -1,4 +1,4 @@
-package com.edio.service.unit;
+package com.edio.service;
 
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
