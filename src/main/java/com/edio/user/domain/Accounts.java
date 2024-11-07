@@ -25,7 +25,7 @@ public class Accounts extends BaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean isDeleted = true;
+    private boolean isDeleted = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

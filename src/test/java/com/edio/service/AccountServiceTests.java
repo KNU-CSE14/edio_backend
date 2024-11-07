@@ -33,7 +33,7 @@ public class AccountServiceTests {
         account.setLoginId("testUser");
 
         // when
-        when(accountRepository.findByLoginIdAndIsDeleted(account.getLoginId(), true)).thenReturn(Optional.empty());
+        when(accountRepository.findByLoginIdAndIsDeleted(account.getLoginId(), false)).thenReturn(Optional.empty());
         when(accountRepository.save(any(Accounts.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
@@ -57,7 +57,7 @@ public class AccountServiceTests {
                         .loginId("testUser")
                         .build();
 
-        when(accountRepository.findByLoginIdAndIsDeleted(existingAccount.getLoginId(), true)).thenReturn(Optional.of(existingAccountEntity));
+        when(accountRepository.findByLoginIdAndIsDeleted(existingAccount.getLoginId(), false)).thenReturn(Optional.of(existingAccountEntity));
 
         // when
         AccountResponse response = accountService.createAccount(existingAccount);
