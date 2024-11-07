@@ -18,7 +18,7 @@ public class FolderResponse {
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean status;
+    private boolean isDeleted;
     private List<FolderResponse> children = new ArrayList<>(); // 초기값으로 빈 리스트 설정
 
     public static FolderResponse from(Folder folder) {
@@ -29,7 +29,7 @@ public class FolderResponse {
                 folder.getName(),
                 folder.getCreatedAt(),
                 folder.getUpdatedAt(),
-                folder.isStatus(),
+                folder.isDeleted(),
                 new ArrayList<>()
         );
     }
