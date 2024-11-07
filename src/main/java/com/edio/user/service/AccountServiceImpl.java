@@ -25,7 +25,7 @@ public class AccountServiceImpl implements AccountService{
     @Transactional(readOnly = true)
     @Override
     public AccountResponse findOneAccount(String loginId) {
-        Accounts account = accountRepository.findByLoginIdAndIsDeleted(loginId, true)
+        Accounts account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
                 .orElseThrow(() -> new NotFoundException(Accounts.class, loginId));
         return AccountResponse.from(account);
     }
@@ -36,7 +36,7 @@ public class AccountServiceImpl implements AccountService{
     @Override
     @Transactional
     public AccountResponse createAccount(AccountRequest accountRequest) {
-        Accounts savedAccount = accountRepository.findByLoginIdAndIsDeleted(accountRequest.getLoginId(), true)
+        Accounts savedAccount = accountRepository.findByLoginIdAndIsDeleted(accountRequest.getLoginId(), false)
                 .orElseGet(() -> {
                     Accounts newAccount = Accounts.builder()
                             .loginId(accountRequest.getLoginId())
