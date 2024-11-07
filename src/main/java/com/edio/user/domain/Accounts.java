@@ -1,19 +1,20 @@
 package com.edio.user.domain;
 
 import com.edio.common.domain.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.edio.user.domain.enums.AccountLoginType;
+import com.edio.user.domain.enums.AccountRole;
+import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "accounts")
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 public class Accounts extends BaseEntity {
 
     @Column(nullable = false, unique = true)
@@ -23,16 +24,14 @@ public class Accounts extends BaseEntity {
     private String password;
 
     @Column(nullable = false)
-    private boolean isDeleted = true;
+    @Builder.Default
+    private boolean isDeleted = false;
 
-    private LocalDateTime deletedAt;
-
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status;
+    private AccountLoginType loginType;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String loginType;
-
-    @Column(nullable = false)
-    private String roles;
+    private AccountRole roles;
 }
