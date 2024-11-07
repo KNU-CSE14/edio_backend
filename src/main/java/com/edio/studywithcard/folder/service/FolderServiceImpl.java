@@ -2,6 +2,7 @@ package com.edio.studywithcard.folder.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
+import com.edio.studywithcard.folder.model.request.FolderRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import org.slf4j.Logger;
@@ -31,7 +32,7 @@ public class FolderServiceImpl implements FolderService{
     @Transactional(readOnly = true)
     @Override
     public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> folders = folderRepository.findByAccountIdAndStatus(accountId, true);
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeleted(accountId, false);
 
         // 날짜 내림차순
         folders.sort((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()));
@@ -65,13 +66,13 @@ public class FolderServiceImpl implements FolderService{
      */
     @Override
     @Transactional
-    public FolderResponse createFolder(Folder folder) {
-        Folder savedFolder = folderRepository.findByAccountIdAndNameAndStatus(folder.getAccountId(), folder.getName(), true)
+    public FolderResponse createFolder(FolderRequest folderRequest) {
+        Folder savedFolder = folderRepository.findByAccountIdAndNameAndIsDeleted(folderRequest.getAccountId(), folderRequest.getName(), false)
                 .orElseGet(() -> {
                     Folder newFolder = Folder.builder()
-                            .accountId(folder.getAccountId())
-                            .parentId(folder.getParentId())
-                            .name(folder.getName())
+                            .accountId(folderRequest.getAccountId())
+                            .parentId(folderRequest.getParentId())
+                            .name(folderRequest.getName())
                             .build();
                     return folderRepository.save(newFolder);
                 });
@@ -83,11 +84,11 @@ public class FolderServiceImpl implements FolderService{
      */
     @Override
     @Transactional
-    public void updateFolder(Long id, Folder folder) {
-        Folder existingFolder = folderRepository.findByIdAndStatus(id, true)
+    public void updateFolder(Long id, FolderRequest folderRequest) {
+        Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.updateFields(folder.getName(), folder.getParentId());
+        existingFolder.updateFields(folderRequest.getName(), folderRequest.getParentId());
 
         folderRepository.save(existingFolder);
     }
@@ -98,7 +99,7 @@ public class FolderServiceImpl implements FolderService{
     @Override
     @Transactional
     public void deleteFolder(Long id) {
-        Folder existingFolder = folderRepository.findByIdAndStatus(id, true)
+        Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.deleteeFields(false);

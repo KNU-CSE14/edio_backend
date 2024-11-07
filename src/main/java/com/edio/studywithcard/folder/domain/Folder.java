@@ -24,7 +24,7 @@ public class Folder extends BaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private boolean status = true;
+    private boolean isDeleted = false;
 
     public Folder updateFields(String name, Long parentId) {
         this.name = name;
@@ -32,8 +32,8 @@ public class Folder extends BaseEntity {
         return this;
     }
 
-    public Folder deleteeFields(boolean status) {
-        this.status = status;
+    public Folder deleteeFields(boolean isDeleted) {
+        this.isDeleted = isDeleted;
         return this;
     }
 }

@@ -1,6 +1,7 @@
 package com.edio.service;
 
 import com.edio.studywithcard.folder.domain.Folder;
+import com.edio.studywithcard.folder.model.request.FolderRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.studywithcard.folder.service.FolderServiceImpl;
@@ -29,13 +30,12 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenFolderDoesNotExist_createsNewFolder() {
         // given
-        Folder folder = Folder.builder()
-                .accountId(1L)
-                .name("Test Folder")
-                .build();
+        FolderRequest folder = new FolderRequest();
+        folder.setAccountId(1L);
+        folder.setName("Test Folder");
 
         // when
-        when(folderRepository.findByAccountIdAndNameAndStatus(folder.getAccountId(), folder.getName(),true))
+        when(folderRepository.findByAccountIdAndNameAndIsDeleted(folder.getAccountId(), folder.getName(),false))
                 .thenReturn(Optional.empty());
         when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
@@ -51,16 +51,20 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenFolderExists_returnsExistingFolder() {
         // given
+        FolderRequest folder = new FolderRequest();
+        folder.setAccountId(1L);
+        folder.setName("Test Folder");
+
         Folder existingFolder = Folder.builder()
                 .accountId(1L)
                 .name("Test Folder")
                 .build();
 
-        when(folderRepository.findByAccountIdAndNameAndStatus(existingFolder.getAccountId(), existingFolder.getName(), true))
+        when(folderRepository.findByAccountIdAndNameAndIsDeleted(folder.getAccountId(), folder.getName(), false))
                 .thenReturn(Optional.of(existingFolder));
 
         // when
-        FolderResponse response = folderService.createFolder(existingFolder);
+        FolderResponse response = folderService.createFolder(folder);
 
         // then
         assertThat(response).isNotNull();
@@ -70,10 +74,9 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenNameIsNull_throwsException() {
         // given
-        Folder folder = Folder.builder()
-                .accountId(1L)
-                .name(null)
-                .build();
+        FolderRequest folder = new FolderRequest();
+        folder.setAccountId(1L);
+        folder.setName(null);
 
         // when, then
         assertThatThrownBy(() -> folderService.createFolder(folder))
@@ -84,10 +87,9 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenSaveFails_throwsException() {
         // given
-        Folder folder = Folder.builder()
-                .accountId(1L)
-                .name("Test Folder")
-                .build();
+        FolderRequest folder = new FolderRequest();
+        folder.setAccountId(1L);
+        folder.setName("Test Folder");
 
         when(folderRepository.save(any(Folder.class))).thenThrow(new RuntimeException("Database error"));
 
