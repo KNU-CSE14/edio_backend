@@ -1,8 +1,7 @@
 package com.edio.service;
 
-import com.edio.common.exception.ConflictException;
 import com.edio.user.domain.Members;
-import com.edio.user.model.request.MemberCreateRequest;
+import com.edio.user.model.request.MemberRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
 import com.edio.user.service.MemberServiceImpl;
@@ -11,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -35,7 +36,7 @@ public class MemberServiceTests {
         String familyName = "Hong";
         String profileUrl = "http://example.com/profile.jpg";
 
-        MemberCreateRequest member = new MemberCreateRequest();
+        MemberRequest member = new MemberRequest();
         member.setAccountId(1L);
         member.setEmail(email);
         member.setName(name);
@@ -44,6 +45,7 @@ public class MemberServiceTests {
         member.setProfileUrl(profileUrl);
 
         // when
+        when(memberRepository.findByAccountId(1L)).thenReturn(Optional.empty());
         when(memberRepository.save(any(Members.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
@@ -62,26 +64,36 @@ public class MemberServiceTests {
 
     // 멤버가 이미 존재할 때 기존 멤버를 반환
     @Test
-    public void createMember_whenMemberExists_throwsConflictException() {
+    public void createMember_whenMemberExists_returnsExistingMember() {
         // given
-        MemberCreateRequest existingMember = new MemberCreateRequest();
+        MemberRequest existingMember = new MemberRequest();
         existingMember.setAccountId(1L);
         existingMember.setEmail("test@example.com");
 
-        // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Members.class))).thenThrow(new ConflictException(Members.class, existingMember.getAccountId()));
+        //entity
+        Members existingMemberEntity = Members.builder()
+                .accountId(1L)
+                .email("test@example.com")
+                .name("Hong gildong")
+                .build();
 
-        // when & then: ConflictException 발생을 기대함
-        assertThatThrownBy(() -> memberService.createMember(existingMember))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("1"); // accountId가 포함된 메시지를 기대
+        when(memberRepository.findByAccountId(1L)).thenReturn(Optional.of(existingMemberEntity));
+
+        // when
+        MemberResponse response = memberService.createMember(existingMember);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.accountId()).isEqualTo(1L);
+        assertThat(response.email()).isEqualTo("test@example.com");
+        assertThat(response.name()).isEqualTo("Hong gildong");
     }
 
     // 잘못된 데이터로 요청이 들어온 경우 예외 발생
     @Test
     public void createMember_whenEmailIsNull_throwsException() {
         // given
-        MemberCreateRequest member = new MemberCreateRequest();
+        MemberRequest member = new MemberRequest();
         member.setAccountId(1L);
         member.setEmail(null);
 
@@ -95,7 +107,7 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenSaveFails_throwsException() {
         // given
-        MemberCreateRequest member = new MemberCreateRequest();
+        MemberRequest member = new MemberRequest();
         member.setAccountId(1L);
         member.setEmail("test@example.com");
 

@@ -1,11 +1,9 @@
 package com.edio.user.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
-import com.edio.user.domain.Accounts;
 import com.edio.user.domain.Members;
-import com.edio.user.model.reponse.AccountResponse;
-import com.edio.user.model.reponse.MemberResponse;
-import com.edio.user.service.AccountService;
+import com.edio.user.model.request.MemberRequest;
+import com.edio.user.model.response.MemberResponse;
 import com.edio.user.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -34,7 +32,7 @@ public class MemberController {
 
     @PostMapping("/member")
     @Operation(summary = "Member 등록", description = "Member를 등록합니다.")
-    public MemberResponse createAccount(@RequestBody Members member){
-        return memberService.createMember(member);
+    public MemberResponse createAccount(@RequestBody MemberRequest memberRequest){
+        return memberService.createMember(memberRequest);
     }
 }
