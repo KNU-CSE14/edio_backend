@@ -1,9 +1,6 @@
-package com.edio.user.model.reponse;
+package com.edio.user.model.response;
 
-import com.edio.user.domain.Accounts;
 import com.edio.user.domain.Members;
-import com.edio.user.domain.enums.AccountLoginType;
-import com.edio.user.domain.enums.AccountRole;
 
 import java.time.LocalDateTime;
 

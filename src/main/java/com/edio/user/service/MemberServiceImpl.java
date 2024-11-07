@@ -2,7 +2,8 @@ package com.edio.user.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.user.domain.Members;
-import com.edio.user.model.reponse.MemberResponse;
+import com.edio.user.model.request.MemberRequest;
+import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,16 +33,16 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     @Transactional
-    public MemberResponse createMember(Members member) {
-        Members savedMember = memberRepository.findByAccountId(member.getAccountId())
+    public MemberResponse createMember(MemberRequest memberRequest) {
+        Members savedMember = memberRepository.findByAccountId(memberRequest.getAccountId())
                 .orElseGet(() -> {
                     Members newMember = Members.builder()
-                            .accountId(member.getAccountId())
-                            .email(member.getEmail())
-                            .name(member.getName())
-                            .givenName(member.getGivenName())
-                            .familyName(member.getFamilyName())
-                            .profileUrl(member.getProfileUrl())
+                            .accountId(memberRequest.getAccountId())
+                            .email(memberRequest.getEmail())
+                            .name(memberRequest.getName())
+                            .givenName(memberRequest.getGivenName())
+                            .familyName(memberRequest.getFamilyName())
+                            .profileUrl(memberRequest.getProfileUrl())
                             .build();
                     return memberRepository.save(newMember);
                 });

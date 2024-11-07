@@ -1,4 +1,4 @@
-package com.edio.user.model.reponse;
+package com.edio.user.model.response;
 
 import com.edio.user.domain.Accounts;
 import com.edio.user.domain.enums.AccountLoginType;
@@ -12,7 +12,7 @@ public record AccountResponse(
     String password,
     LocalDateTime createdAt,
     LocalDateTime updateAt,
-    boolean status,
+    boolean isDeleted,
     AccountLoginType loginType,
     AccountRole roles
 ){
@@ -23,7 +23,7 @@ public record AccountResponse(
                 account.getPassword(),
                 account.getCreatedAt(),
                 account.getUpdatedAt(),
-                account.isStatus(),
+                account.isDeleted(),
                 account.getLoginType(),
                 account.getRoles()
         );

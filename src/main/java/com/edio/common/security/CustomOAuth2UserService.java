@@ -40,7 +40,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String familyName = oAuth2User.getAttribute("family_name"); // OAuth2 공급자가 제공하는 last name
         String profileUrl = oAuth2User.getAttribute("picture"); // 프로필 사진 URL
 
-        Accounts account = accountRepository.findByLoginIdAndStatus(email, true)
+        Accounts account = accountRepository.findByLoginIdAndIsDeleted(email, true)
                 .orElseGet(() -> {
                     // 계정 생성
                     Accounts newAccount = Accounts.builder()

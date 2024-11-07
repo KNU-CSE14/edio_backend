@@ -1,7 +1,8 @@
-package com.edio.service.unit;
+package com.edio.service;
 
 import com.edio.user.domain.Accounts;
-import com.edio.user.model.reponse.AccountResponse;
+import com.edio.user.model.request.AccountRequest;
+import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.service.AccountServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -28,12 +29,11 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
         // given
-        Accounts account = Accounts.builder()
-                .loginId("testUser")
-                .build();
+        AccountRequest account = new AccountRequest();
+        account.setLoginId("testUser");
 
         // when
-        when(accountRepository.findByLoginIdAndStatus(account.getLoginId(), true)).thenReturn(Optional.empty());
+        when(accountRepository.findByLoginIdAndIsDeleted(account.getLoginId(), true)).thenReturn(Optional.empty());
         when(accountRepository.save(any(Accounts.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
@@ -49,11 +49,15 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountExists_returnsExistingAccount() {
         // given
-        Accounts existingAccount = Accounts.builder()
-                .loginId("testUser")
-                .build();
+        AccountRequest existingAccount = new AccountRequest();
+        existingAccount.setLoginId("testUser");
 
-        when(accountRepository.findByLoginIdAndStatus(existingAccount.getLoginId(), true)).thenReturn(Optional.of(existingAccount));
+        // given: Accounts 엔티티 생성
+        Accounts existingAccountEntity = Accounts.builder()
+                        .loginId("testUser")
+                        .build();
+
+        when(accountRepository.findByLoginIdAndIsDeleted(existingAccount.getLoginId(), true)).thenReturn(Optional.of(existingAccountEntity));
 
         // when
         AccountResponse response = accountService.createAccount(existingAccount);
@@ -67,9 +71,8 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        Accounts account = Accounts.builder()
-                .loginId(null)
-                .build();
+        AccountRequest account = new AccountRequest();
+        account.setLoginId(null);
 
         // when, then
         assertThatThrownBy(() -> accountService.createAccount(account))
@@ -81,9 +84,8 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenSaveFails_throwsException() {
         // given
-        Accounts account = Accounts.builder()
-                .loginId("testUser")
-                .build();
+        AccountRequest account = new AccountRequest();
+        account.setLoginId("testUser");
 
         when(accountRepository.save(any(Accounts.class))).thenThrow(new RuntimeException("Database error"));
 
