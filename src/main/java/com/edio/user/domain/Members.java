@@ -1,35 +1,32 @@
 package com.edio.user.domain;
 
 
+import com.edio.common.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Table(name = "members")
 @Getter
-@Setter
-public class Members {
+@NoArgsConstructor(access = AccessLevel.PUBLIC)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+public class Members extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "account_id", nullable = false)
+    @Column(nullable = false)
     private Long accountId;
 
     @Column(nullable = false)
     private String email;
 
-    @Column(name = "full_name", nullable = false)
-    private String fullName;
+    @Column(nullable = false)
+    private String name;
 
-    @Column(name = "first_name", nullable = false)
-    private String firstName;
+    @Column(nullable = false)
+    private String givenName;
 
-    @Column(name = "last_name", nullable = false)
-    private String lastName;
+    @Column(nullable = false)
+    private String familyName;
 
-    @Column(name = "profile_url")
     private String profileUrl;
 }

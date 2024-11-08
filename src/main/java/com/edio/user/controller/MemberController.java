@@ -1,0 +1,37 @@
+package com.edio.user.controller;
+
+import com.edio.common.model.response.SwaggerCommonResponses;
+import com.edio.user.model.request.MemberCreateRequest;
+import com.edio.user.model.response.MemberResponse;
+import com.edio.user.service.MemberService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.web.bind.annotation.*;
+
+@Tag(name = "Members", description = "Members 관련 API")
+@SecurityRequirement(name = "bearerAuth")
+@SwaggerCommonResponses
+@RestController
+@RequestMapping("/api")
+public class MemberController {
+
+    private final MemberService memberService;
+
+    public MemberController(MemberService memberService) {
+        this.memberService = memberService;
+    }
+
+    @GetMapping("/member")
+    @Operation(summary = "Member 정보 조회", description = "Member 정보를 조회합니다.")
+    public MemberResponse getMember(@Parameter(required = true, description = "사용자 아이디") long accountId){
+        return memberService.findOneMember(accountId);
+    }
+
+    @PostMapping("/member")
+    @Operation(summary = "Member 등록", description = "Member를 등록합니다.")
+    public MemberResponse createAccount(@RequestBody MemberCreateRequest memberCreateRequest){
+        return memberService.createMember(memberCreateRequest);
+    }
+}
