@@ -83,7 +83,7 @@ public class JwtTokenProvider {
         }
 
         // 토큰에서 loginId 추출
-        String loginId = claims.getSubject();  // 일반적으로 subject는 사용자의 고유 식별자로 설정됩니다.
+        String loginId = claims.get("loginId", String.class);
 
         // DB에서 사용자 정보 조회
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
@@ -92,8 +92,6 @@ public class JwtTokenProvider {
         Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
-
-//        UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
 
