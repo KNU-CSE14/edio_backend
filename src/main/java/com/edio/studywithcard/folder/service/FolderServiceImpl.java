@@ -93,9 +93,8 @@ public class FolderServiceImpl implements FolderService{
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.updateFields(folderUpdateRequest.getName(), folderUpdateRequest.getParentId());
-
-        folderRepository.save(existingFolder);
+        existingFolder.setName(folderUpdateRequest.getName());
+        existingFolder.setParentId(folderUpdateRequest.getParentId());
     }
 
     /*
@@ -107,8 +106,6 @@ public class FolderServiceImpl implements FolderService{
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.deleteFields(false);
-
-        folderRepository.save(existingFolder);
+        existingFolder.setDeleted(true);
     }
 }
