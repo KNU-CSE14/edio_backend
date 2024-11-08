@@ -1,8 +1,11 @@
+<<<<<<<< HEAD:src/test/java/com/edio/user/UserControllerUnitTests.java
+package com.edio.user;
+========
 package com.edio.service;
+>>>>>>>> 20dcb44 (feat: JPA, Test, 테이블 등 리뷰 사항 반영):src/test/java/com/edio/service/AccountServiceTests.java
 
-import com.edio.common.exception.ConflictException;
 import com.edio.user.domain.Accounts;
-import com.edio.user.model.request.AccountCreateRequest;
+import com.edio.user.model.request.AccountRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.service.AccountServiceImpl;
@@ -11,17 +14,21 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
+import org.springframework.data.domain.AuditorAware;
+import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AccountServiceTests {
+public class UserControllerUnitTests {
 
     @Mock
     private AccountRepository accountRepository;
+
+    @Mock
+    private AuditorAware<String> auditorAware;
 
     @InjectMocks
     private AccountServiceImpl accountService;
@@ -29,10 +36,15 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
         // given
-        AccountCreateRequest account = new AccountCreateRequest();
+<<<<<<<< HEAD:src/test/java/com/edio/user/UserControllerUnitTests.java
+        Accounts account = new Accounts();
+========
+        AccountRequest account = new AccountRequest();
+>>>>>>>> 20dcb44 (feat: JPA, Test, 테이블 등 리뷰 사항 반영):src/test/java/com/edio/service/AccountServiceTests.java
         account.setLoginId("testUser");
 
         // when
+        when(accountRepository.findByLoginIdAndIsDeleted(account.getLoginId(), false)).thenReturn(Optional.empty());
         when(accountRepository.save(any(Accounts.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
@@ -41,29 +53,36 @@ public class AccountServiceTests {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.loginId()).isEqualTo("testUser");
+        assertThat(response.getLoginId()).isEqualTo("testUser");
     }
 
+    // 계정이 이미 존재할 때 기존 계정을 반환
     @Test
-    public void createAccount_whenAccountExists_throwsConflictException() {
+    public void createAccount_whenAccountExists_returnsExistingAccount() {
         // given
-        AccountCreateRequest existingAccount = new AccountCreateRequest();
+        AccountRequest existingAccount = new AccountRequest();
         existingAccount.setLoginId("testUser");
 
-        // save 호출 시 DataIntegrityViolationException 발생하도록 설정
-        when(accountRepository.save(any(Accounts.class))).thenThrow(new ConflictException(Accounts.class, existingAccount.getLoginId()));
+        // given: Accounts 엔티티 생성
+        Accounts existingAccountEntity = Accounts.builder()
+                        .loginId("testUser")
+                        .build();
 
-        // when & then: ConflictException 발생을 기대함
-        assertThatThrownBy(() -> accountService.createAccount(existingAccount))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("testUser");
+        when(accountRepository.findByLoginIdAndIsDeleted(existingAccount.getLoginId(), false)).thenReturn(Optional.of(existingAccountEntity));
+
+        // when
+        AccountResponse response = accountService.createAccount(existingAccount);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.loginId()).isEqualTo("testUser");
     }
 
     // 잘못된 데이터로 요청이 들어온 경우 예외 발생
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        AccountCreateRequest account = new AccountCreateRequest();
+        AccountRequest account = new AccountRequest();
         account.setLoginId(null);
 
         // when, then
@@ -76,7 +95,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenSaveFails_throwsException() {
         // given
-        AccountCreateRequest account = new AccountCreateRequest();
+        AccountRequest account = new AccountRequest();
         account.setLoginId("testUser");
 
         when(accountRepository.save(any(Accounts.class))).thenThrow(new RuntimeException("Database error"));
