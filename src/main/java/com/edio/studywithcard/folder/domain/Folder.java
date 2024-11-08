@@ -32,7 +32,7 @@ public class Folder extends BaseEntity {
         return this;
     }
 
-    public Folder deleteeFields(boolean isDeleted) {
+    public Folder deleteFields(boolean isDeleted) {
         this.isDeleted = isDeleted;
         return this;
     }

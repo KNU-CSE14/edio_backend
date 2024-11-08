@@ -8,6 +8,6 @@ import java.util.Optional;
 
 public interface FolderRepository extends JpaRepository<Folder, Long> {
     Optional<Folder> findByAccountIdAndNameAndIsDeleted(Long accountId, String name, boolean isDeleted);
-    List<Folder> findByAccountIdAndIsDeleted(Long accountId, boolean isDeleted);
+    List<Folder> findAllAccountIdAndIsDeleted(Long accountId, boolean isDeleted);
     Optional<Folder> findByIdAndIsDeleted(Long id, boolean isDeleted);
 }
