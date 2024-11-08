@@ -1,0 +1,14 @@
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: edio
+      MYSQL_USER: manager
+      MYSQL_PASSWORD: manager0
+      MYSQL_ROOT_PASSWORD: manager0
+      TZ: Asia/Seoul
+    volumes:
+      - ./db/init/conf.d:/etc/mysql/conf.d
+      - ./db/init/init.d:/docker-entrypoint-initdb.d
