@@ -1,8 +1,8 @@
 package com.edio.studywithcard.folder.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
-import com.edio.studywithcard.folder.domain.Folder;
-import com.edio.studywithcard.folder.model.request.FolderRequest;
+import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
+import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,14 +34,14 @@ public class FolderController {
 
     @PostMapping("/folder")
     @Operation(summary = "Folder 등록", description = "Folder를 등록합니다.")
-    public FolderResponse createFolder(@RequestBody FolderRequest folderRequest){
-        return folderService.createFolder(folderRequest);
+    public FolderResponse createFolder(@RequestBody FolderCreateRequest folderCreateRequest){
+        return folderService.createFolder(folderCreateRequest);
     }
 
     @PutMapping("/folder/{id}")
     @Operation(summary = "Folder명 수정", description = "Folder명을 수정합니다.")
-    public void updateFolder(@PathVariable Long id, @RequestBody FolderRequest folderRequest) {
-        folderService.updateFolder(id, folderRequest);
+    public void updateFolder(@PathVariable Long id, @RequestBody FolderUpdateRequest folderUpdateRequest) {
+        folderService.updateFolder(id, folderUpdateRequest);
     }
 
     @DeleteMapping("/folder/{id}")
