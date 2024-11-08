@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
-        Accounts account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
+        Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
                 .orElseThrow(() -> new NotFoundException(Accounts.class, loginId));
 
         // 권한이 단일한 경우 처리 (ROLE_USER와 같은 하나의 역할을 가정)
