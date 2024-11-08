@@ -1,7 +1,8 @@
 package com.edio.service;
 
+import com.edio.common.exception.ConflictException;
 import com.edio.user.domain.Accounts;
-import com.edio.user.model.request.AccountRequest;
+import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.service.AccountServiceImpl;
@@ -11,7 +12,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -29,11 +29,10 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
         // given
-        AccountRequest account = new AccountRequest();
+        AccountCreateRequest account = new AccountCreateRequest();
         account.setLoginId("testUser");
 
         // when
-        when(accountRepository.findByLoginIdAndIsDeleted(account.getLoginId(), false)).thenReturn(Optional.empty());
         when(accountRepository.save(any(Accounts.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
@@ -45,33 +44,26 @@ public class AccountServiceTests {
         assertThat(response.loginId()).isEqualTo("testUser");
     }
 
-    // 계정이 이미 존재할 때 기존 계정을 반환
     @Test
-    public void createAccount_whenAccountExists_returnsExistingAccount() {
+    public void createAccount_whenAccountExists_throwsConflictException() {
         // given
-        AccountRequest existingAccount = new AccountRequest();
+        AccountCreateRequest existingAccount = new AccountCreateRequest();
         existingAccount.setLoginId("testUser");
 
-        // given: Accounts 엔티티 생성
-        Accounts existingAccountEntity = Accounts.builder()
-                        .loginId("testUser")
-                        .build();
+        // save 호출 시 DataIntegrityViolationException 발생하도록 설정
+        when(accountRepository.save(any(Accounts.class))).thenThrow(new ConflictException(Accounts.class, existingAccount.getLoginId()));
 
-        when(accountRepository.findByLoginIdAndIsDeleted(existingAccount.getLoginId(), false)).thenReturn(Optional.of(existingAccountEntity));
-
-        // when
-        AccountResponse response = accountService.createAccount(existingAccount);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.loginId()).isEqualTo("testUser");
+        // when & then: ConflictException 발생을 기대함
+        assertThatThrownBy(() -> accountService.createAccount(existingAccount))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("testUser");
     }
 
     // 잘못된 데이터로 요청이 들어온 경우 예외 발생
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        AccountRequest account = new AccountRequest();
+        AccountCreateRequest account = new AccountCreateRequest();
         account.setLoginId(null);
 
         // when, then
@@ -84,7 +76,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenSaveFails_throwsException() {
         // given
-        AccountRequest account = new AccountRequest();
+        AccountCreateRequest account = new AccountCreateRequest();
         account.setLoginId("testUser");
 
         when(accountRepository.save(any(Accounts.class))).thenThrow(new RuntimeException("Database error"));

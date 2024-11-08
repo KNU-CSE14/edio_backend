@@ -1,10 +1,12 @@
 package com.edio.user.service;
 
+import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
 import com.edio.user.domain.Members;
-import com.edio.user.model.request.MemberRequest;
+import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,19 +35,20 @@ public class MemberServiceImpl implements MemberService {
      */
     @Override
     @Transactional
-    public MemberResponse createMember(MemberRequest memberRequest) {
-        Members savedMember = memberRepository.findByAccountId(memberRequest.getAccountId())
-                .orElseGet(() -> {
-                    Members newMember = Members.builder()
-                            .accountId(memberRequest.getAccountId())
-                            .email(memberRequest.getEmail())
-                            .name(memberRequest.getName())
-                            .givenName(memberRequest.getGivenName())
-                            .familyName(memberRequest.getFamilyName())
-                            .profileUrl(memberRequest.getProfileUrl())
-                            .build();
-                    return memberRepository.save(newMember);
-                });
-        return MemberResponse.from(savedMember);
+    public MemberResponse createMember(MemberCreateRequest memberCreateRequest) {
+        try{
+            Members newMember = Members.builder()
+                    .accountId(memberCreateRequest.getAccountId())
+                    .email(memberCreateRequest.getEmail())
+                    .name(memberCreateRequest.getName())
+                    .givenName(memberCreateRequest.getGivenName())
+                    .familyName(memberCreateRequest.getFamilyName())
+                    .profileUrl(memberCreateRequest.getProfileUrl())
+                    .build();
+            Members savedMember = memberRepository.save(newMember);
+            return MemberResponse.from(savedMember);
+        }catch (DataIntegrityViolationException e){
+            throw new ConflictException(Members.class,  memberCreateRequest.getAccountId());
+        }
     }
 }

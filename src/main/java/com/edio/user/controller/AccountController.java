@@ -1,8 +1,7 @@
 package com.edio.user.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
-import com.edio.user.domain.Accounts;
-import com.edio.user.model.request.AccountRequest;
+import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,8 +31,8 @@ public class AccountController {
 
     @PostMapping("/account")
     @Operation(summary = "Account 등록", description = "Account를 등록합니다.")
-    public AccountResponse createAccount(@RequestBody AccountRequest accountRequest){
-        return accountService.createAccount(accountRequest);
+    public AccountResponse createAccount(@RequestBody AccountCreateRequest accountCreateRequest){
+        return accountService.createAccount(accountCreateRequest);
     }
 
 }
