@@ -11,29 +11,23 @@ import lombok.*;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder(toBuilder = true)
+@Builder
 public class Folder extends BaseEntity {
 
     @Column(nullable = false)
     private Long accountId;
 
+    @Setter
     private Long parentId;
 
     @Column(nullable = false)
+    @Setter
     private String name;
 
     @Column(nullable = false)
+    @Setter
     @Builder.Default
     private boolean isDeleted = false;
 
-    public Folder updateFields(String name, Long parentId) {
-        this.name = name;
-        this.parentId = parentId;
-        return this;
-    }
 
-    public Folder deleteFields(boolean isDeleted) {
-        this.isDeleted = isDeleted;
-        return this;
-    }
 }
