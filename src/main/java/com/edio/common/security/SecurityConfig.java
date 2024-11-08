@@ -4,12 +4,9 @@ import com.edio.common.security.jwt.JwtAuthenticationFilter;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -25,17 +22,11 @@ import org.springframework.security.web.SecurityFilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
-
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -66,7 +57,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
-                            logger.info("로그인 성공!");
+                            log.info("로그인 성공!");
                             OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
                             JwtToken jwtToken = jwtTokenProvider.createToken(auth);
 
@@ -89,7 +80,7 @@ public class SecurityConfig {
                             response.addCookie(accessTokenCookie);
                             response.addCookie(refreshTokenCookie);
 
-                            logger.info("jwt 성공!");
+                            log.info("jwt 성공!");
 //                          response.sendRedirect("http://localhost:3000/oauth2/redirect");
                         })
                 )

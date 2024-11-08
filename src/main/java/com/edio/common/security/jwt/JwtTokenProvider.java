@@ -5,8 +5,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -29,8 +27,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 public class JwtTokenProvider {
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final Key key;
 
@@ -105,14 +101,14 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            logger.info("Expired JWT Token", e);
+            log.info("Expired JWT Token", e);
             return false;  // 만료된 토큰인 경우
         } catch (SecurityException | MalformedJwtException e) {
-            logger.info("Invalid JWT Token", e);
+            log.info("Invalid JWT Token", e);
         } catch (UnsupportedJwtException e) {
-            logger.info("Unsupported JWT Token", e);
+            log.info("Unsupported JWT Token", e);
         } catch (IllegalArgumentException e) {
-            logger.info("JWT claims string is empty.", e);
+            log.info("JWT claims string is empty.", e);
         }
         return false;
     }
