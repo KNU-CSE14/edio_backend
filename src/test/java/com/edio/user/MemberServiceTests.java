@@ -1,8 +1,7 @@
-package com.edio.service;
+package com.edio.service.unit;
 
 import com.edio.user.domain.Members;
-import com.edio.user.model.request.MemberRequest;
-import com.edio.user.model.response.MemberResponse;
+import com.edio.user.model.reponse.MemberResponse;
 import com.edio.user.repository.MemberRepository;
 import com.edio.user.service.MemberServiceImpl;
 import org.junit.jupiter.api.Test;
@@ -36,13 +35,14 @@ public class MemberServiceTests {
         String familyName = "Hong";
         String profileUrl = "http://example.com/profile.jpg";
 
-        MemberRequest member = new MemberRequest();
-        member.setAccountId(1L);
-        member.setEmail(email);
-        member.setName(name);
-        member.setGivenName(givenName);
-        member.setFamilyName(familyName);
-        member.setProfileUrl(profileUrl);
+        Members member = Members.builder()
+                .accountId(1L)
+                .email(email)
+                .name(name)
+                .givenName(givenName)
+                .familyName(familyName)
+                .profileUrl(profileUrl)
+                .build();
 
         // when
         when(memberRepository.findByAccountId(1L)).thenReturn(Optional.empty());
@@ -66,18 +66,13 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenMemberExists_returnsExistingMember() {
         // given
-        MemberRequest existingMember = new MemberRequest();
-        existingMember.setAccountId(1L);
-        existingMember.setEmail("test@example.com");
-
-        //entity
-        Members existingMemberEntity = Members.builder()
+        Members existingMember = Members.builder()
                 .accountId(1L)
                 .email("test@example.com")
                 .name("Hong gildong")
                 .build();
 
-        when(memberRepository.findByAccountId(1L)).thenReturn(Optional.of(existingMemberEntity));
+        when(memberRepository.findByAccountId(1L)).thenReturn(Optional.of(existingMember));
 
         // when
         MemberResponse response = memberService.createMember(existingMember);
@@ -93,9 +88,10 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenEmailIsNull_throwsException() {
         // given
-        MemberRequest member = new MemberRequest();
-        member.setAccountId(1L);
-        member.setEmail(null);
+        Members member = Members.builder()
+                .accountId(1L)
+                .email(null)
+                .build();
 
         // when, then
         assertThatThrownBy(() -> memberService.createMember(member))
@@ -107,9 +103,10 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenSaveFails_throwsException() {
         // given
-        MemberRequest member = new MemberRequest();
-        member.setAccountId(1L);
-        member.setEmail("test@example.com");
+        Members member = Members.builder()
+                .accountId(1L)
+                .email("test@example.com")
+                .build();
 
         when(memberRepository.save(any(Members.class))).thenThrow(new RuntimeException("Database error"));
 

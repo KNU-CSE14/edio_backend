@@ -1,17 +1,14 @@
 package com.edio.user.service;
 
 import com.edio.common.exception.NotFoundException;
-import com.edio.user.domain.enums.AccountLoginType;
-import com.edio.user.domain.enums.AccountRole;
-import com.edio.user.model.request.AccountRequest;
-import com.edio.user.model.response.AccountResponse;
-import com.edio.user.repository.AccountRepository;
 import com.edio.user.domain.Accounts;
+import com.edio.user.model.reponse.AccountResponse;
+import com.edio.user.repository.AccountRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class AccountServiceImpl implements AccountService{
+public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
 
@@ -25,7 +22,7 @@ public class AccountServiceImpl implements AccountService{
     @Transactional(readOnly = true)
     @Override
     public AccountResponse findOneAccount(String loginId) {
-        Accounts account = accountRepository.findByLoginIdAndIsDeleted(loginId, true)
+        Accounts account = accountRepository.findByLoginIdAndStatus(loginId, "active")
                 .orElseThrow(() -> new NotFoundException(Accounts.class, loginId));
         return AccountResponse.from(account);
     }
@@ -34,15 +31,17 @@ public class AccountServiceImpl implements AccountService{
         Account 등록
      */
     @Override
-    @Transactional
-    public AccountResponse createAccount(AccountRequest accountRequest) {
-        Accounts savedAccount = accountRepository.findByLoginIdAndIsDeleted(accountRequest.getLoginId(), true)
+    public AccountResponse createAccount(Accounts account) {
+        Accounts savedAccount = accountRepository.findByLoginIdAndStatus(account.getLoginId(), "active")
                 .orElseGet(() -> {
-                    Accounts newAccount = Accounts.builder()
-                            .loginId(accountRequest.getLoginId())
-                            .loginType(AccountLoginType.GOOGLE) // 기본값을 사용하지 않고 명시적으로 설정
-                            .roles(AccountRole.ROLE_USER) // 기본값을 사용하지 않고 명시적으로 설정
-                            .build();
+                    // 계정 생성
+                    Accounts newAccount = new Accounts();
+                    newAccount.setLoginId(account.getLoginId());
+                    newAccount.setPassword(null);
+                    newAccount.setDeletedAt(null);
+                    newAccount.setStatus("active");
+                    newAccount.setLoginType("google");
+                    newAccount.setRoles("ROLE_USER");
                     return accountRepository.save(newAccount);
                 });
         return AccountResponse.from(savedAccount);
