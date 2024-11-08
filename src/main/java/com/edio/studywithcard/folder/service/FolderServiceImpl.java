@@ -2,11 +2,13 @@ package com.edio.studywithcard.folder.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
-import com.edio.studywithcard.folder.model.request.FolderRequest;
+import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
+import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,17 +68,19 @@ public class FolderServiceImpl implements FolderService{
      */
     @Override
     @Transactional
-    public FolderResponse createFolder(FolderRequest folderRequest) {
-        Folder savedFolder = folderRepository.findByAccountIdAndNameAndIsDeleted(folderRequest.getAccountId(), folderRequest.getName(), false)
-                .orElseGet(() -> {
-                    Folder newFolder = Folder.builder()
-                            .accountId(folderRequest.getAccountId())
-                            .parentId(folderRequest.getParentId())
-                            .name(folderRequest.getName())
-                            .build();
-                    return folderRepository.save(newFolder);
-                });
-        return FolderResponse.from(savedFolder);
+    public FolderResponse createFolder(FolderCreateRequest folderCreateRequest) {
+        try {
+            Folder newFolder = Folder.builder()
+                    .accountId(folderCreateRequest.getAccountId())
+                    .parentId(folderCreateRequest.getParentId())
+                    .name(folderCreateRequest.getName())
+                    .build();
+            Folder savedFolder = folderRepository.save(newFolder);
+            return FolderResponse.from(savedFolder);
+        } catch (DataIntegrityViolationException e) {
+            // 폴더가 중복될 경우 ConflictException 발생
+            throw new ConflictException(Folder.class, folderCreateRequest.getName());
+        }
     }
 
     /*
@@ -84,11 +88,11 @@ public class FolderServiceImpl implements FolderService{
      */
     @Override
     @Transactional
-    public void updateFolder(Long id, FolderRequest folderRequest) {
+    public void updateFolder(Long id, FolderUpdateRequest folderUpdateRequest) {
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.updateFields(folderRequest.getName(), folderRequest.getParentId());
+        existingFolder.updateFields(folderUpdateRequest.getName(), folderUpdateRequest.getParentId());
 
         folderRepository.save(existingFolder);
     }

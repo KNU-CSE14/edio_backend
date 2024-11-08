@@ -1,7 +1,7 @@
 package com.edio.service;
 
 import com.edio.studywithcard.folder.domain.Folder;
-import com.edio.studywithcard.folder.model.request.FolderRequest;
+import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.studywithcard.folder.service.FolderServiceImpl;
@@ -30,7 +30,7 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenFolderDoesNotExist_createsNewFolder() {
         // given
-        FolderRequest folder = new FolderRequest();
+        FolderCreateRequest folder = new FolderCreateRequest();
         folder.setAccountId(1L);
         folder.setName("Test Folder");
 
@@ -51,7 +51,7 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenFolderExists_returnsExistingFolder() {
         // given
-        FolderRequest folder = new FolderRequest();
+        FolderCreateRequest folder = new FolderCreateRequest();
         folder.setAccountId(1L);
         folder.setName("Test Folder");
 
@@ -74,7 +74,7 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenNameIsNull_throwsException() {
         // given
-        FolderRequest folder = new FolderRequest();
+        FolderCreateRequest folder = new FolderCreateRequest();
         folder.setAccountId(1L);
         folder.setName(null);
 
@@ -87,7 +87,7 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenSaveFails_throwsException() {
         // given
-        FolderRequest folder = new FolderRequest();
+        FolderCreateRequest folder = new FolderCreateRequest();
         folder.setAccountId(1L);
         folder.setName("Test Folder");
 
