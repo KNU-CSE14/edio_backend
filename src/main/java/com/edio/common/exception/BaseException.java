@@ -11,8 +11,7 @@ public class BaseException extends RuntimeException{
     private String detailMessage;
 
     public BaseException(HttpStatus status, String message){
-//        fillInStackTrace();
-        super(message);  // RuntimeException의 메시지 필드 설정
+        fillInStackTrace();
         this.status = status;
         this.isSuccess = false;
         this.detailMessage = message;

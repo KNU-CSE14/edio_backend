@@ -8,7 +8,6 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -25,8 +24,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // permitAll()로 설정된 엔드포인트인지 확인하는 메서드
     private boolean isPermitAllEndpoint(String requestURI) {
-        return  requestURI.startsWith("/api/account") ||
-                requestURI.startsWith("/api/auth") ||
+        return  requestURI.startsWith("/api/auth") ||
                 requestURI.startsWith("/swagger-ui") ||
                 requestURI.startsWith("/v3/api-docs");
     }

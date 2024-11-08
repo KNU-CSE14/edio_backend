@@ -4,7 +4,9 @@ import com.edio.common.security.jwt.JwtAuthenticationFilter;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,11 +24,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-@Slf4j
+import java.util.Arrays;
+
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -41,12 +49,11 @@ public class SecurityConfig {
         http
                 .httpBasic(AbstractHttpConfigurer::disable) // Json을 통한 로그인 진행으로 refresh 토큰 만료 전까지 토큰 인증
                 .formLogin(AbstractHttpConfigurer::disable) // Json을 통한 로그인 진행으로 refresh 토큰 만료 전까지 토큰 인증
-                .csrf(AbstractHttpConfigurer::disable)
 //              .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 활성화
 			    .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(
-                                "/api/account",
+                                "/api/auth/refresh",
                                 "/oauth2/authorization/google",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
@@ -57,7 +64,7 @@ public class SecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                         .successHandler((request, response, authentication) -> {
-                            log.info("로그인 성공!");
+                            logger.info("로그인 성공!");
                             OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
                             JwtToken jwtToken = jwtTokenProvider.createToken(auth);
 
@@ -80,7 +87,7 @@ public class SecurityConfig {
                             response.addCookie(accessTokenCookie);
                             response.addCookie(refreshTokenCookie);
 
-                            log.info("jwt 성공!");
+                            logger.info("jwt 성공!");
 //                          response.sendRedirect("http://localhost:3000/oauth2/redirect");
                         })
                 )

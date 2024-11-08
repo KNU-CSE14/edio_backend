@@ -15,17 +15,17 @@ import org.springframework.context.annotation.Configuration;
         info = @Info(
                 title = "Edio API",
                 version = "1.0",
-                description = "Edio API Documents<br><br>" +
-                        "토큰 발급: http://ec2-43-203-169-54.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/google"
-        ),
-        security = @SecurityRequirement(name = "bearerAuth")
+                description = "Edio API Documents"
+        )
+// Header Token 설정
+//        security = @SecurityRequirement(name = "bearerAuth")
 )
-@SecurityScheme(
-        name = "bearerAuth",
-        type = SecuritySchemeType.HTTP,
-        scheme = "bearer",
-        bearerFormat = "JWT"
-)
+//@SecurityScheme(
+//        name = "bearerAuth",
+//        type = SecuritySchemeType.HTTP,
+//        scheme = "bearer",
+//        bearerFormat = "JWT"
+//)
 
 public class SwaggerConfig {
 }

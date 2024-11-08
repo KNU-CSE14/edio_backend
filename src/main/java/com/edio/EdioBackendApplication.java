@@ -1,15 +1,16 @@
 package com.edio;
 
 import io.github.cdimascio.dotenv.Dotenv;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.context.annotation.Bean;
 
-@Slf4j
-@EnableJpaAuditing  // JPA Auditing 활성화
 @SpringBootApplication
 public class EdioBackendApplication {
+	private static final Logger logger = LoggerFactory.getLogger(EdioBackendApplication.class);
 
 	public static void main(String[] args) {
 		// .env 파일 로드
