@@ -38,7 +38,7 @@ public class FolderController {
         return folderService.createFolder(folderCreateRequest);
     }
 
-    @PutMapping("/folder/{id}")
+    @PatchMapping("/folder/{id}")
     @Operation(summary = "Folder명 수정", description = "Folder명을 수정합니다.")
     public void updateFolder(@PathVariable Long id, @RequestBody FolderUpdateRequest folderUpdateRequest) {
         folderService.updateFolder(id, folderUpdateRequest);

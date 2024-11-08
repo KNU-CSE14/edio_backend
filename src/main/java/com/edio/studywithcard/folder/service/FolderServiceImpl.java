@@ -1,26 +1,26 @@
 package com.edio.studywithcard.folder.service;
 
+import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class FolderServiceImpl implements FolderService{
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private final FolderRepository folderRepository;
 
@@ -34,14 +34,16 @@ public class FolderServiceImpl implements FolderService{
     @Transactional(readOnly = true)
     @Override
     public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> folders = folderRepository.findByAccountIdAndIsDeleted(accountId, false);
+        List<Folder> folders = folderRepository.findAllAccountIdAndIsDeleted(accountId, false);
 
-        // 날짜 내림차순
-        folders.sort((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt()));
-
-        // Folder ID를 기준으로 FolderResponse를 매핑
         Map<Long, FolderResponse> folderMap = folders.stream()
-                .collect(Collectors.toMap(Folder::getId, FolderResponse::from));
+                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+                .collect(Collectors.toMap(
+                        Folder::getId,
+                        FolderResponse::from,
+                        (existing, replacement) -> existing,
+                        LinkedHashMap::new
+                ));
 
         // 최상위 폴더들을 저장할 리스트
         List<FolderResponse> rootFolders = new ArrayList<>();
@@ -78,7 +80,6 @@ public class FolderServiceImpl implements FolderService{
             Folder savedFolder = folderRepository.save(newFolder);
             return FolderResponse.from(savedFolder);
         } catch (DataIntegrityViolationException e) {
-            // 폴더가 중복될 경우 ConflictException 발생
             throw new ConflictException(Folder.class, folderCreateRequest.getName());
         }
     }
@@ -106,7 +107,7 @@ public class FolderServiceImpl implements FolderService{
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.deleteeFields(false);
+        existingFolder.deleteFields(false);
 
         folderRepository.save(existingFolder);
     }
