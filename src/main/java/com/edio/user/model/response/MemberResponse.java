@@ -1,6 +1,6 @@
 package com.edio.user.model.response;
 
-import com.edio.user.domain.Members;
+import com.edio.user.domain.Member;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,7 @@ public record MemberResponse(
         LocalDateTime createdAt,
         LocalDateTime updateAt
 ){
-    public static MemberResponse from(Members member) {
+    public static MemberResponse from(Member member) {
         return new MemberResponse(
                 member.getId(),
                 member.getAccountId(),

@@ -1,7 +1,7 @@
 package com.edio.service;
 
 import com.edio.common.exception.ConflictException;
-import com.edio.user.domain.Members;
+import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
@@ -44,7 +44,7 @@ public class MemberServiceTests {
         member.setProfileUrl(profileUrl);
 
         // when
-        when(memberRepository.save(any(Members.class))).thenAnswer(invocation -> {
+        when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
 
@@ -69,7 +69,7 @@ public class MemberServiceTests {
         existingMember.setEmail("test@example.com");
 
         // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Members.class))).thenThrow(new ConflictException(Members.class, existingMember.getAccountId()));
+        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getAccountId()));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> memberService.createMember(existingMember))
@@ -99,7 +99,7 @@ public class MemberServiceTests {
         member.setAccountId(1L);
         member.setEmail("test@example.com");
 
-        when(memberRepository.save(any(Members.class))).thenThrow(new RuntimeException("Database error"));
+        when(memberRepository.save(any(Member.class))).thenThrow(new RuntimeException("Database error"));
 
         // when, then
         assertThatThrownBy(() -> memberService.createMember(member))

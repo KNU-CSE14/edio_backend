@@ -1,6 +1,6 @@
 package com.edio.user.model.response;
 
-import com.edio.user.domain.Accounts;
+import com.edio.user.domain.Account;
 import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
 
@@ -16,7 +16,7 @@ public record AccountResponse(
     AccountLoginType loginType,
     AccountRole roles
 ){
-    public static AccountResponse from(Accounts account) {
+    public static AccountResponse from(Account account) {
         return new AccountResponse(
                 account.getId(),
                 account.getLoginId(),

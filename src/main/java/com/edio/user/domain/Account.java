@@ -5,17 +5,14 @@ import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-
-import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "accounts")
+@Table(name = "account")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-public class Accounts extends BaseEntity {
+public class Account extends BaseEntity {
 
     @Column(nullable = false, unique = true)
     private String loginId;
