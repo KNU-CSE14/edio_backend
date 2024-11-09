@@ -1,7 +1,7 @@
 package com.edio.service;
 
 import com.edio.common.exception.ConflictException;
-import com.edio.user.domain.Accounts;
+import com.edio.user.domain.Account;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
@@ -33,7 +33,7 @@ public class AccountServiceTests {
         account.setLoginId("testUser");
 
         // when
-        when(accountRepository.save(any(Accounts.class))).thenAnswer(invocation -> {
+        when(accountRepository.save(any(Account.class))).thenAnswer(invocation -> {
             return invocation.getArgument(0);
         });
 
@@ -51,7 +51,7 @@ public class AccountServiceTests {
         existingAccount.setLoginId("testUser");
 
         // save 호출 시 DataIntegrityViolationException 발생하도록 설정
-        when(accountRepository.save(any(Accounts.class))).thenThrow(new ConflictException(Accounts.class, existingAccount.getLoginId()));
+        when(accountRepository.save(any(Account.class))).thenThrow(new ConflictException(Account.class, existingAccount.getLoginId()));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> accountService.createAccount(existingAccount))
@@ -79,7 +79,7 @@ public class AccountServiceTests {
         AccountCreateRequest account = new AccountCreateRequest();
         account.setLoginId("testUser");
 
-        when(accountRepository.save(any(Accounts.class))).thenThrow(new RuntimeException("Database error"));
+        when(accountRepository.save(any(Account.class))).thenThrow(new RuntimeException("Database error"));
 
         // when, then
         assertThatThrownBy(() -> accountService.createAccount(account))

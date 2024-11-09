@@ -7,7 +7,7 @@ import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
-import com.edio.user.domain.Accounts;
+import com.edio.user.domain.Account;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,8 +27,8 @@ public class AccountServiceImpl implements AccountService{
     @Transactional(readOnly = true)
     @Override
     public AccountResponse findOneAccount(String loginId) {
-        Accounts account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new NotFoundException(Accounts.class, loginId));
+        Account account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
+                .orElseThrow(() -> new NotFoundException(Account.class, loginId));
         return AccountResponse.from(account);
     }
 
@@ -39,15 +39,15 @@ public class AccountServiceImpl implements AccountService{
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest accountCreateRequest) {
         try{
-            Accounts newAccount = Accounts.builder()
+            Account newAccount = Account.builder()
                     .loginId(accountCreateRequest.getLoginId())
                     .loginType(AccountLoginType.GOOGLE) // 기본값을 사용하지 않고 명시적으로 설정
                     .roles(AccountRole.ROLE_USER) // 기본값을 사용하지 않고 명시적으로 설정
                     .build();
-            Accounts savedAccount = accountRepository.save(newAccount);
+            Account savedAccount = accountRepository.save(newAccount);
             return AccountResponse.from(savedAccount);
         }catch (DataIntegrityViolationException e){
-            throw new ConflictException(Accounts.class, accountCreateRequest.getLoginId());
+            throw new ConflictException(Account.class, accountCreateRequest.getLoginId());
         }
     }
 }

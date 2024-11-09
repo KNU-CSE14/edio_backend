@@ -2,7 +2,7 @@ package com.edio.user.service;
 
 import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
-import com.edio.user.domain.Members;
+import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
@@ -25,8 +25,8 @@ public class MemberServiceImpl implements MemberService {
     @Transactional(readOnly = true)
     @Override
     public MemberResponse findOneMember(long accountId) {
-        Members member = memberRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new NotFoundException(Members.class, accountId));
+        Member member = memberRepository.findByAccountId(accountId)
+                .orElseThrow(() -> new NotFoundException(Member.class, accountId));
         return MemberResponse.from(member);
     }
 
@@ -37,7 +37,7 @@ public class MemberServiceImpl implements MemberService {
     @Transactional
     public MemberResponse createMember(MemberCreateRequest memberCreateRequest) {
         try{
-            Members newMember = Members.builder()
+            Member newMember = Member.builder()
                     .accountId(memberCreateRequest.getAccountId())
                     .email(memberCreateRequest.getEmail())
                     .name(memberCreateRequest.getName())
@@ -45,10 +45,10 @@ public class MemberServiceImpl implements MemberService {
                     .familyName(memberCreateRequest.getFamilyName())
                     .profileUrl(memberCreateRequest.getProfileUrl())
                     .build();
-            Members savedMember = memberRepository.save(newMember);
+            Member savedMember = memberRepository.save(newMember);
             return MemberResponse.from(savedMember);
         }catch (DataIntegrityViolationException e){
-            throw new ConflictException(Members.class,  memberCreateRequest.getAccountId());
+            throw new ConflictException(Member.class,  memberCreateRequest.getAccountId());
         }
     }
 }
