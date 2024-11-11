@@ -3,7 +3,8 @@ package com.edio.common.security;
 import com.edio.common.security.jwt.JwtAuthenticationFilter;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
-
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,9 +19,6 @@ import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationC
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.web.SecurityFilterChain;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Slf4j
@@ -43,51 +41,54 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable) // Json을 통한 로그인 진행으로 refresh 토큰 만료 전까지 토큰 인증
                 .csrf(AbstractHttpConfigurer::disable)
 //              .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 활성화
-			    .cors(AbstractHttpConfigurer::disable)
+                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(
                                 "/api/account",
                                 "/oauth2/authorization/google",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
-                                ).permitAll()
+                        ).permitAll()
                         .requestMatchers("/api/card/**").hasRole("USER")
+                        .requestMatchers("/api/folder/**", "/api/folder").hasRole("USER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler((request, response, authentication) -> {
-                            log.info("로그인 성공!");
-                            OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
-                            JwtToken jwtToken = jwtTokenProvider.createToken(auth);
+                                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                                .successHandler((request, response, authentication) -> {
+                                    log.info("로그인 성공!");
+                                    OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
+                                    JwtToken jwtToken = jwtTokenProvider.createToken(auth);
 
-                            String accessToken = jwtToken.getAccessToken();
-                            String refreshToken = jwtToken.getRefreshToken();
+                                    String accessToken = jwtToken.getAccessToken();
+                                    String refreshToken = jwtToken.getRefreshToken();
 
-                            // 쿠키 생성 및 설정
-                            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-                            accessTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가하게 설정
-                            accessTokenCookie.setSecure(false); // HTTP에서도 쿠키 전송 가능하게 설정
-                            accessTokenCookie.setPath("/"); // 쿠키의 경로 설정
-                            accessTokenCookie.setMaxAge(3600); // 쿠키 유효 기간 (1시간)
+                                    // 쿠키 생성 및 설정
+                                    Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+                                    accessTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가하게 설정
+                                    accessTokenCookie.setSecure(false); // HTTP에서도 쿠키 전송 가능하게 설정
+                                    accessTokenCookie.setPath("/"); // 쿠키의 경로 설정
+                                    accessTokenCookie.setMaxAge(3600); // 쿠키 유효 기간 (1시간)
 
-                            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-                            refreshTokenCookie.setHttpOnly(true);
-                            refreshTokenCookie.setSecure(false);
-                            refreshTokenCookie.setPath("/");
-                            refreshTokenCookie.setMaxAge(86400); // 쿠키 유효 기간 (1일)
+                                    Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+                                    refreshTokenCookie.setHttpOnly(true);
+                                    refreshTokenCookie.setSecure(false);
+                                    refreshTokenCookie.setPath("/");
+                                    refreshTokenCookie.setMaxAge(86400); // 쿠키 유효 기간 (1일)
 
-                            response.addCookie(accessTokenCookie);
-                            response.addCookie(refreshTokenCookie);
+                                    response.addCookie(accessTokenCookie);
+                                    response.addCookie(refreshTokenCookie);
 
-                            log.info("jwt 성공!");
+                                    log.info("jwt 성공!");
 //                          response.sendRedirect("http://localhost:3000/oauth2/redirect");
-                        })
+                                })
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint((request, response, authException) -> {
-                            // 인증되지 않은 요청에 대해 401 응답
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        })
+                        .accessDeniedHandler((request, response, accessDeniedException) -> {
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                         })
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)

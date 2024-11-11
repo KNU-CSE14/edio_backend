@@ -8,9 +8,9 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -25,7 +25,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // permitAll()로 설정된 엔드포인트인지 확인하는 메서드
     private boolean isPermitAllEndpoint(String requestURI) {
-        return  requestURI.startsWith("/api/account") ||
+        return requestURI.startsWith("/api/account") ||
                 requestURI.startsWith("/api/auth") ||
                 requestURI.startsWith("/swagger-ui") ||
                 requestURI.startsWith("/v3/api-docs");
@@ -95,7 +95,13 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
             return;
+        } catch (UsernameNotFoundException e) {
+            logger.info(e.getMessage());
+            SecurityContextHolder.clearContext();
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
+            return;
         }
+
         chain.doFilter(request, response);
     }
 

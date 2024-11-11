@@ -78,10 +78,6 @@ public class JwtTokenProvider {
         // Jwt 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
-        if (claims.get("auth") == null) {
-            throw new RuntimeException("권한 정보가 없는 토큰입니다.");
-        }
-
         // 토큰에서 loginId 추출
         String loginId = claims.get("loginId", String.class);
 

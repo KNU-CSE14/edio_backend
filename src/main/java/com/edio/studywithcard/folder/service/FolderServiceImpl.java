@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-public class FolderServiceImpl implements FolderService{
+public class FolderServiceImpl implements FolderService {
 
     private final FolderRepository folderRepository;
 
@@ -34,7 +34,7 @@ public class FolderServiceImpl implements FolderService{
     @Transactional(readOnly = true)
     @Override
     public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> folders = folderRepository.findAllAccountIdAndIsDeleted(accountId, false);
+        List<Folder> folders = folderRepository.findAllByAccountIdAndIsDeleted(accountId, false);
 
         Map<Long, FolderResponse> folderMap = folders.stream()
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
