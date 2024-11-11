@@ -1,5 +1,6 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.exception.NotFoundException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -10,7 +11,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
@@ -95,7 +95,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
             return;
-        } catch (UsernameNotFoundException e) {
+        } catch (NotFoundException e) {
             logger.info(e.getMessage());
             SecurityContextHolder.clearContext();
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
