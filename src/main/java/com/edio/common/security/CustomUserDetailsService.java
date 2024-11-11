@@ -1,8 +1,8 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.NotFoundException;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import java.util.Collection;
 import java.util.Collections;
 
+@Slf4j
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -25,7 +26,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Account account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new NotFoundException(Account.class, loginId));
+                .orElseThrow(() -> new UsernameNotFoundException("Account not found: " + loginId));
 
         // 권한이 단일한 경우 처리 (ROLE_USER와 같은 하나의 역할을 가정)
         GrantedAuthority authority = new SimpleGrantedAuthority(account.getRoles().name());
