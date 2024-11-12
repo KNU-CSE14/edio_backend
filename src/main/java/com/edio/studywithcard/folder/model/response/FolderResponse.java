@@ -20,10 +20,10 @@ public class FolderResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     //    private boolean isDeleted;
-    private List<FolderResponse> children = new ArrayList<>();
+    private List<FolderResponse> childrenFolders = new ArrayList<>();
 
     public static FolderResponse from(Folder folder) {
-        List<FolderResponse> childrenResponses = folder.getChildren().stream()
+        List<FolderResponse> childrenResponses = folder.getChildrenFolders().stream()
                 .filter(child -> !child.isDeleted())
                 .map(FolderResponse::from) // 재귀적으로 Folder -> FolderResponse 변환
                 .collect(Collectors.toList());
@@ -31,7 +31,7 @@ public class FolderResponse {
         return new FolderResponse(
                 folder.getId(),
 //                folder.getAccountId(),
-                folder.getParent() != null ? folder.getParent().getId() : null,
+                folder.getParentFolder() != null ? folder.getParentFolder().getId() : null,
                 folder.getName(),
                 folder.getCreatedAt(),
                 folder.getUpdatedAt(),

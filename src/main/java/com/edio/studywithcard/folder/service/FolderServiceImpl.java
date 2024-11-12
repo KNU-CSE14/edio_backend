@@ -31,7 +31,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional(readOnly = true)
     @Override
     public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentIsNullAndIsDeleted(accountId, false);
+        List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false);
 
         return rootFolders.stream()
                 .map(this::convertToFolderResponse)
@@ -41,12 +41,12 @@ public class FolderServiceImpl implements FolderService {
 
     private FolderResponse convertToFolderResponse(Folder folder) {
         FolderResponse folderResponse = FolderResponse.from(folder);
-        List<FolderResponse> children = folder.getChildren().stream()
+        List<FolderResponse> children = folder.getChildrenFolders().stream()
                 .filter(child -> !child.isDeleted())
                 .map(this::convertToFolderResponse)
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
                 .collect(Collectors.toList());
-        folderResponse.setChildren(children);
+        folderResponse.setChildrenFolders(children);
         return folderResponse;
     }
 
@@ -66,7 +66,7 @@ public class FolderServiceImpl implements FolderService {
 
             Folder newFolder = Folder.builder()
                     .accountId(folderCreateRequest.getAccountId())
-                    .parent(parentFolder) // 부모 폴더 설정
+                    .parentFolder(parentFolder) // 부모 폴더 설정
                     .name(folderCreateRequest.getName())
                     .build();
             Folder savedFolder = folderRepository.save(newFolder);
@@ -97,7 +97,7 @@ public class FolderServiceImpl implements FolderService {
         }
 
         // 부모 폴더 설정
-        existingFolder.setParent(newParentFolder);
+        existingFolder.setParentFolder(newParentFolder);
     }
 
     /*

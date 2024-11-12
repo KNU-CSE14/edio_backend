@@ -63,8 +63,8 @@ public class FolderServiceTests {
         Folder existingFolder = Folder.builder()
                 .accountId(1L)
                 .name("Test Folder")
-                .parent(null) // 최상위 폴더
-                .children(new ArrayList<>()) // 자식 폴더 리스트 초기화
+                .parentFolder(null) // 최상위 폴더
+                .childrenFolders(new ArrayList<>()) // 자식 폴더 리스트 초기화
                 .build();
 
         // Mock 리턴 설정 - ID 수동 설정 추가
@@ -140,7 +140,7 @@ public class FolderServiceTests {
 
         // then
         assertThat(existingFolder.getName()).isEqualTo("Updated Folder Name");
-        assertThat(existingFolder.getParent()).isEqualTo(newParentFolder);
+        assertThat(existingFolder.getParentFolder()).isEqualTo(newParentFolder);
     }
 
     @Test
@@ -154,7 +154,7 @@ public class FolderServiceTests {
         Folder existingFolder = Folder.builder()
                 .accountId(1L)
                 .name("Old Folder Name")
-                .parent(Folder.builder().name("Old Parent Folder").build()) // 기존 부모 폴더 설정
+                .parentFolder(Folder.builder().name("Old Parent Folder").build()) // 기존 부모 폴더 설정
                 .build();
         ReflectionTestUtils.setField(existingFolder, "id", folderId);
 
@@ -165,7 +165,7 @@ public class FolderServiceTests {
 
         // then
         assertThat(existingFolder.getName()).isEqualTo("Updated Folder Name");
-        assertThat(existingFolder.getParent()).isNull();
+        assertThat(existingFolder.getParentFolder()).isNull();
     }
 
     @Test
@@ -243,14 +243,14 @@ public class FolderServiceTests {
         Folder childFolder = Folder.builder()
                 .accountId(accountId)
                 .name("Child Folder")
-                .parent(rootFolder)
+                .parentFolder(rootFolder)
                 .isDeleted(false)
                 .build();
         ReflectionTestUtils.setField(childFolder, "id", 2L);
-        rootFolder.getChildren().add(childFolder);
+        rootFolder.getChildrenFolders().add(childFolder);
 
         List<Folder> rootFolders = List.of(rootFolder);
-        when(folderRepository.findAllByAccountIdAndParentIsNullAndIsDeleted(accountId, false)).thenReturn(rootFolders);
+        when(folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false)).thenReturn(rootFolders);
 
         // when
         List<FolderResponse> response = folderService.findOneFolder(accountId);
@@ -259,7 +259,7 @@ public class FolderServiceTests {
         assertThat(response).isNotNull();
         assertThat(response.size()).isEqualTo(1);
         assertThat(response.get(0).getName()).isEqualTo("Root Folder");
-        assertThat(response.get(0).getChildren().size()).isEqualTo(1);
-        assertThat(response.get(0).getChildren().get(0).getName()).isEqualTo("Child Folder");
+        assertThat(response.get(0).getChildrenFolders().size()).isEqualTo(1);
+        assertThat(response.get(0).getChildrenFolders().get(0).getName()).isEqualTo("Child Folder");
     }
 }

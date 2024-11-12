@@ -20,11 +20,11 @@ public class Folder extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
-    private Folder parent;
+    private Folder parentFolder;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Folder> children = new ArrayList<>();
+    private List<Folder> childrenFolders = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter
@@ -36,10 +36,10 @@ public class Folder extends BaseEntity {
     private boolean isDeleted = false;
 
     // 부모 폴더 설정(부모 <-> 자식 양방향)
-    public void setParent(Folder parent) {
-        this.parent = parent;
-        if (parent != null) {
-            parent.getChildren().add(this);
+    public void setParentFolder(Folder parentFolder) {
+        this.parentFolder = parentFolder;
+        if (parentFolder != null) {
+            parentFolder.getChildrenFolders().add(this);
         }
     }
 
