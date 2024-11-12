@@ -36,6 +36,7 @@ jobs:
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> ./.env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> ./.env
           echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ./.env
+          echo "SPRING_PROFILES_ACTIVE=${{ secrets.SPRING_PROFILES_ACTIVE }}" >> ./.env
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
