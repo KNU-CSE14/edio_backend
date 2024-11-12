@@ -14,12 +14,12 @@ import java.util.stream.Collectors;
 @Setter
 public class FolderResponse {
     private Long id;
-    private Long accountId;
+    //    private Long accountId;
     private Long parentId;
     private String name;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private boolean isDeleted;
+    //    private boolean isDeleted;
     private List<FolderResponse> children = new ArrayList<>();
 
     public static FolderResponse from(Folder folder) {
@@ -30,12 +30,12 @@ public class FolderResponse {
 
         return new FolderResponse(
                 folder.getId(),
-                folder.getAccountId(),
+//                folder.getAccountId(),
                 folder.getParent() != null ? folder.getParent().getId() : null,
                 folder.getName(),
                 folder.getCreatedAt(),
                 folder.getUpdatedAt(),
-                folder.isDeleted(),
+//                folder.isDeleted(),
                 childrenResponses
         );
     }
