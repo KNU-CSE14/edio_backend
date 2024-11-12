@@ -1,10 +1,11 @@
 package com.edio.studywithcard.folder.domain;
 
 import com.edio.common.domain.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "folder")
@@ -17,8 +18,13 @@ public class Folder extends BaseEntity {
     @Column(nullable = false)
     private Long accountId;
 
-    @Setter
-    private Long parentId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Folder parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Folder> children = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter
@@ -29,5 +35,12 @@ public class Folder extends BaseEntity {
     @Builder.Default
     private boolean isDeleted = false;
 
+    // 부모 폴더 설정(부모 <-> 자식 양방향)
+    public void setParent(Folder parent) {
+        this.parent = parent;
+        if (parent != null) {
+            parent.getChildren().add(this);
+        }
+    }
 
 }
