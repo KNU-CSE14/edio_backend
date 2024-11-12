@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,18 +20,23 @@ public class FolderResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private boolean isDeleted;
-    private List<FolderResponse> children = new ArrayList<>(); // 초기값으로 빈 리스트 설정
+    private List<FolderResponse> children = new ArrayList<>();
 
     public static FolderResponse from(Folder folder) {
+        List<FolderResponse> childrenResponses = folder.getChildren().stream()
+                .filter(child -> !child.isDeleted())
+                .map(FolderResponse::from) // 재귀적으로 Folder -> FolderResponse 변환
+                .collect(Collectors.toList());
+
         return new FolderResponse(
                 folder.getId(),
                 folder.getAccountId(),
-                folder.getParentId(),
+                folder.getParent() != null ? folder.getParent().getId() : null,
                 folder.getName(),
                 folder.getCreatedAt(),
                 folder.getUpdatedAt(),
                 folder.isDeleted(),
-                new ArrayList<>()
+                childrenResponses
         );
     }
 }

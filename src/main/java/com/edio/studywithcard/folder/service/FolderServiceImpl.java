@@ -12,10 +12,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,40 +26,28 @@ public class FolderServiceImpl implements FolderService {
     }
 
     /*
-       Folder 조회
-    */
+        Folder 조회
+     */
     @Transactional(readOnly = true)
     @Override
     public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> folders = folderRepository.findAllByAccountIdAndIsDeleted(accountId, false);
+        List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentIsNullAndIsDeleted(accountId, false);
 
-        Map<Long, FolderResponse> folderMap = folders.stream()
+        return rootFolders.stream()
+                .map(this::convertToFolderResponse)
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
-                .collect(Collectors.toMap(
-                        Folder::getId,
-                        FolderResponse::from,
-                        (existing, replacement) -> existing,
-                        LinkedHashMap::new
-                ));
+                .collect(Collectors.toList());
+    }
 
-        // 최상위 폴더들을 저장할 리스트
-        List<FolderResponse> rootFolders = new ArrayList<>();
-
-        // 폴더 계층 구조를 구성
-        for (Folder folder : folders) {
-            FolderResponse folderResponse = folderMap.get(folder.getId());
-            if (folder.getParentId() == null) {
-                // 최상위 폴더인 경우
-                rootFolders.add(folderResponse);
-            } else {
-                // 하위 폴더인 경우, 부모 폴더의 children 리스트에 추가
-                FolderResponse parentFolder = folderMap.get(folder.getParentId());
-                if (parentFolder != null) {
-                    parentFolder.getChildren().add(folderResponse); // children 리스트에 추가
-                }
-            }
-        }
-        return rootFolders;
+    private FolderResponse convertToFolderResponse(Folder folder) {
+        FolderResponse folderResponse = FolderResponse.from(folder);
+        List<FolderResponse> children = folder.getChildren().stream()
+                .filter(child -> !child.isDeleted())
+                .map(this::convertToFolderResponse)
+                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+                .collect(Collectors.toList());
+        folderResponse.setChildren(children);
+        return folderResponse;
     }
 
     /*
@@ -72,9 +57,16 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public FolderResponse createFolder(FolderCreateRequest folderCreateRequest) {
         try {
+            // 부모 폴더 설정
+            Folder parentFolder = null;
+            if (folderCreateRequest.getParentId() != null) {
+                parentFolder = folderRepository.findById(folderCreateRequest.getParentId())
+                        .orElseThrow(() -> new NotFoundException(Folder.class, folderCreateRequest.getParentId()));
+            }
+
             Folder newFolder = Folder.builder()
                     .accountId(folderCreateRequest.getAccountId())
-                    .parentId(folderCreateRequest.getParentId())
+                    .parent(parentFolder) // 부모 폴더 설정
                     .name(folderCreateRequest.getName())
                     .build();
             Folder savedFolder = folderRepository.save(newFolder);
@@ -90,11 +82,22 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional
     public void updateFolder(Long id, FolderUpdateRequest folderUpdateRequest) {
+        // 폴더명 업데이트
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.setName(folderUpdateRequest.getName());
-        existingFolder.setParentId(folderUpdateRequest.getParentId());
+
+        // 부모 폴더 업데이트
+        Folder newParentFolder = null;
+        if (folderUpdateRequest.getParentId() != null) {
+            // 부모 폴더가 존재하는 경우 새로운 부모 폴더 조회
+            newParentFolder = folderRepository.findById(folderUpdateRequest.getParentId())
+                    .orElseThrow(() -> new NotFoundException(Folder.class, folderUpdateRequest.getParentId()));
+        }
+
+        // 부모 폴더 설정
+        existingFolder.setParent(newParentFolder);
     }
 
     /*
