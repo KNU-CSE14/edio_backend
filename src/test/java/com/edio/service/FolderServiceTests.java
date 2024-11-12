@@ -10,8 +10,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.Optional;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -33,13 +34,10 @@ public class FolderServiceTests {
         FolderCreateRequest folder = new FolderCreateRequest();
         folder.setAccountId(1L);
         folder.setName("Test Folder");
+        folder.setParentId(null); // 최상위 폴더로 설정
 
         // when
-        when(folderRepository.findByAccountIdAndNameAndIsDeleted(folder.getAccountId(), folder.getName(),false))
-                .thenReturn(Optional.empty());
-        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> {
-            return invocation.getArgument(0);
-        });
+        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         FolderResponse response = folderService.createFolder(folder);
 
@@ -51,20 +49,26 @@ public class FolderServiceTests {
     @Test
     public void createFolder_whenFolderExists_returnsExistingFolder() {
         // given
-        FolderCreateRequest folder = new FolderCreateRequest();
-        folder.setAccountId(1L);
-        folder.setName("Test Folder");
+        FolderCreateRequest folderRequest = new FolderCreateRequest();
+        folderRequest.setAccountId(1L);
+        folderRequest.setName("Test Folder");
+        folderRequest.setParentId(null); // 최상위 폴더로 설정
 
         Folder existingFolder = Folder.builder()
                 .accountId(1L)
                 .name("Test Folder")
+                .parent(null) // 최상위 폴더
+                .children(new ArrayList<>()) // 자식 폴더 리스트 초기화
                 .build();
 
-        when(folderRepository.findByAccountIdAndNameAndIsDeleted(folder.getAccountId(), folder.getName(), false))
-                .thenReturn(Optional.of(existingFolder));
+        // Mock 리턴 설정 - ID 수동 설정 추가
+        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> {
+            Folder folder = invocation.getArgument(0);
+            ReflectionTestUtils.setField(folder, "id", 1L); // `ReflectionTestUtils`를 사용해 필드를 강제로 설정
+            return folder;
+        });
 
-        // when
-        FolderResponse response = folderService.createFolder(folder);
+        FolderResponse response = folderService.createFolder(folderRequest);
 
         // then
         assertThat(response).isNotNull();
