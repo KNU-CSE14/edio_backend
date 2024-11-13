@@ -1,5 +1,6 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -10,7 +11,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -24,12 +24,12 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider {
 
-    private final UserDetailsService userDetailsService;
+    private final CustomUserDetailsService userDetailsService;
 
     private final Key key;
 
     // application.properties에서 secret 값 가져와서 key에 저장
-    public JwtTokenProvider(UserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
         this.userDetailsService = userDetailsService;
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);

@@ -6,6 +6,8 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.studywithcard.folder.service.FolderServiceImpl;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,6 +33,9 @@ public class FolderServiceTests {
 
     @InjectMocks
     private FolderServiceImpl folderService;
+
+    @Mock
+    private EntityManager entityManager;
 
     /*
         CREATE
@@ -133,7 +139,7 @@ public class FolderServiceTests {
         ReflectionTestUtils.setField(newParentFolder, "id", 2L);
 
         when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
-        when(folderRepository.findById(updateRequest.getParentId())).thenReturn(Optional.of(newParentFolder));
+        when(entityManager.getReference(Folder.class, updateRequest.getParentId())).thenReturn(newParentFolder); // EntityManager 모의 객체 설정
 
         // when
         folderService.updateFolder(folderId, updateRequest);
@@ -183,7 +189,9 @@ public class FolderServiceTests {
         ReflectionTestUtils.setField(existingFolder, "id", folderId);
 
         when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
-        when(folderRepository.findById(updateRequest.getParentId())).thenReturn(Optional.empty());
+        doThrow(new EntityNotFoundException("Folder not found"))
+                .when(entityManager).getReference(Folder.class, updateRequest.getParentId());
+
 
         // when, then
         assertThatThrownBy(() -> folderService.updateFolder(folderId, updateRequest))

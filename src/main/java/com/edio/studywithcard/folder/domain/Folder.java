@@ -37,6 +37,11 @@ public class Folder extends BaseEntity {
 
     // 부모 폴더 설정(부모 <-> 자식 양방향)
     public void setParentFolder(Folder parentFolder) {
+        // 기존 부모 폴더에서 이 폴더를 제거
+        if (this.parentFolder != null) {
+            this.parentFolder.getChildrenFolders().remove(this);
+        }
+        // 새로운 부모 폴더 설정
         this.parentFolder = parentFolder;
         if (parentFolder != null) {
             parentFolder.getChildrenFolders().add(this);

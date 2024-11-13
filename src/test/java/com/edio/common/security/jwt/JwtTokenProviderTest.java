@@ -1,5 +1,6 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.security.CustomUserDetailsService;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -10,7 +11,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.util.Collections;
 
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.*;
 class JwtTokenProviderTest {
 
     @Mock
-    private UserDetailsService userDetailsService;
+    private CustomUserDetailsService userDetailsService;
 
     private JwtTokenProvider jwtTokenProvider;
 
