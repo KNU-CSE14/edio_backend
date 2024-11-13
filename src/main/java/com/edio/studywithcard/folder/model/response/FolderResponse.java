@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,24 +24,18 @@ public class FolderResponse {
     private List<FolderResponse> childrenFolders = new ArrayList<>();
 
     public static FolderResponse from(Folder folder) {
-//        List<FolderResponse> childrenResponses = folder.getChildrenFolders().stream()
-//                .filter(child -> !child.isDeleted())
-//                .map(FolderResponse::from) // 재귀적으로 Folder -> FolderResponse 변환
-//                .collect(Collectors.toList());
         List<FolderResponse> childrenResponses = folder.getChildrenFolders().stream()
                 .filter(child -> !child.isDeleted()) // 삭제되지 않은 자식 필터링
                 .map(FolderResponse::from) // 재귀적으로 Folder -> FolderResponse 변환
-                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+                .sorted(Comparator.comparing(FolderResponse::getUpdatedAt).reversed())
                 .collect(Collectors.toList());
 
         return new FolderResponse(
                 folder.getId(),
-//                folder.getAccountId(),
                 folder.getParentFolder() != null ? folder.getParentFolder().getId() : null,
                 folder.getName(),
                 folder.getCreatedAt(),
                 folder.getUpdatedAt(),
-//                folder.isDeleted(),
                 childrenResponses
         );
     }

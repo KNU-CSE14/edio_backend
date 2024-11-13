@@ -7,23 +7,25 @@ import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import jakarta.persistence.EntityManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class FolderServiceImpl implements FolderService {
 
-    private final FolderRepository folderRepository;
+    private final EntityManager entityManager;
 
-    public FolderServiceImpl(FolderRepository folderRepository) {
-        this.folderRepository = folderRepository;
-    }
+    private final FolderRepository folderRepository;
 
     /*
         Folder 조회
@@ -33,26 +35,11 @@ public class FolderServiceImpl implements FolderService {
     public List<FolderResponse> findOneFolder(Long accountId) {
         List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false);
 
-//        return rootFolders.stream()
-//                .map(this::convertToFolderResponse)
-//                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
-//                .collect(Collectors.toList());
         return rootFolders.stream()
                 .map(FolderResponse::from)
-                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+                .sorted(Comparator.comparing(FolderResponse::getUpdatedAt).reversed())
                 .collect(Collectors.toList());
     }
-
-//    private FolderResponse convertToFolderResponse(Folder folder) {
-//        FolderResponse folderResponse = FolderResponse.from(folder);
-//        List<FolderResponse> children = folder.getChildrenFolders().stream()
-//                .filter(child -> !child.isDeleted())
-//                .map(this::convertToFolderResponse)
-//                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
-//                .collect(Collectors.toList());
-//        folderResponse.setChildrenFolders(children);
-//        return folderResponse;
-//    }
 
     /*
         Folder 등록
@@ -64,8 +51,7 @@ public class FolderServiceImpl implements FolderService {
             // 부모 폴더 설정
             Folder parentFolder = null;
             if (folderCreateRequest.getParentId() != null) {
-                parentFolder = folderRepository.findById(folderCreateRequest.getParentId())
-                        .orElseThrow(() -> new NotFoundException(Folder.class, folderCreateRequest.getParentId()));
+                parentFolder = entityManager.getReference(Folder.class, folderCreateRequest.getParentId());
             }
 
             Folder newFolder = Folder.builder()
@@ -96,8 +82,7 @@ public class FolderServiceImpl implements FolderService {
         Folder newParentFolder = null;
         if (folderUpdateRequest.getParentId() != null) {
             // 부모 폴더가 존재하는 경우 새로운 부모 폴더 조회
-            newParentFolder = folderRepository.findById(folderUpdateRequest.getParentId())
-                    .orElseThrow(() -> new NotFoundException(Folder.class, folderUpdateRequest.getParentId()));
+            newParentFolder = entityManager.getReference(Folder.class, folderUpdateRequest.getParentId());
         }
 
         // 부모 폴더 설정
