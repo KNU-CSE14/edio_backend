@@ -22,6 +22,11 @@ import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResp
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.Arrays;
 
 @Slf4j
 @Configuration
@@ -41,8 +46,8 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable) // Json을 통한 로그인 진행으로 refresh 토큰 만료 전까지 토큰 인증
                 .formLogin(AbstractHttpConfigurer::disable) // Json을 통한 로그인 진행으로 refresh 토큰 만료 전까지 토큰 인증
                 .csrf(AbstractHttpConfigurer::disable)
-//              .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 활성화
-                .cors(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 활성화
+//                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((authorize) -> authorize
                         .requestMatchers(
                                 "/api/account",
@@ -55,34 +60,34 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
-                                .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                                .successHandler((request, response, authentication) -> {
-                                    log.info("로그인 성공!");
-                                    OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
-                                    JwtToken jwtToken = jwtTokenProvider.createToken(auth);
+                        .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+                        .successHandler((request, response, authentication) -> {
+                            log.info("로그인 성공!");
+                            OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
+                            JwtToken jwtToken = jwtTokenProvider.createToken(auth);
 
-                                    String accessToken = jwtToken.getAccessToken();
-                                    String refreshToken = jwtToken.getRefreshToken();
+                            String accessToken = jwtToken.getAccessToken();
+                            String refreshToken = jwtToken.getRefreshToken();
 
-                                    // 쿠키 생성 및 설정
-                                    Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-                                    accessTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가하게 설정
-                                    accessTokenCookie.setSecure(false); // HTTP에서도 쿠키 전송 가능하게 설정
-                                    accessTokenCookie.setPath("/"); // 쿠키의 경로 설정
-                                    accessTokenCookie.setMaxAge(3600); // 쿠키 유효 기간 (1시간)
+                            // 쿠키 생성 및 설정
+                            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
+                            accessTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가하게 설정
+                            accessTokenCookie.setSecure(false); // HTTP에서도 쿠키 전송 가능하게 설정
+                            accessTokenCookie.setPath("/"); // 쿠키의 경로 설정
+                            accessTokenCookie.setMaxAge(3600); // 쿠키 유효 기간 (1시간)
 
-                                    Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-                                    refreshTokenCookie.setHttpOnly(true);
-                                    refreshTokenCookie.setSecure(false);
-                                    refreshTokenCookie.setPath("/");
-                                    refreshTokenCookie.setMaxAge(86400); // 쿠키 유효 기간 (1일)
+                            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+                            refreshTokenCookie.setHttpOnly(true);
+                            refreshTokenCookie.setSecure(false);
+                            refreshTokenCookie.setPath("/");
+                            refreshTokenCookie.setMaxAge(86400); // 쿠키 유효 기간 (1일)
 
-                                    response.addCookie(accessTokenCookie);
-                                    response.addCookie(refreshTokenCookie);
+                            response.addCookie(accessTokenCookie);
+                            response.addCookie(refreshTokenCookie);
 
-                                    log.info("jwt 성공!");
-//                          response.sendRedirect("http://localhost:3000/oauth2/redirect");
-                                })
+                            log.info("jwt 성공!");
+                            response.sendRedirect("http://localhost:3000");
+                        })
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -110,17 +115,16 @@ public class SecurityConfig {
     }
 
     // Cors를 활성화하면 코드 적용
-//    @Bean
-//    public CorsConfigurationSource corsConfigurationSource() {
-//        CorsConfiguration configuration = new CorsConfiguration();
-//        43.203.169.54:8080
-//        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-//        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-//        configuration.setAllowedHeaders(Arrays.asList("*"));
-//        configuration.setAllowCredentials(true); // 쿠키를 포함한 요청 허용
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", configuration);
-//        return source;
-//    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true); // 쿠키를 포함한 요청 허용
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
+    }
 }
