@@ -9,19 +9,17 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private final JwtTokenProvider jwtTokenProvider;
-
-    public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     // permitAll()로 설정된 엔드포인트인지 확인하는 메서드
     private boolean isPermitAllEndpoint(String requestURI) {
@@ -39,70 +37,85 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         // permitAll()로 설정된 엔드포인트에 대해서는 JWT 검증을 수행하지 않고 다음 필터로 요청을 전달
         if (isPermitAllEndpoint(requestURI)) {
-            logger.info("PermitAll endpoint, skipping JWT validation for URI: " + requestURI);
-            chain.doFilter(request, response);
-            logger.info("After chain.doFilter - Response Status: " + ((HttpServletResponse) response));
+            handlePermitAllEndpoint(chain, request, response, requestURI);
             return;
         }
 
         try {
-            // Cookie에서 JWT 토큰 추출
             String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-
-            // Access Token 유효성 검사
             if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-                // Access Token이 유효한 경우
-                Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                setAuthentication(accessToken);
             } else {
-                // Access Token이 유효하지 않은 경우 Refresh Token 확인
-                String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
-
-                if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
-                    // Refresh Token이 유효한 경우 새로운 Access Token 및 Refresh Token 재생성
-                    JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
-
-                    // 새로운 Access Token 및 Refresh Token을 쿠키에 설정
-                    Cookie accessTokenCookie = new Cookie("accessToken", newTokens.getAccessToken());
-                    accessTokenCookie.setHttpOnly(true);
-                    accessTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
-                    accessTokenCookie.setPath("/");
-                    accessTokenCookie.setMaxAge(3600); // Access Token 유효 시간 설정 (1시간)
-
-                    Cookie refreshTokenCookie = new Cookie("refreshToken", newTokens.getRefreshToken());
-                    refreshTokenCookie.setHttpOnly(true);
-                    refreshTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
-                    refreshTokenCookie.setPath("/");
-                    refreshTokenCookie.setMaxAge(86400); // Refresh Token 유효 시간 설정 (1일)
-
-                    // 응답에 쿠키 추가
-                    httpResponse.addCookie(accessTokenCookie);
-                    httpResponse.addCookie(refreshTokenCookie);
-
-                    logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
-
-                    // 새로 생성된 Access Token으로 SecurityContext 설정
-                    Authentication authentication = jwtTokenProvider.getAuthentication(newTokens.getAccessToken());
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                } else {
-                    // Refresh Token이 유효하지 않거나 없는 경우
-                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Refresh token이 유효하지 않거나 없습니다. 다시 로그인해주세요.");
-                    return;
-                }
+                handleRefreshToken(httpRequest, httpResponse);
             }
         } catch (JwtException | IllegalArgumentException e) {
-            logger.info(e.getMessage());
-            SecurityContextHolder.clearContext();
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+            handleInvalidToken(httpResponse, e);
             return;
         } catch (NotFoundException e) {
-            logger.info(e.getMessage());
-            SecurityContextHolder.clearContext();
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
+            handleAccountNotFound(httpResponse, e);
             return;
         }
 
         chain.doFilter(request, response);
+    }
+
+    // permitAll() 엔드포인트 처리
+    private void handlePermitAllEndpoint(FilterChain chain, ServletRequest request, ServletResponse response, String requestURI) throws IOException, ServletException {
+        logger.info("PermitAll endpoint, skipping JWT validation for URI: " + requestURI);
+        chain.doFilter(request, response);
+        logger.info("After chain.doFilter - Response Status: " + ((HttpServletResponse) response));
+    }
+
+    // Access Token 유효성 검사 후 인증 설정
+    private void setAuthentication(String accessToken) {
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
+
+    // Refresh Token 처리 및 새로운 토큰 재생성
+    private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+        String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
+
+        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+            JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
+            setCookies(httpResponse, newTokens);
+            setAuthentication(newTokens.getAccessToken());
+            logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
+        } else {
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Refresh token이 유효하지 않거나 없습니다. 다시 로그인해주세요.");
+        }
+    }
+
+    // 쿠키 설정
+    private void setCookies(HttpServletResponse httpResponse, JwtToken newTokens) {
+        Cookie accessTokenCookie = new Cookie("accessToken", newTokens.getAccessToken());
+        accessTokenCookie.setHttpOnly(true);
+        accessTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
+        accessTokenCookie.setPath("/");
+        accessTokenCookie.setMaxAge(3600); // Access Token 유효 시간 설정 (1시간)
+
+        Cookie refreshTokenCookie = new Cookie("refreshToken", newTokens.getRefreshToken());
+        refreshTokenCookie.setHttpOnly(true);
+        refreshTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
+        refreshTokenCookie.setPath("/");
+        refreshTokenCookie.setMaxAge(86400); // Refresh Token 유효 시간 설정 (1일)
+
+        httpResponse.addCookie(accessTokenCookie);
+        httpResponse.addCookie(refreshTokenCookie);
+    }
+
+    // 유효하지 않은 토큰 처리
+    private void handleInvalidToken(HttpServletResponse httpResponse, Exception e) throws IOException {
+        logger.info(e.getMessage());
+        SecurityContextHolder.clearContext();
+        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+    }
+
+    // 계정이 없을 때 처리
+    private void handleAccountNotFound(HttpServletResponse httpResponse, NotFoundException e) throws IOException {
+        logger.info(e.getMessage());
+        SecurityContextHolder.clearContext();
+        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
     }
 
     // AccessToken & RefreshToken 추출
