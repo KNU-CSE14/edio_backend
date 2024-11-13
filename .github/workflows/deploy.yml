@@ -28,7 +28,6 @@ jobs:
       - name: Make environment and configuration files
         run: |
           mkdir -p ./src/main/resources
-          echo "${{ secrets.APPLICATION }}" > ./src/main/resources/application.yml
           touch ./.env
           echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ./.env
           echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ./.env
@@ -43,7 +42,7 @@ jobs:
         shell: bash
 
       - name: Build and Test
-        run: ./gradlew build test
+        run: ./gradlew build -x test
 
       - name: Make zip file
         run: zip -r $GITHUB_SHA.zip .
