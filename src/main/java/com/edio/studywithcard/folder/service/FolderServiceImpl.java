@@ -33,22 +33,26 @@ public class FolderServiceImpl implements FolderService {
     public List<FolderResponse> findOneFolder(Long accountId) {
         List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false);
 
+//        return rootFolders.stream()
+//                .map(this::convertToFolderResponse)
+//                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+//                .collect(Collectors.toList());
         return rootFolders.stream()
-                .map(this::convertToFolderResponse)
+                .map(FolderResponse::from)
                 .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
                 .collect(Collectors.toList());
     }
 
-    private FolderResponse convertToFolderResponse(Folder folder) {
-        FolderResponse folderResponse = FolderResponse.from(folder);
-        List<FolderResponse> children = folder.getChildrenFolders().stream()
-                .filter(child -> !child.isDeleted())
-                .map(this::convertToFolderResponse)
-                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
-                .collect(Collectors.toList());
-        folderResponse.setChildrenFolders(children);
-        return folderResponse;
-    }
+//    private FolderResponse convertToFolderResponse(Folder folder) {
+//        FolderResponse folderResponse = FolderResponse.from(folder);
+//        List<FolderResponse> children = folder.getChildrenFolders().stream()
+//                .filter(child -> !child.isDeleted())
+//                .map(this::convertToFolderResponse)
+//                .sorted((f1, f2) -> f2.getUpdatedAt().compareTo(f1.getUpdatedAt())) // 날짜 내림차순 정렬
+//                .collect(Collectors.toList());
+//        folderResponse.setChildrenFolders(children);
+//        return folderResponse;
+//    }
 
     /*
         Folder 등록
