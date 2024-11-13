@@ -14,3 +14,9 @@ spring:
     url: jdbc:mysql://localhost:3306/edio?useSSL=false
     username: manager
     password: manager0
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
