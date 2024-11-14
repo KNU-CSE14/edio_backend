@@ -19,5 +19,9 @@ public abstract class BaseTest {
         System.setProperty("google.client-secret", dotenv.get("GOOGLE_CLIENT_SECRET"));
 
         System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
+
+        System.setProperty("spring.profiles.active", dotenv.get("SPRING_PROFILES_ACTIVE"));
+
+        System.setProperty("redirect.url", dotenv.get("REDIRECT_URL"));
     }
 }
