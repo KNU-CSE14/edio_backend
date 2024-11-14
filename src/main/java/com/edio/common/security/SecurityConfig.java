@@ -85,6 +85,8 @@ public class SecurityConfig {
                             response.addCookie(accessTokenCookie);
                             response.addCookie(refreshTokenCookie);
 
+                            response.flushBuffer();
+
                             log.info("jwt 성공!");
                             response.sendRedirect("http://localhost:3000");
                         })
