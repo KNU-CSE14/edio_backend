@@ -1,13 +1,11 @@
 package com.edio.common.security;
 
 import com.edio.common.security.jwt.JwtAuthenticationFilter;
-import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
-import com.edio.user.repository.AccountRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -16,7 +14,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
@@ -34,11 +31,14 @@ import java.util.Arrays;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+
     private final CustomOAuth2UserService customOAuth2UserService;
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private final AccountRepository accountRepository;
+    @Value("${redirect.url}")
+    private String redirectUrl;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -61,35 +61,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
-                        .successHandler((request, response, authentication) -> {
-                            log.info("로그인 성공!");
-                            OAuth2AuthenticationToken auth = (OAuth2AuthenticationToken) authentication;
-                            JwtToken jwtToken = jwtTokenProvider.createToken(auth);
-
-                            String accessToken = jwtToken.getAccessToken();
-                            String refreshToken = jwtToken.getRefreshToken();
-
-                            // 쿠키 생성 및 설정
-                            Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-                            accessTokenCookie.setHttpOnly(true); // JavaScript로 접근 불가하게 설정
-                            accessTokenCookie.setSecure(false); // HTTP에서도 쿠키 전송 가능하게 설정
-                            accessTokenCookie.setPath("/"); // 쿠키의 경로 설정
-                            accessTokenCookie.setMaxAge(3600); // 쿠키 유효 기간 (1시간)
-
-                            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-                            refreshTokenCookie.setHttpOnly(true);
-                            refreshTokenCookie.setSecure(false);
-                            refreshTokenCookie.setPath("/");
-                            refreshTokenCookie.setMaxAge(86400); // 쿠키 유효 기간 (1일)
-
-                            response.addCookie(accessTokenCookie);
-                            response.addCookie(refreshTokenCookie);
-
-                            response.flushBuffer();
-
-                            log.info("jwt 성공!");
-                            response.sendRedirect("http://localhost:3000");
-                        })
+                        .successHandler(oAuth2SuccessHandler)
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint((request, response, authException) -> {
@@ -120,8 +92,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedOrigins(Arrays.asList(redirectUrl));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // 쿠키를 포함한 요청 허용
 

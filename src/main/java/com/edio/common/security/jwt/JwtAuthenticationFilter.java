@@ -10,12 +10,14 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
+@Slf4j
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
 
@@ -106,6 +108,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // 유효하지 않은 토큰 처리
     private void handleInvalidToken(HttpServletResponse httpResponse, Exception e) throws IOException {
+        log.info("유효하지 않은 토큰");
         logger.info(e.getMessage());
         SecurityContextHolder.clearContext();
         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
@@ -113,6 +116,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // 계정이 없을 때 처리
     private void handleAccountNotFound(HttpServletResponse httpResponse, NotFoundException e) throws IOException {
+        log.info("계정이 없는 토큰");
         logger.info(e.getMessage());
         SecurityContextHolder.clearContext();
         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");

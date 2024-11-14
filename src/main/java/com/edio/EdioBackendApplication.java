@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @EnableJpaAuditing  // JPA Auditing 활성화
 @SpringBootApplication
 public class EdioBackendApplication {
-
     public static void main(String[] args) {
         // .env 파일 로드
         Dotenv dotenv = Dotenv.load();
@@ -27,14 +26,7 @@ public class EdioBackendApplication {
 
         System.setProperty("spring.profiles.active", dotenv.get("SPRING_PROFILES_ACTIVE"));
 
-        // 로그 출력
-        log.info("DB_USERNAME: {}", dotenv.get("DB_USERNAME"));
-        log.info("DB_PASSWORD: {}", dotenv.get("DB_PASSWORD")); // 민감한 정보 출력 시 주의
-        log.info("DB_URL: {}", dotenv.get("DB_URL"));
-        log.info("GOOGLE_CLIENT_ID: {}", dotenv.get("GOOGLE_CLIENT_ID"));
-        log.info("GOOGLE_CLIENT_SECRET: {}", dotenv.get("GOOGLE_CLIENT_SECRET")); // 민감한 정보 출력 시 주의
-        log.info("JWT_SECRET: {}", dotenv.get("JWT_SECRET")); // 민감한 정보 출력 시 주의
-        log.info("SPRING_PROFILES_ACTIVE: {}", dotenv.get("SPRING_PROFILES_ACTIVE"));
+        System.setProperty("redirect.url", dotenv.get("REDIRECT_URL"));
 
         SpringApplication.run(EdioBackendApplication.class, args);
     }
