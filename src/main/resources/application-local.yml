@@ -11,7 +11,7 @@ spring:
         format_sql: true
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/edio?useSSL=false
+    url: jdbc:mysql://mysql:3306/edio?useSSL=false
     username: manager
     password: manager0
   security:
