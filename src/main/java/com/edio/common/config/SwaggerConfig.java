@@ -16,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
                 title = "Edio API",
                 version = "1.0",
                 description = "Edio API Documents<br><br>" +
-                        "토큰 발급: http://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/google"
+                        "토큰 발급: https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com:8080/oauth2/authorization/google"
         ),
         security = @SecurityRequirement(name = "bearerAuth")
 )
