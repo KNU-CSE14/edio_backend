@@ -4,5 +4,4 @@ spring:
       client:
         registration:
           google:
-            redirect-uri: https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com:8080/login/oauth2/code/google
-#            redirect-uri: http://localhost:3000
+            redirect-uri: https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com/login/oauth2/code/google
