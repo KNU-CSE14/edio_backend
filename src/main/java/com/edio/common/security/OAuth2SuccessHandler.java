@@ -2,7 +2,6 @@ package com.edio.common.security;
 
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -35,23 +34,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String accessToken = jwtToken.getAccessToken();
         String refreshToken = jwtToken.getRefreshToken();
 
-//        // 쿠키 생성 및 설정
-        Cookie accessTokenCookie = new Cookie("accessToken", accessToken);
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(true); // HTTP 환경이므로 false
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(3600);
-
-        Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(true); // HTTP 환경이므로 false
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(86400);
-
-//        // 쿠키를 응답에 추가
-//        response.addCookie(accessTokenCookie);
-//        response.addCookie(refreshTokenCookie);
-
+        // 쿠키 생성 및 설정
         response.addHeader("Set-Cookie",
                 String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None", accessToken));
         response.addHeader("Set-Cookie",
