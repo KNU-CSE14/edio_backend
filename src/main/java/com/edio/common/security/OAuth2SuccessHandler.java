@@ -2,17 +2,20 @@ package com.edio.common.security;
 
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -21,8 +24,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    @Value("${redirect.url}")
-    private String redirectUrl;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
@@ -40,7 +42,29 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         response.addHeader("Set-Cookie",
                 String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None", refreshToken));
 
+        String encodedState = request.getParameter("state"); // OAuth Provider에서 반환된 state 값
+
+        // state 디코딩 및 JSON 복원
+        String decodedState = new String(Base64.getDecoder().decode(encodedState), StandardCharsets.UTF_8);
+        Map<String, String> stateMap = objectMapper.readValue(decodedState, Map.class);
+
+        // CSRF 토큰 검증
+        String csrfToken = stateMap.get("csrfToken");
+        if (!isValidCsrfToken(csrfToken)) {
+            throw new IllegalArgumentException("Invalid CSRF token");
+        }
+
+        // 복원된 redirectUri로 리다이렉트
+        String redirectUri = stateMap.get("redirectUri");
+        if (redirectUri == null || redirectUri.isEmpty()) {
+            redirectUri = "/"; // 기본값 설정
+        }
         log.info("jwt 성공!");
-        response.sendRedirect(redirectUrl);
+        response.sendRedirect(redirectUri);
+    }
+
+    private boolean isValidCsrfToken(String csrfToken) {
+        // 실제 CSRF 토큰 검증 로직 (세션 또는 DB를 참조하여 검증)
+        return true; // 항상 유효하다고 가정
     }
 }
