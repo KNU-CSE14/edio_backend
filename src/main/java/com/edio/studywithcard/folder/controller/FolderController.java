@@ -6,7 +6,6 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -26,15 +25,22 @@ public class FolderController {
         this.folderService = folderService;
     }
 
+//    @GetMapping("/folder")
+//    @Operation(summary = "Folder 정보 조회", description = "Folder 정보를 조회합니다.")
+//    public List<FolderResponse> getFolders(@Parameter(required = true, description = "사용자 ID") Long accountId){
+//        return folderService.findOneFolder(accountId);
+//    }
+
     @GetMapping("/folder")
-    @Operation(summary = "Folder 정보 조회", description = "Folder 정보를 조회합니다.")
-    public List<FolderResponse> getFolders(@Parameter(required = true, description = "사용자 ID") Long accountId){
-        return folderService.findOneFolder(accountId);
+    public List<FolderResponse> getFolders(
+            @RequestParam Long accountId,
+            @RequestParam(required = false) Long folderId) {
+        return folderService.getFolders(accountId, folderId);
     }
 
     @PostMapping("/folder")
     @Operation(summary = "Folder 등록", description = "Folder를 등록합니다.")
-    public FolderResponse createFolder(@RequestBody FolderCreateRequest folderCreateRequest){
+    public FolderResponse createFolder(@RequestBody FolderCreateRequest folderCreateRequest) {
         return folderService.createFolder(folderCreateRequest);
     }
 

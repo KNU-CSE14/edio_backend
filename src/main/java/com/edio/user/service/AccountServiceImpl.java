@@ -53,4 +53,16 @@ public class AccountServiceImpl implements AccountService {
             throw new ConflictException(Account.class, accountCreateRequest.getLoginId());
         }
     }
+
+    /*
+        RootFolderId 수정
+     */
+    @Override
+    @Transactional
+    public void updateRootFolderId(Long accountId, Long rootFolderId) {
+        Account account = accountRepository.findById(accountId)
+                .orElseThrow(() -> new NotFoundException(Account.class, accountId));
+
+        account.setRootFolderId(rootFolderId);
+    }
 }

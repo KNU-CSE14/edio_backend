@@ -6,6 +6,10 @@ import com.edio.user.model.response.AccountResponse;
 public interface AccountService {
     // Account 조회
     AccountResponse findOneAccount(String loginId);
+
     // Account 등록
     AccountResponse createAccount(AccountCreateRequest accountCreateRequest);
+
+    // RootFolderId 등록
+    void updateRootFolderId(Long accountId, Long rootFolderId);
 }
