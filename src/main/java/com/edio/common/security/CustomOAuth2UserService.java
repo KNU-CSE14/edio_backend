@@ -1,12 +1,16 @@
 package com.edio.common.security;
 
 import com.edio.common.exception.ConflictException;
+import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
+import com.edio.studywithcard.folder.model.response.FolderResponse;
+import com.edio.studywithcard.folder.service.FolderService;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.service.AccountService;
 import com.edio.user.service.MemberService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -17,15 +21,14 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final AccountService accountService;
+
     private final MemberService memberService;
 
-    public CustomOAuth2UserService(AccountService accountService, MemberService memberService) {
-        this.accountService = accountService;
-        this.memberService = memberService;
-    }
+    private final FolderService folderService;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -43,6 +46,15 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             // Account 생성
             AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email);
             accountResponse = accountService.createAccount(accountCreateRequest);
+
+            // RootFolder 생성
+            FolderCreateRequest rootFolderRequest = new FolderCreateRequest(
+                    accountResponse.id(),
+                    null,
+                    "Default"
+            );
+            FolderResponse rootFolderResponse = folderService.createFolder(rootFolderRequest);
+            accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.getId());
 
             // Member 생성
             MemberCreateRequest memberCreateRequest = new MemberCreateRequest(accountResponse.id(), email, name, givenName, familyName, profileUrl);

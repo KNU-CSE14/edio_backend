@@ -7,6 +7,8 @@ import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import com.edio.user.domain.Account;
+import com.edio.user.repository.AccountRepository;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,15 +29,25 @@ public class FolderServiceImpl implements FolderService {
 
     private final FolderRepository folderRepository;
 
+    private final AccountRepository accountRepository;
+
     /*
         Folder 조회
      */
     @Transactional(readOnly = true)
     @Override
-    public List<FolderResponse> findOneFolder(Long accountId) {
-        List<Folder> rootFolders = folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false);
+    public List<FolderResponse> getFolders(Long accountId, Long folderId) {
+        List<Folder> folders;
+        if (folderId == null) {
+            Long rootFolderId = accountRepository.findById(accountId)
+                    .map(Account::getRootFolderId)
+                    .orElseThrow(() -> new NotFoundException(Account.class, accountId));
+            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, rootFolderId, false);
+        } else {
+            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, folderId, false);
+        }
 
-        return rootFolders.stream()
+        return folders.stream()
                 .map(FolderResponse::from)
                 .sorted(Comparator.comparing(FolderResponse::getUpdatedAt).reversed())
                 .collect(Collectors.toList());

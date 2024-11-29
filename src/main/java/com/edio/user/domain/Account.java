@@ -17,8 +17,10 @@ public class Account extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String loginId;
 
-    @Column(nullable = true)
     private String password;
+    
+    @Setter
+    private Long rootFolderId;
 
     @Column(nullable = false)
     @Builder.Default
