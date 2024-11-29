@@ -2,6 +2,7 @@ package com.edio.common.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
@@ -11,14 +12,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@RequiredArgsConstructor
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
     private final OAuth2AuthorizationRequestResolver defaultResolver;
-    private final ObjectMapper objectMapper = new ObjectMapper(); // JSON 변환용
 
-    public CustomAuthorizationRequestResolver(OAuth2AuthorizationRequestResolver defaultResolver) {
-        this.defaultResolver = defaultResolver;
-    }
+    private final ObjectMapper objectMapper;
 
     @Override
     public OAuth2AuthorizationRequest resolve(HttpServletRequest request) {
