@@ -261,13 +261,11 @@ public class FolderServiceTests {
         when(folderRepository.findAllByAccountIdAndParentFolderIsNullAndIsDeleted(accountId, false)).thenReturn(rootFolders);
 
         // when
-        List<FolderResponse> response = folderService.findOneFolder(accountId);
+        List<FolderResponse> response = folderService.getFolders(accountId, null);
 
         // then
         assertThat(response).isNotNull();
         assertThat(response.size()).isEqualTo(1);
         assertThat(response.get(0).getName()).isEqualTo("Root Folder");
-        assertThat(response.get(0).getChildrenFolders().size()).isEqualTo(1);
-        assertThat(response.get(0).getChildrenFolders().get(0).getName()).isEqualTo("Child Folder");
     }
 }
