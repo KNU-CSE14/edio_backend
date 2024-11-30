@@ -2,7 +2,9 @@ package com.edio.user.domain;
 
 
 import com.edio.common.domain.BaseEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.*;
 
 @Entity
@@ -12,9 +14,6 @@ import lombok.*;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 public class Member extends BaseEntity {
-
-    @Column(nullable = false)
-    private Long accountId;
 
     @Column(nullable = false)
     private String email;

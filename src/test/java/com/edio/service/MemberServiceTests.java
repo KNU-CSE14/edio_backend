@@ -36,7 +36,6 @@ public class MemberServiceTests {
         String profileUrl = "http://example.com/profile.jpg";
 
         MemberCreateRequest member = new MemberCreateRequest();
-        member.setAccountId(1L);
         member.setEmail(email);
         member.setName(name);
         member.setGivenName(givenName);
@@ -52,7 +51,6 @@ public class MemberServiceTests {
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.accountId()).isEqualTo(1L);
         assertThat(response.email()).isEqualTo(email);
         assertThat(response.name()).isEqualTo(name);
         assertThat(response.givenName()).isEqualTo(givenName);
@@ -65,11 +63,10 @@ public class MemberServiceTests {
     public void createMember_whenMemberExists_throwsConflictException() {
         // given
         MemberCreateRequest existingMember = new MemberCreateRequest();
-        existingMember.setAccountId(1L);
         existingMember.setEmail("test@example.com");
 
         // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getAccountId()));
+        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getEmail()));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> memberService.createMember(existingMember))
@@ -82,7 +79,6 @@ public class MemberServiceTests {
     public void createMember_whenEmailIsNull_throwsException() {
         // given
         MemberCreateRequest member = new MemberCreateRequest();
-        member.setAccountId(1L);
         member.setEmail(null);
 
         // when, then
@@ -96,7 +92,6 @@ public class MemberServiceTests {
     public void createMember_whenSaveFails_throwsException() {
         // given
         MemberCreateRequest member = new MemberCreateRequest();
-        member.setAccountId(1L);
         member.setEmail("test@example.com");
 
         when(memberRepository.save(any(Member.class))).thenThrow(new RuntimeException("Database error"));
