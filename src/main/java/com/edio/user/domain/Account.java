@@ -19,6 +19,10 @@ public class Account extends BaseEntity {
 
     private String password;
     
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;
+
     @Setter
     private Long rootFolderId;
 

@@ -43,8 +43,12 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         AccountResponse accountResponse;
         try {
+            // Member 생성
+            MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
+            MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
+
             // Account 생성
-            AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email);
+            AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id());
             accountResponse = accountService.createAccount(accountCreateRequest);
 
             // RootFolder 생성
@@ -55,10 +59,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             );
             FolderResponse rootFolderResponse = folderService.createFolder(rootFolderRequest);
             accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.getId());
-
-            // Member 생성
-            MemberCreateRequest memberCreateRequest = new MemberCreateRequest(accountResponse.id(), email, name, givenName, familyName, profileUrl);
-            MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
         } catch (ConflictException e) {
             accountResponse = accountService.findOneAccount(email);
         }

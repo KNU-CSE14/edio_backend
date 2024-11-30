@@ -1,31 +1,21 @@
 package com.edio.user.model.response;
 
 import com.edio.user.domain.Account;
-import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
 
-import java.time.LocalDateTime;
-
 public record AccountResponse(
-    Long id,
-    String loginId,
-    String password,
-    LocalDateTime createdAt,
-    LocalDateTime updateAt,
-    boolean isDeleted,
-    AccountLoginType loginType,
-    AccountRole roles
-){
+        Long id,
+        Long rootFolderId,
+        AccountRole roles,
+        MemberResponse memberResponse
+
+) {
     public static AccountResponse from(Account account) {
         return new AccountResponse(
                 account.getId(),
-                account.getLoginId(),
-                account.getPassword(),
-                account.getCreatedAt(),
-                account.getUpdatedAt(),
-                account.isDeleted(),
-                account.getLoginType(),
-                account.getRoles()
+                account.getRootFolderId(),
+                account.getRoles(),
+                MemberResponse.from(account.getMember())
         );
     }
 }

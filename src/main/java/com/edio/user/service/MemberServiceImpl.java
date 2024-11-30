@@ -1,34 +1,20 @@
 package com.edio.user.service;
 
 import com.edio.common.exception.ConflictException;
-import com.edio.common.exception.NotFoundException;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class MemberServiceImpl implements MemberService {
 
     private final MemberRepository memberRepository;
-
-    public MemberServiceImpl(MemberRepository memberRepository) {
-        this.memberRepository = memberRepository;
-    }
-
-    /*
-        Member 조회
-     */
-    @Transactional(readOnly = true)
-    @Override
-    public MemberResponse findOneMember(long accountId) {
-        Member member = memberRepository.findByAccountId(accountId)
-                .orElseThrow(() -> new NotFoundException(Member.class, accountId));
-        return MemberResponse.from(member);
-    }
 
     /*
         Member 등록
@@ -36,9 +22,8 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberResponse createMember(MemberCreateRequest memberCreateRequest) {
-        try{
+        try {
             Member newMember = Member.builder()
-                    .accountId(memberCreateRequest.getAccountId())
                     .email(memberCreateRequest.getEmail())
                     .name(memberCreateRequest.getName())
                     .givenName(memberCreateRequest.getGivenName())
@@ -47,8 +32,8 @@ public class MemberServiceImpl implements MemberService {
                     .build();
             Member savedMember = memberRepository.save(newMember);
             return MemberResponse.from(savedMember);
-        }catch (DataIntegrityViolationException e){
-            throw new ConflictException(Member.class,  memberCreateRequest.getAccountId());
+        } catch (DataIntegrityViolationException e) {
+            throw new ConflictException(Member.class, memberCreateRequest.getEmail());
         }
     }
 }

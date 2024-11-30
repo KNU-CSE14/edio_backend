@@ -1,12 +1,13 @@
 package com.edio.user.model.request;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class MemberCreateRequest {
-    Long accountId;
     String email;
     String name;
     String givenName;
