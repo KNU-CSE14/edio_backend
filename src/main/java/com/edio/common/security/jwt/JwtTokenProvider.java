@@ -125,7 +125,8 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            return e.getClaims();
+//            return e.getClaims();
+            throw e;
         }
     }
 
