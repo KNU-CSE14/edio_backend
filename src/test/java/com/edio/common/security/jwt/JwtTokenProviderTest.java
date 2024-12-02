@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.security.CustomUserDetailsService;
+import com.edio.user.service.AccountService;
 import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -25,6 +26,8 @@ class JwtTokenProviderTest {
 
     private JwtTokenProvider jwtTokenProvider;
 
+    private AccountService accountService;
+
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -34,14 +37,14 @@ class JwtTokenProviderTest {
         System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
         String secretKey = System.getProperty("jwt.secret");
 
-        jwtTokenProvider = new JwtTokenProvider(userDetailsService, secretKey);
+        jwtTokenProvider = new JwtTokenProvider(userDetailsService, accountService, secretKey);
     }
 
     @Test
     void testGetAuthentication() {
         // given
         String loginId = "629jyh7@gmail.com";
-        String accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJZVU5IV0FOIEpFT05HIiwiYXV0aCI6IlJPTEVfVVNFUiIsImxvZ2luSWQiOiI2MjlqeWg3QGdtYWlsLmNvbSIsImV4cCI6MTczMTMwMzAzM30.57FgcuRNNU1SnNc2gZvKUAHYjkjrmJ7VQkQs7IQ3pxs";
+        String accessToken = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2MjlqeWg3QGdtYWlsLmNvbSIsImF1dGgiOiJST0xFX1VTRVIiLCJhY2NvdW50SWQiOjEsImV4cCI6MTczMzEyMDIwOX0.lqXvronNieziBWCxZRiK8dVKwZrBd8-jOsF3S4ZveNY";
         Claims claims = Jwts.claims().setSubject(loginId);
         claims.put("auth", "ROLE_USER");
 

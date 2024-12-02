@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -25,8 +26,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // permitAll()로 설정된 엔드포인트인지 확인하는 메서드
     private boolean isPermitAllEndpoint(String requestURI) {
-        return requestURI.startsWith("/api/account") ||
-                requestURI.startsWith("/api/auth") ||
+        return requestURI.startsWith("/api/auth") ||
                 requestURI.startsWith("/swagger-ui") ||
                 requestURI.startsWith("/v3/api-docs");
     }
@@ -70,8 +70,16 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // Access Token 유효성 검사 후 인증 설정
     private void setAuthentication(String accessToken) {
+        Long accountId = jwtTokenProvider.getAccountId(accessToken);
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(
+                        accountId,
+                        authentication,
+                        jwtTokenProvider.getAuthentication(accessToken).getAuthorities()
+                )
+        );
     }
 
     // Refresh Token 처리 및 새로운 토큰 재생성
@@ -90,20 +98,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // 쿠키 설정
     private void setCookies(HttpServletResponse httpResponse, JwtToken newTokens) {
-        Cookie accessTokenCookie = new Cookie("accessToken", newTokens.getAccessToken());
-        accessTokenCookie.setHttpOnly(true);
-        accessTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
-        accessTokenCookie.setPath("/");
-        accessTokenCookie.setMaxAge(3600); // Access Token 유효 시간 설정 (1시간)
+        // Access Token 설정
+        String accessTokenCookie = String.format(
+                "accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None",
+                newTokens.getAccessToken()
+        );
+        httpResponse.addHeader("Set-Cookie", accessTokenCookie);
 
-        Cookie refreshTokenCookie = new Cookie("refreshToken", newTokens.getRefreshToken());
-        refreshTokenCookie.setHttpOnly(true);
-        refreshTokenCookie.setSecure(false); // HTTPS 환경에서는 true로 설정
-        refreshTokenCookie.setPath("/");
-        refreshTokenCookie.setMaxAge(86400); // Refresh Token 유효 시간 설정 (1일)
-
-        httpResponse.addCookie(accessTokenCookie);
-        httpResponse.addCookie(refreshTokenCookie);
+        // Refresh Token 설정
+        String refreshTokenCookie = String.format(
+                "refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None",
+                newTokens.getRefreshToken()
+        );
+        httpResponse.addHeader("Set-Cookie", refreshTokenCookie);
     }
 
     // 유효하지 않은 토큰 처리
