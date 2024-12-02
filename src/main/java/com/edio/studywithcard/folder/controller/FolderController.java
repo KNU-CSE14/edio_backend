@@ -8,6 +8,7 @@ import com.edio.studywithcard.folder.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -33,7 +34,7 @@ public class FolderController {
 
     @GetMapping("/folder")
     public List<FolderResponse> getFolders(
-            @RequestParam Long accountId,
+            @AuthenticationPrincipal Long accountId,
             @RequestParam(required = false) Long folderId) {
         return folderService.getFolders(accountId, folderId);
     }
