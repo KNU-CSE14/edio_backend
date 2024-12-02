@@ -1,8 +1,8 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.BaseTest;
 import com.edio.common.security.CustomUserDetailsService;
 import com.edio.user.service.AccountService;
-import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -32,14 +32,10 @@ class JwtTokenProviderTest {
     private String secretKey;
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws InterruptedException {
+        BaseTest.setUp();
         MockitoAnnotations.openMocks(this);
-
-        // .env 파일에서 JWT_SECRET 값 로드하여 시스템 속성 설정
-        Dotenv dotenv = Dotenv.load();
-        System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
         secretKey = System.getProperty("jwt.secret");
-
         jwtTokenProvider = new JwtTokenProvider(userDetailsService, accountService, secretKey);
     }
 
