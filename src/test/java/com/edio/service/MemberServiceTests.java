@@ -1,5 +1,6 @@
 package com.edio.service;
 
+import com.edio.common.exception.ConflictException;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
@@ -58,20 +59,20 @@ public class MemberServiceTests {
     }
 
     // 멤버가 이미 존재할 때 기존 멤버를 반환
-//    @Test
-//    public void createMember_whenMemberExists_throwsConflictException() {
-//        // given
-//        MemberCreateRequest existingMember = new MemberCreateRequest();
-//        existingMember.setEmail("test@example.com");
-//
-//        // save 호출 시 ConflictException 발생하도록 설정
-//        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getEmail()));
-//
-//        // when & then: ConflictException 발생을 기대함
-//        assertThatThrownBy(() -> memberService.createMember(existingMember))
-//                .isInstanceOf(ConflictException.class)
-//                .hasMessageContaining("1"); // accountId가 포함된 메시지를 기대
-//    }
+    @Test
+    public void createMember_whenMemberExists_throwsConflictException() {
+        // given
+        MemberCreateRequest existingMember = new MemberCreateRequest();
+        existingMember.setEmail("test@example.com");
+
+        // save 호출 시 ConflictException 발생하도록 설정
+        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getEmail()));
+
+        // when & then: ConflictException 발생을 기대함
+        assertThatThrownBy(() -> memberService.createMember(existingMember))
+                .isInstanceOf(ConflictException.class)
+                .hasMessageContaining("test@example.com"); // accountId가 포함된 메시지를 기대
+    }
 
     // 잘못된 데이터로 요청이 들어온 경우 예외 발생
     @Test
