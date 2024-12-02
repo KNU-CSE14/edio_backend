@@ -28,13 +28,24 @@ public class AccountServiceImpl implements AccountService {
     private final MemberRepository memberRepository;
 
     /*
+        AccountId 조회
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public Long getAccountIdByLoginId(String loginId) {
+        return accountRepository.findByLoginIdAndIsDeleted(loginId, false)
+                .orElseThrow(() -> new NotFoundException(Account.class, loginId))
+                .getId();
+    }
+
+    /*
         Account 조회(active)
      */
     @Transactional(readOnly = true)
     @Override
-    public AccountResponse findOneAccount(String loginId) {
-        Account account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new NotFoundException(Account.class, loginId));
+    public AccountResponse findOneAccount(Long accountId) {
+        Account account = accountRepository.findByIdAndIsDeleted(accountId, false)
+                .orElseThrow(() -> new NotFoundException(Account.class, accountId));
         return AccountResponse.from(account);
     }
 

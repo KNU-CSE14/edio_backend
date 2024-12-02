@@ -4,8 +4,11 @@ import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 
 public interface AccountService {
+    // AccountId 조회
+    Long getAccountIdByLoginId(String loginId);
+
     // Account 조회
-    AccountResponse findOneAccount(String loginId);
+    AccountResponse findOneAccount(Long accountId);
 
     // Account 등록
     AccountResponse createAccount(AccountCreateRequest accountCreateRequest);

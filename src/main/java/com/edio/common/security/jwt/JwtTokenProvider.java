@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.security.CustomUserDetailsService;
+import com.edio.user.service.AccountService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -26,11 +27,14 @@ public class JwtTokenProvider {
 
     private final CustomUserDetailsService userDetailsService;
 
+    private final AccountService accountService;
+
     private final Key key;
 
     // application.properties에서 secret 값 가져와서 key에 저장
-    public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(CustomUserDetailsService userDetailsService, AccountService accountService, @Value("${jwt.secret}") String secretKey) {
         this.userDetailsService = userDetailsService;
+        this.accountService = accountService;
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -43,24 +47,24 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
 
-        // AccessToken에 loginId를 넣어주기 위해 아이디 가져오기
         String loginId = String.valueOf(authentication.getPrincipal().getAttributes().get("email"));
+        Long accountId = accountService.getAccountIdByLoginId(loginId);
 
         // Access Token 생성 (1시간 유효)
         Date accessTokenExpiresIn = new Date(now + 3600000); // 1시간
         String accessToken = Jwts.builder()
-                .setSubject(authentication.getName()) // 사용자 이름 설정
+                .setSubject(loginId) // 사용자 이름 설정
                 .claim("auth", authorities) // 권한 정보 설정
-                .claim("loginId", loginId) // loginId 정보 추가
+                .claim("accountId", accountId)
                 .setExpiration(accessTokenExpiresIn) // 만료 시간 설정
                 .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                 .compact();
 
         // Refresh Token 생성 (1일 유효)
         String refreshToken = Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(loginId)
                 .claim("auth", authorities)
-                .claim("loginId", loginId) // loginId 정보 추가
+                .claim("accountId", accountId)
                 .setExpiration(new Date(now + 86400000)) // 1일 만료
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -79,7 +83,7 @@ public class JwtTokenProvider {
         Claims claims = parseClaims(accessToken);
 
         // 토큰에서 loginId 추출
-        String loginId = claims.get("loginId", String.class);
+        String loginId = claims.getSubject();
 
         // DB에서 사용자 정보 조회
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
@@ -125,15 +129,21 @@ public class JwtTokenProvider {
         }
     }
 
+    // accountId 조회
+    public Long getAccountId(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get("accountId", Long.class);
+    }
+
     public JwtToken refreshAccessAndRefreshTokens(String refreshToken) {
         // Refresh Token 검증
         if (validateToken(refreshToken)) {
             Claims claims = parseClaims(refreshToken);
 
             // 기존 클레임에서 사용자 정보 가져오기
-            String username = claims.getSubject();
             String authorities = claims.get("auth", String.class);
-            String loginId = claims.get("loginId", String.class);  // loginId를 클레임에서 가져옴
+            String loginId = claims.getSubject();
+            Long accountId = accountService.getAccountIdByLoginId(loginId);
 
             // 현재 시간
             long now = (new Date()).getTime();
@@ -141,9 +151,9 @@ public class JwtTokenProvider {
             // 새로운 Access Token 생성 (1시간 유효)
             Date accessTokenExpiresIn = new Date(now + 3600000); // 1시간 유효
             String newAccessToken = Jwts.builder()
-                    .setSubject(username) // 사용자 이름 설정
+                    .setSubject(loginId)
                     .claim("auth", authorities) // 권한 정보 설정
-                    .claim("loginId", loginId) // loginId 정보 추가
+                    .claim("accountId", accountId) // loginId 정보 추가
                     .setExpiration(accessTokenExpiresIn) // 만료 시간 설정
                     .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                     .compact();
@@ -151,9 +161,9 @@ public class JwtTokenProvider {
             // 새로운 Refresh Token 생성 (1일 유효)
             Date refreshTokenExpiresIn = new Date(now + 86400000); // 1일 유효
             String newRefreshToken = Jwts.builder()
-                    .setSubject(username) // 사용자 이름 설정
+                    .setSubject(loginId) // 사용자 이름 설정
                     .claim("auth", authorities) // 권한 정보 설정
-                    .claim("loginId", loginId) // loginId 정보 추가
+                    .claim("accountId", accountId) // loginId 정보 추가
                     .setExpiration(refreshTokenExpiresIn) // 만료 시간 설정
                     .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                     .compact();
@@ -167,5 +177,4 @@ public class JwtTokenProvider {
         }
         throw new RuntimeException("Invalid refresh token");
     }
-
 }

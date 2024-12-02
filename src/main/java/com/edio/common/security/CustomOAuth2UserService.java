@@ -60,7 +60,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             FolderResponse rootFolderResponse = folderService.createFolder(rootFolderRequest);
             accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.getId());
         } catch (ConflictException e) {
-            accountResponse = accountService.findOneAccount(email);
+            Long accountId = accountService.getAccountIdByLoginId(email);
+            accountResponse = accountService.findOneAccount(accountId);
         }
         return new CustomOAuth2User(oAuth2User, accountResponse.roles().name());
     }
