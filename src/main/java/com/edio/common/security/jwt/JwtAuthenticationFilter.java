@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -70,16 +70,8 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // Access Token 유효성 검사 후 인증 설정
     private void setAuthentication(String accessToken) {
-        Long accountId = jwtTokenProvider.getAccountId(accessToken);
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(
-                        accountId,
-                        authentication,
-                        jwtTokenProvider.getAuthentication(accessToken).getAuthorities()
-                )
-        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     // Refresh Token 처리 및 새로운 토큰 재생성
@@ -98,19 +90,18 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // 쿠키 설정
     private void setCookies(HttpServletResponse httpResponse, JwtToken newTokens) {
-        // Access Token 설정
         String accessTokenCookie = String.format(
                 "accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None",
                 newTokens.getAccessToken()
         );
-        httpResponse.addHeader("Set-Cookie", accessTokenCookie);
-
-        // Refresh Token 설정
         String refreshTokenCookie = String.format(
                 "refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None",
                 newTokens.getRefreshToken()
         );
-        httpResponse.addHeader("Set-Cookie", refreshTokenCookie);
+
+        // HttpHeaders를 활용하여 쿠키 헤더 추가
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie);
+        httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
     }
 
     // 유효하지 않은 토큰 처리

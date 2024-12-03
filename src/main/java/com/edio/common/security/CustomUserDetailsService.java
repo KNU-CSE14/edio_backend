@@ -28,14 +28,11 @@ public class CustomUserDetailsService implements UserDetailsService {
         GrantedAuthority authority = new SimpleGrantedAuthority(account.getRoles().name());
         Collection<GrantedAuthority> authorities = Collections.singletonList(authority);
 
-        return new org.springframework.security.core.userdetails.User(
+        return new CustomUserDetails(
+                account.getId(),
                 account.getLoginId(),
-                account.getPassword(),
-                true,
-                true,
-                true,
-                true,
-                authorities
+                authorities,
+                Collections.emptyMap()
         );
     }
 }

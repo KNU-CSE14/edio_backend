@@ -1,6 +1,7 @@
 package com.edio.user.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
+import com.edio.common.security.CustomUserDetails;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.service.AccountService;
@@ -22,11 +23,11 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
 
     private final AccountService accountService;
-    
+
     @GetMapping("/account")
     @Operation(summary = "Account 정보 조회", description = "Account 정보를 조회합니다.")
-    public AccountResponse getAccount(@AuthenticationPrincipal Long accountId) {
-        return accountService.findOneAccount(accountId);
+    public AccountResponse getAccount(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return accountService.findOneAccount(userDetails.getAccountId());
     }
 
     @PostMapping("/account")
