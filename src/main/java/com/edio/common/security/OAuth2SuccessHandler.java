@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -37,10 +38,11 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String refreshToken = jwtToken.getRefreshToken();
 
         // 쿠키 생성 및 설정
-        response.addHeader("Set-Cookie",
-                String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None", accessToken));
-        response.addHeader("Set-Cookie",
-                String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None", refreshToken));
+        String accessTokenCookie = String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None", accessToken);
+        String refreshTokenCookie = String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None", refreshToken);
+
+        response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
 
         String encodedState = request.getParameter("state"); // OAuth Provider에서 반환된 state 값
 

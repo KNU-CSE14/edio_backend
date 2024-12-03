@@ -12,12 +12,17 @@ import com.edio.user.service.AccountService;
 import com.edio.user.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+import java.util.Collections;
 
 @Slf4j
 @Service
@@ -63,6 +68,17 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             Long accountId = accountService.getAccountIdByLoginId(email);
             accountResponse = accountService.findOneAccount(accountId);
         }
-        return new CustomOAuth2User(oAuth2User, accountResponse.roles().name());
+
+        // 권한 정보 설정
+        Collection<GrantedAuthority> authorities = Collections.singletonList(
+                new SimpleGrantedAuthority(accountResponse.roles().name())
+        );
+        
+        return new CustomUserDetails(
+                accountResponse.id(),
+                accountResponse.loginId(),
+                authorities,
+                oAuth2User.getAttributes() // OAuth2 사용자 속성 전달
+        );
     }
 }

@@ -10,6 +10,7 @@ import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
 import com.edio.user.service.AccountServiceImpl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -36,15 +37,18 @@ public class AccountServiceTests {
     @InjectMocks
     private AccountServiceImpl accountService;
 
-    @Test
-    public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
-        // given
-        AccountCreateRequest accountRequest = new AccountCreateRequest();
-        accountRequest.setLoginId("testUser@gmail.com");
-        accountRequest.setMemberId(1L); // 요청값 설정
+    private AccountCreateRequest accountRequest;
+    private Member mockMember;
+    private Account mockAccount;
 
-        // Mock Member 생성
-        Member mockMember = Member.builder()
+    @BeforeEach
+    public void setUp() {
+        // 공통 테스트 데이터 초기화
+        accountRequest = new AccountCreateRequest();
+        accountRequest.setLoginId("testUser@gmail.com");
+        accountRequest.setMemberId(1L);
+
+        mockMember = Member.builder()
                 .email("testUser@gmail.com")
                 .name("Hong Gildong")
                 .givenName("Hong")
@@ -53,15 +57,17 @@ public class AccountServiceTests {
                 .build();
         ReflectionTestUtils.setField(mockMember, "id", accountRequest.getMemberId());
 
-        // Mock Account 생성
-        Account mockAccount = Account.builder()
+        mockAccount = Account.builder()
                 .loginId(accountRequest.getLoginId())
                 .member(mockMember)
                 .loginType(AccountLoginType.GOOGLE) // 기본값 가정
                 .roles(AccountRole.ROLE_USER)          // 기본값 가정
                 .build();
+    }
 
-        // Mock Repository 동작 설정
+    @Test
+    public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
+        // given
         when(memberRepository.findById(accountRequest.getMemberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
@@ -78,93 +84,41 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountExists_throwsConflictException() {
         // given
-        AccountCreateRequest existingAccount = new AccountCreateRequest();
-        existingAccount.setLoginId("testUser");
-        existingAccount.setMemberId(1L);
-
-        // Mock Member 생성
-        Member mockMember = Member.builder()
-                .email("testUser@gmail.com")
-                .name("Hong Gildong")
-                .givenName("Hong")
-                .familyName("Gildong")
-                .profileUrl("http://example.com/profile.jpg")
-                .build();
-        ReflectionTestUtils.setField(mockMember, "id", existingAccount.getMemberId());
-
-        // Mock Account 생성
-        Account mockAccount = Account.builder()
-                .loginId(existingAccount.getLoginId())
-                .member(mockMember)
-                .loginType(AccountLoginType.GOOGLE) // 기본값 가정
-                .roles(AccountRole.ROLE_USER)          // 기본값 가정
-                .build();
-
-        // Mock Repository 동작 설정
-        when(memberRepository.findById(existingAccount.getMemberId()))
-                .thenReturn(Optional.of(mockMember)); // memberId에 대한 Member 반환
+        when(memberRepository.findById(accountRequest.getMemberId()))
+                .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
                 .thenThrow(new ConflictException(Account.class, mockAccount.getLoginId()));
 
-        // when & then: ConflictException 발생을 기대함
-        assertThatThrownBy(() -> accountService.createAccount(existingAccount))
+        // when & then
+        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
                 .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("testUser");
+                .hasMessageContaining("testUser@gmail.com");
     }
 
-    // 잘못된 데이터로 요청이 들어온 경우 예외 발생
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        AccountCreateRequest account = new AccountCreateRequest();
-        account.setLoginId(null);
-        account.setMemberId(1L);
+        accountRequest.setLoginId(null);
 
-        // Mock Member 생성
-        Member mockMember = Member.builder()
-                .email("testUser@gmail.com")
-                .name("Hong Gildong")
-                .givenName("Hong")
-                .familyName("Gildong")
-                .profileUrl("http://example.com/profile.jpg")
-                .build();
-        ReflectionTestUtils.setField(mockMember, "id", account.getMemberId());
-
-        // Mock Repository 동작 설정
-        when(memberRepository.findById(account.getMemberId()))
-                .thenReturn(Optional.of(mockMember)); // memberId에 대한 Member 반환
+        when(memberRepository.findById(accountRequest.getMemberId()))
+                .thenReturn(Optional.of(mockMember));
 
         // when, then
-        assertThatThrownBy(() -> accountService.createAccount(account))
+        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("null");
     }
 
-    // 저장 실패 시 예외를 처리
     @Test
     public void createAccount_whenSaveFails_throwsException() {
         // given
-        AccountCreateRequest account = new AccountCreateRequest();
-        account.setLoginId("testUser");
-        account.setMemberId(1L);
-
-        // Mock Member 생성
-        Member mockMember = Member.builder()
-                .email("testUser@gmail.com")
-                .name("Hong Gildong")
-                .givenName("Hong")
-                .familyName("Gildong")
-                .profileUrl("http://example.com/profile.jpg")
-                .build();
-        ReflectionTestUtils.setField(mockMember, "id", account.getMemberId());
-
-        // Mock Repository 동작 설정
-        when(memberRepository.findById(account.getMemberId()))
-                .thenReturn(Optional.of(mockMember)); // memberId에 대한 Member 반환
-        when(accountRepository.save(any(Account.class))).thenThrow(new RuntimeException("Database error"));
+        when(memberRepository.findById(accountRequest.getMemberId()))
+                .thenReturn(Optional.of(mockMember));
+        when(accountRepository.save(any(Account.class)))
+                .thenThrow(new RuntimeException("Database error"));
 
         // when, then
-        assertThatThrownBy(() -> accountService.createAccount(account))
+        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Database error");
     }

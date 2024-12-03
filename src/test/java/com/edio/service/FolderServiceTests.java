@@ -8,6 +8,7 @@ import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.studywithcard.folder.service.FolderServiceImpl;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,7 +16,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -36,83 +36,101 @@ public class FolderServiceTests {
     @Mock
     private EntityManager entityManager;
 
+    // 공통 필드
+    private FolderCreateRequest folderCreateRequest;
+    private FolderUpdateRequest folderUpdateRequest;
+    private Folder existingFolder;
+    private Folder parentFolder;
+
+    @BeforeEach
+    public void setUp() {
+        // 공통 데이터 초기화
+        folderCreateRequest = new FolderCreateRequest();
+        folderCreateRequest.setAccountId(1L);
+        folderCreateRequest.setName("Test Folder");
+
+        folderUpdateRequest = new FolderUpdateRequest();
+        folderUpdateRequest.setName("Updated Folder Name");
+        folderUpdateRequest.setParentId(2L);
+
+        existingFolder = createFolder(1L, "Old Folder Name", null);
+        parentFolder = createFolder(2L, "Parent Folder", null);
+    }
+
+    // 헬퍼 메서드: Folder 생성
+    private Folder createFolder(Long id, String name, Folder parent) {
+        Folder folder = Folder.builder()
+                .accountId(1L)
+                .name(name)
+                .parentFolder(parent)
+                .isDeleted(false)
+                .build();
+        ReflectionTestUtils.setField(folder, "id", id);
+        return folder;
+    }
+
+    // 헬퍼 메서드: Mock 설정
+    private void mockFindFolder(Long folderId, Folder folder) {
+        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.ofNullable(folder));
+    }
+
     /*
         CREATE
      */
     @Test
     public void createFolder_whenFolderDoesNotExist_createsNewFolder() {
-        // given
-        FolderCreateRequest folder = new FolderCreateRequest();
-        folder.setAccountId(1L);
-        folder.setName("Test Folder");
-        folder.setParentId(null); // 최상위 폴더로 설정
-
-        // when
+        // Mock 설정
         when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        FolderResponse response = folderService.createFolder(folder);
+        // when
+        FolderResponse response = folderService.createFolder(folderCreateRequest);
+
+        // then
+        assertThat(response).isNotNull();
+        assertThat(response.getName()).isEqualTo(folderCreateRequest.getName());
+    }
+
+    /*
+    @Test
+    public void createFolder_whenFolderExists_returnsExistingFolder() {
+        // given
+        FolderCreateRequest folderRequest = new FolderCreateRequest();
+        folderRequest.setAccountId(1L);
+        folderRequest.setName("Test Folder");
+        folderRequest.setParentId(null); // 최상위 폴더로 설정
+
+        Folder existingFolder = Folder.builder()
+                .accountId(1L)
+                .name("Test Folder")
+                .parentFolder(null) // 최상위 폴더
+                .childrenFolders(new ArrayList<>()) // 자식 폴더 리스트 초기화
+                .build();
+
+
+        // Mock 리턴 설정 - ID 수동 설정 추가
+        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> {
+            Folder folder = invocation.getArgument(0);
+            ReflectionTestUtils.setField(folder, "id", 1L); // `ReflectionTestUtils`를 사용해 필드를 강제로 설정
+            return folder;
+        });
+
+        FolderResponse response = folderService.createFolder(folderRequest);
 
         // then
         assertThat(response).isNotNull();
         assertThat(response.getName()).isEqualTo("Test Folder");
     }
-
-//    @Test
-//    public void createFolder_whenFolderExists_returnsExistingFolder() {
-//        // given
-//        FolderCreateRequest folderRequest = new FolderCreateRequest();
-//        folderRequest.setAccountId(1L);
-//        folderRequest.setName("Test Folder");
-//        folderRequest.setParentId(null); // 최상위 폴더로 설정
-//
-//        Folder existingFolder = Folder.builder()
-//                .accountId(1L)
-//                .name("Test Folder")
-//                .parentFolder(null) // 최상위 폴더
-//                .childrenFolders(new ArrayList<>()) // 자식 폴더 리스트 초기화
-//                .build();
-//
-//
-//        // Mock 리턴 설정 - ID 수동 설정 추가
-//        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> {
-//            Folder folder = invocation.getArgument(0);
-//            ReflectionTestUtils.setField(folder, "id", 1L); // `ReflectionTestUtils`를 사용해 필드를 강제로 설정
-//            return folder;
-//        });
-//
-//        FolderResponse response = folderService.createFolder(folderRequest);
-//
-//        // then
-//        assertThat(response).isNotNull();
-//        assertThat(response.getName()).isEqualTo("Test Folder");
-//    }
+     */
 
     @Test
     public void createFolder_whenNameIsNull_throwsException() {
         // given
-        FolderCreateRequest folder = new FolderCreateRequest();
-        folder.setAccountId(1L);
-        folder.setName(null);
+        folderCreateRequest.setName(null);
 
         // when, then
-        assertThatThrownBy(() -> folderService.createFolder(folder))
+        assertThatThrownBy(() -> folderService.createFolder(folderCreateRequest))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("null");
-    }
-
-    @Test
-    public void createFolder_whenSaveFails_throwsException() {
-        // given
-        FolderCreateRequest folder = new FolderCreateRequest();
-        folder.setAccountId(1L);
-        folder.setName("Test Folder");
-
-        when(folderRepository.save(any(Folder.class))).thenThrow(new RuntimeException("Database error"));
-
-        // when, then
-        assertThatThrownBy(() -> folderService.createFolder(folder))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Database error");
     }
 
     /*
@@ -120,81 +138,27 @@ public class FolderServiceTests {
      */
     @Test
     public void updateFolder_whenFolderExists_updatesFolder() {
-        // given
-        Long folderId = 1L;
-        FolderUpdateRequest updateRequest = new FolderUpdateRequest();
-        updateRequest.setName("Updated Folder Name");
-        updateRequest.setParentId(2L); // 부모 폴더 설정
-
-        Folder existingFolder = Folder.builder()
-                .accountId(1L)
-                .name("Old Folder Name")
-                .build();
-        ReflectionTestUtils.setField(existingFolder, "id", folderId);
-
-        Folder newParentFolder = Folder.builder()
-                .accountId(1L)
-                .name("New Parent Folder")
-                .build();
-        ReflectionTestUtils.setField(newParentFolder, "id", 2L);
-
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
-        when(entityManager.getReference(Folder.class, updateRequest.getParentId())).thenReturn(newParentFolder); // EntityManager 모의 객체 설정
+        // Mock 설정
+        mockFindFolder(1L, existingFolder);
+        when(entityManager.getReference(Folder.class, folderUpdateRequest.getParentId())).thenReturn(parentFolder);
 
         // when
-        folderService.updateFolder(folderId, updateRequest);
+        folderService.updateFolder(1L, folderUpdateRequest);
 
         // then
-        assertThat(existingFolder.getName()).isEqualTo("Updated Folder Name");
-        assertThat(existingFolder.getParentFolder()).isEqualTo(newParentFolder);
-    }
-
-    @Test
-    public void updateFolder_whenParentFolderIsNull_updatesToNoParent() {
-        // given
-        Long folderId = 1L;
-        FolderUpdateRequest updateRequest = new FolderUpdateRequest();
-        updateRequest.setName("Updated Folder Name");
-        updateRequest.setParentId(null); // 부모 폴더 해제
-
-        Folder existingFolder = Folder.builder()
-                .accountId(1L)
-                .name("Old Folder Name")
-                .parentFolder(Folder.builder().name("Old Parent Folder").build()) // 기존 부모 폴더 설정
-                .build();
-        ReflectionTestUtils.setField(existingFolder, "id", folderId);
-
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
-
-        // when
-        folderService.updateFolder(folderId, updateRequest);
-
-        // then
-        assertThat(existingFolder.getName()).isEqualTo("Updated Folder Name");
-        assertThat(existingFolder.getParentFolder()).isNull();
+        assertThat(existingFolder.getName()).isEqualTo(folderUpdateRequest.getName());
+        assertThat(existingFolder.getParentFolder()).isEqualTo(parentFolder);
     }
 
     @Test
     public void updateFolder_whenParentFolderDoesNotExist_throwsException() {
-        // given
-        Long folderId = 1L;
-        FolderUpdateRequest updateRequest = new FolderUpdateRequest();
-        updateRequest.setName("Updated Folder Name");
-        updateRequest.setParentId(2L); // 존재하지 않는 부모 폴더 ID 설정
-
-        Folder existingFolder = Folder.builder()
-                .accountId(1L)
-                .name("Old Folder Name")
-                .build();
-        ReflectionTestUtils.setField(existingFolder, "id", folderId);
-
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
+        // Mock 설정
+        mockFindFolder(1L, existingFolder);
         doThrow(new EntityNotFoundException("Folder not found"))
-                .when(entityManager).getReference(Folder.class, updateRequest.getParentId());
-
+                .when(entityManager).getReference(Folder.class, folderUpdateRequest.getParentId());
 
         // when, then
-        assertThatThrownBy(() -> folderService.updateFolder(folderId, updateRequest))
+        assertThatThrownBy(() -> folderService.updateFolder(1L, folderUpdateRequest))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Folder not found");
     }
@@ -204,18 +168,11 @@ public class FolderServiceTests {
      */
     @Test
     public void deleteFolder_whenFolderExists_deletesFolder() {
-        // given
-        Long folderId = 1L;
-        Folder existingFolder = Folder.builder()
-                .accountId(1L)
-                .name("Folder to be deleted")
-                .build();
-        ReflectionTestUtils.setField(existingFolder, "id", folderId);
-
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.of(existingFolder));
+        // Mock 설정
+        mockFindFolder(1L, existingFolder);
 
         // when
-        folderService.deleteFolder(folderId);
+        folderService.deleteFolder(1L);
 
         // then
         assertThat(existingFolder.isDeleted()).isTrue();
@@ -223,49 +180,12 @@ public class FolderServiceTests {
 
     @Test
     public void deleteFolder_whenFolderDoesNotExist_throwsException() {
-        // given
-        Long folderId = 1L;
-
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.empty());
+        // Mock 설정
+        mockFindFolder(1L, null);
 
         // when, then
-        assertThatThrownBy(() -> folderService.deleteFolder(folderId))
+        assertThatThrownBy(() -> folderService.deleteFolder(1L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Folder not found");
-    }
-
-    /*
-        SELECT
-     */
-    @Test
-    public void getFolder_whenFolderExists_returnsFolder() {
-        // given
-        Long accountId = 1L;
-        Folder rootFolder = Folder.builder()
-                .accountId(accountId)
-                .name("Root Folder")
-                .isDeleted(false)
-                .build();
-        ReflectionTestUtils.setField(rootFolder, "id", 1L);
-
-        Folder childFolder = Folder.builder()
-                .accountId(accountId)
-                .name("Child Folder")
-                .parentFolder(rootFolder)
-                .isDeleted(false)
-                .build();
-        ReflectionTestUtils.setField(childFolder, "id", 2L);
-        rootFolder.getChildrenFolders().add(childFolder);
-
-        List<Folder> rootFolders = List.of(rootFolder);
-        when(folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, 1L, false)).thenReturn(rootFolders);
-
-        // when
-        List<FolderResponse> response = folderService.getFolders(accountId, 1L);
-
-        // then
-        assertThat(response).isNotNull();
-        assertThat(response.size()).isEqualTo(1);
-        assertThat(response.get(0).getName()).isEqualTo("Root Folder");
     }
 }

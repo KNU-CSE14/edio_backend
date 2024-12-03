@@ -1,7 +1,7 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
-import com.edio.user.service.AccountService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -11,7 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -27,14 +27,11 @@ public class JwtTokenProvider {
 
     private final CustomUserDetailsService userDetailsService;
 
-    private final AccountService accountService;
-
     private final Key key;
 
     // application.properties에서 secret 값 가져와서 key에 저장
-    public JwtTokenProvider(CustomUserDetailsService userDetailsService, AccountService accountService, @Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
         this.userDetailsService = userDetailsService;
-        this.accountService = accountService;
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
@@ -45,12 +42,12 @@ public class JwtTokenProvider {
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
-        long now = (new Date()).getTime();
-
-        String loginId = String.valueOf(authentication.getPrincipal().getAttributes().get("email"));
-        Long accountId = accountService.getAccountIdByLoginId(loginId);
+        CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+        String loginId = customUserDetails.getUsername(); // 사용자 ID
+        Long accountId = customUserDetails.getAccountId();
 
         // Access Token 생성 (1시간 유효)
+        long now = (new Date()).getTime();
         Date accessTokenExpiresIn = new Date(now + 3600000); // 1시간
         String accessToken = Jwts.builder()
                 .setSubject(loginId) // 사용자 이름 설정
@@ -82,16 +79,15 @@ public class JwtTokenProvider {
         // Jwt 토큰 복호화
         Claims claims = parseClaims(accessToken);
 
-        // 토큰에서 loginId 추출
         String loginId = claims.getSubject();
 
-        // DB에서 사용자 정보 조회
-        UserDetails userDetails = userDetailsService.loadUserByUsername(loginId);
+        // UserDetails에서 CustomUserDetails 반환
+        CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
 
-        // 클레임에서 권한 정보 가져오기
         Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
+
         return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
     }
 
@@ -130,12 +126,6 @@ public class JwtTokenProvider {
         }
     }
 
-    // accountId 조회
-    public Long getAccountId(String token) {
-        Claims claims = parseClaims(token);
-        return claims.get("accountId", Long.class);
-    }
-
     public JwtToken refreshAccessAndRefreshTokens(String refreshToken) {
         // Refresh Token 검증
         if (validateToken(refreshToken)) {
@@ -143,12 +133,17 @@ public class JwtTokenProvider {
 
             // 기존 클레임에서 사용자 정보 가져오기
             String authorities = claims.get("auth", String.class);
-            String loginId = claims.getSubject();
-            Long accountId = accountService.getAccountIdByLoginId(loginId);
 
-            // 현재 시간
+            // SecurityContext에서 현재 사용자 정보 가져오기
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !authentication.isAuthenticated()) {
+                throw new RuntimeException("User is not authenticated");
+            }
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            String loginId = userDetails.getUsername(); // loginId
+            Long accountId = userDetails.getAccountId();
+
             long now = (new Date()).getTime();
-
             // 새로운 Access Token 생성 (1시간 유효)
             Date accessTokenExpiresIn = new Date(now + 3600000); // 1시간 유효
             String newAccessToken = Jwts.builder()
