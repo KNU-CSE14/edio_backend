@@ -15,7 +15,7 @@ public class CustomUserDetails implements UserDetails, OAuth2User {
     private final Long accountId;
     private final String username;
     private final Collection<? extends GrantedAuthority> authorities;
-    private final Map<String, Object> attributes; // OAuth2 사용자 속성
+    private final transient Map<String, Object> attributes; // OAuth2 사용자 속성
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

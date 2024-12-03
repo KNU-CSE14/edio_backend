@@ -29,6 +29,8 @@ public class JwtTokenProvider {
 
     private final Key key;
 
+    private static final String ACCOUNT_ID = "accountId";
+
     // application.properties에서 secret 값 가져와서 key에 저장
     public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
         this.userDetailsService = userDetailsService;
@@ -52,7 +54,7 @@ public class JwtTokenProvider {
         String accessToken = Jwts.builder()
                 .setSubject(loginId) // 사용자 이름 설정
                 .claim("auth", authorities) // 권한 정보 설정
-                .claim("accountId", accountId)
+                .claim(ACCOUNT_ID, accountId)
                 .setExpiration(accessTokenExpiresIn) // 만료 시간 설정
                 .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                 .compact();
@@ -61,7 +63,7 @@ public class JwtTokenProvider {
         String refreshToken = Jwts.builder()
                 .setSubject(loginId)
                 .claim("auth", authorities)
-                .claim("accountId", accountId)
+                .claim(ACCOUNT_ID, accountId)
                 .setExpiration(new Date(now + 86400000)) // 1일 만료
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
@@ -149,7 +151,7 @@ public class JwtTokenProvider {
             String newAccessToken = Jwts.builder()
                     .setSubject(loginId)
                     .claim("auth", authorities) // 권한 정보 설정
-                    .claim("accountId", accountId) // loginId 정보 추가
+                    .claim(ACCOUNT_ID, accountId) // loginId 정보 추가
                     .setExpiration(accessTokenExpiresIn) // 만료 시간 설정
                     .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                     .compact();
@@ -159,7 +161,7 @@ public class JwtTokenProvider {
             String newRefreshToken = Jwts.builder()
                     .setSubject(loginId) // 사용자 이름 설정
                     .claim("auth", authorities) // 권한 정보 설정
-                    .claim("accountId", accountId) // loginId 정보 추가
+                    .claim(ACCOUNT_ID, accountId) // loginId 정보 추가
                     .setExpiration(refreshTokenExpiresIn) // 만료 시간 설정
                     .signWith(key, SignatureAlgorithm.HS256) // 서명 알고리즘 및 비밀 키 사용
                     .compact();

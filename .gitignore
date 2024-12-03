@@ -88,5 +88,7 @@ gradle-app.setting
 #환경변수 숨김
 .env
 
+#sonar
+run-sonar.bat
 
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle
