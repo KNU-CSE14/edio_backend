@@ -50,6 +50,17 @@ public class AccountServiceImpl implements AccountService {
     }
 
     /*
+        Account 조회(active)
+     */
+    @Transactional(readOnly = true)
+    @Override
+    public AccountResponse findOneAccountEmail(String email) {
+        Account account = accountRepository.findByLoginIdAndIsDeleted(email, false)
+                .orElseThrow(() -> new NotFoundException(Account.class, email));
+        return AccountResponse.from(account);
+    }
+
+    /*
         Account 등록
      */
     @Override
