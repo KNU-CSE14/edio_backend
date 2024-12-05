@@ -65,15 +65,14 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             FolderResponse rootFolderResponse = folderService.createFolder(rootFolderRequest);
             accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.getId());
         } catch (ConflictException e) {
-            Long accountId = accountService.getAccountIdByLoginId(email);
-            accountResponse = accountService.findOneAccount(accountId);
+            accountResponse = accountService.findOneAccountEmail(email);
         }
 
         // 권한 정보 설정
         Collection<GrantedAuthority> authorities = Collections.singletonList(
                 new SimpleGrantedAuthority(accountResponse.roles().name())
         );
-        
+
         return new CustomUserDetails(
                 accountResponse.id(),
                 accountResponse.loginId(),

@@ -10,6 +10,9 @@ public interface AccountService {
     // Account 조회
     AccountResponse findOneAccount(Long accountId);
 
+    // Account 조회(이메일)
+    AccountResponse findOneAccountEmail(String email);
+
     // Account 등록
     AccountResponse createAccount(AccountCreateRequest accountCreateRequest);
 
