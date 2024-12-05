@@ -5,6 +5,7 @@ import com.edio.common.security.CustomUserDetails;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -12,8 +13,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @Tag(name = "Folder", description = "Folder 관련 API")
 @SecurityRequirement(name = "bearerAuth")
@@ -27,10 +26,11 @@ public class FolderController {
 
     @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     @GetMapping("/folder")
-    public List<FolderResponse> getFolders(
+    public FolderWithDeckResponse getFolderWithDeck(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) Long folderId) {
-        return folderService.getFolders(userDetails.getAccountId(), folderId);
+            @RequestParam(required = false) Long folderId
+    ) {
+        return folderService.getFolderWithDeck(userDetails.getAccountId(), folderId);
     }
 
     @PostMapping("/folder")
