@@ -6,6 +6,7 @@ import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
@@ -15,10 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,23 +31,22 @@ public class FolderServiceImpl implements FolderService {
     /*
         Folder 조회
      */
-    @Transactional(readOnly = true)
     @Override
-    public List<FolderResponse> getFolders(Long accountId, Long folderId) {
-        List<Folder> folders;
+    @Transactional(readOnly = true)
+    public FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId) {
+        Folder folder;
+        // folderId가 null이면 루트 폴더 조회
         if (folderId == null) {
             Long rootFolderId = accountRepository.findById(accountId)
                     .map(Account::getRootFolderId)
                     .orElseThrow(() -> new NotFoundException(Account.class, accountId));
-            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, rootFolderId, false);
+            folder = folderRepository.findById(rootFolderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
         } else {
-            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, folderId, false);
+            folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
         }
-
-        return folders.stream()
-                .map(FolderResponse::from)
-                .sorted(Comparator.comparing(FolderResponse::getUpdatedAt).reversed())
-                .collect(Collectors.toList());
+        return FolderWithDeckResponse.from(folder);
     }
 
     /*

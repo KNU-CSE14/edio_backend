@@ -1,6 +1,7 @@
 package com.edio.studywithcard.folder.domain;
 
 import com.edio.common.domain.BaseEntity;
+import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -25,6 +26,10 @@ public class Folder extends BaseEntity {
     @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Folder> childrenFolders = new ArrayList<>();
+
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Deck> decks = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter
