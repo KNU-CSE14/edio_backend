@@ -6,4 +6,7 @@ import com.edio.studywithcard.deck.model.response.DeckResponse;
 public interface DeckService {
     // 덱 생성
     DeckResponse createDeck(DeckCreateRequest request);
+
+    // 덱 이동
+    void moveDeck(Long deckId, Long newFolderId);
 }

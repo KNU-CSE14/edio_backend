@@ -16,6 +16,7 @@ public class Deck extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "folder_id", nullable = false)
+    @Setter
     private Folder folder;
 
     @ManyToOne(fetch = FetchType.LAZY)

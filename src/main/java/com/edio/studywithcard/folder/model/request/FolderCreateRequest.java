@@ -1,12 +1,9 @@
 package com.edio.studywithcard.folder.model.request;
 
-import lombok.*;
+import lombok.Data;
 
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
 public class FolderCreateRequest {
-    Long accountId;
-    Long parentId;
-    String name;
+    private Long parentId;
+    private String name;
 }
