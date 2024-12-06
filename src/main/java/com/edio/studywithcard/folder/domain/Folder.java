@@ -1,6 +1,7 @@
 package com.edio.studywithcard.folder.domain;
 
 import com.edio.common.domain.BaseEntity;
+import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,10 @@ public class Folder extends BaseEntity {
     @Builder.Default
     private List<Folder> childrenFolders = new ArrayList<>();
 
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<Deck> decks = new ArrayList<>();
+
     @Column(nullable = false)
     @Setter
     private String name;
@@ -34,16 +39,11 @@ public class Folder extends BaseEntity {
     @Setter
     @Builder.Default
     private boolean isDeleted = false;
-
-    // 부모 폴더 설정(부모 <-> 자식 양방향)
+    
     public void setParentFolder(Folder parentFolder) {
-        // 기존 부모 폴더에서 이 폴더를 제거
-        if (this.parentFolder != null) {
-            this.parentFolder.getChildrenFolders().remove(this);
-        }
         // 새로운 부모 폴더 설정
         this.parentFolder = parentFolder;
-        if (parentFolder != null) {
+        if (parentFolder != null && !parentFolder.getChildrenFolders().contains(this)) {
             parentFolder.getChildrenFolders().add(this);
         }
     }

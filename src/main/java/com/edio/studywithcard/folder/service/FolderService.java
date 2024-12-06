@@ -3,15 +3,17 @@ package com.edio.studywithcard.folder.service;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
-
-import java.util.List;
+import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 
 public interface FolderService {
     // Folder 조회
-    List<FolderResponse> getFolders(Long accountId, Long folderId);
+    FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId);
+
+    // Folder 이동
+    void moveFolder(Long folderId, Long newParentId);
 
     // Folder 등록
-    FolderResponse createFolder(FolderCreateRequest folderCreateRequest);
+    FolderResponse createFolder(Long accountId, FolderCreateRequest folderCreateRequest);
 
     // Folder 수정(이름)
     void updateFolder(Long id, FolderUpdateRequest folderUpdateRequest);

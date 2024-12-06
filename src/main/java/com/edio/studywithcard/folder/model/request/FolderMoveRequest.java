@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class FolderCreateRequest {
+public class FolderMoveRequest {
     private Long parentId;
-    private String name;
 }

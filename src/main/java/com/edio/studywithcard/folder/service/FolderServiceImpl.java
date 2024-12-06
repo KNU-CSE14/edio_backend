@@ -1,11 +1,13 @@
 package com.edio.studywithcard.folder.service;
 
+import com.edio.common.exception.BadRequestException;
 import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
@@ -15,10 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -34,23 +32,22 @@ public class FolderServiceImpl implements FolderService {
     /*
         Folder 조회
      */
-    @Transactional(readOnly = true)
     @Override
-    public List<FolderResponse> getFolders(Long accountId, Long folderId) {
-        List<Folder> folders;
+    @Transactional(readOnly = true)
+    public FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId) {
+        Folder folder;
+        // folderId가 null이면 루트 폴더 조회
         if (folderId == null) {
             Long rootFolderId = accountRepository.findById(accountId)
                     .map(Account::getRootFolderId)
                     .orElseThrow(() -> new NotFoundException(Account.class, accountId));
-            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, rootFolderId, false);
+            folder = folderRepository.findById(rootFolderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
         } else {
-            folders = folderRepository.findAllByAccountIdAndParentFolderIdAndIsDeleted(accountId, folderId, false);
+            folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
         }
-
-        return folders.stream()
-                .map(FolderResponse::from)
-                .sorted(Comparator.comparing(FolderResponse::getUpdatedAt).reversed())
-                .collect(Collectors.toList());
+        return FolderWithDeckResponse.from(folder);
     }
 
     /*
@@ -58,7 +55,7 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional
-    public FolderResponse createFolder(FolderCreateRequest folderCreateRequest) {
+    public FolderResponse createFolder(Long accoutId, FolderCreateRequest folderCreateRequest) {
         try {
             // 부모 폴더 설정
             Folder parentFolder = null;
@@ -67,7 +64,7 @@ public class FolderServiceImpl implements FolderService {
             }
 
             Folder newFolder = Folder.builder()
-                    .accountId(folderCreateRequest.getAccountId())
+                    .accountId(accoutId)
                     .parentFolder(parentFolder) // 부모 폴더 설정
                     .name(folderCreateRequest.getName())
                     .build();
@@ -79,7 +76,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     /*
-        Folder 수정
+        Folder명 수정
      */
     @Override
     @Transactional
@@ -89,16 +86,41 @@ public class FolderServiceImpl implements FolderService {
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.setName(folderUpdateRequest.getName());
+    }
 
-        // 부모 폴더 업데이트
+    /*
+        Folder 이동
+     */
+    @Override
+    @Transactional
+    public void moveFolder(Long folderId, Long newParentId) {
+        // 이동할 폴더 조회
+        Folder folderToMove = folderRepository.findByIdAndIsDeleted(folderId, false)
+                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+
+        // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
-        if (folderUpdateRequest.getParentId() != null) {
-            // 부모 폴더가 존재하는 경우 새로운 부모 폴더 조회
-            newParentFolder = entityManager.getReference(Folder.class, folderUpdateRequest.getParentId());
+        if (newParentId != null) {
+            newParentFolder = entityManager.getReference(Folder.class, newParentId);
         }
 
-        // 부모 폴더 설정
-        existingFolder.setParentFolder(newParentFolder);
+        // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
+        if (isDescendant(folderToMove, newParentFolder)) {
+            throw new BadRequestException(Folder.class, newParentId);
+        }
+
+        folderToMove.setParentFolder(newParentFolder);
+    }
+
+    private boolean isDescendant(Folder targetFolder, Folder newParentFolder) {
+        // 부모 폴더를 타고 올라가며 사이클 여부 확인
+        while (newParentFolder != null) {
+            if (newParentFolder.getId().equals(targetFolder.getId())) {
+                return true;
+            }
+            newParentFolder = newParentFolder.getParentFolder();
+        }
+        return false;
     }
 
     /*

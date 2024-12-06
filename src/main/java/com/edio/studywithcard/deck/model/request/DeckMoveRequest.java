@@ -1,4 +1,4 @@
-package com.edio.studywithcard.folder.model.request;
+package com.edio.studywithcard.deck.model.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,6 +7,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class FolderUpdateRequest {
-    private String name;
+public class DeckMoveRequest {
+    private Long parentId; // 새로운 폴더 ID
 }

@@ -46,7 +46,6 @@ public class FolderServiceTests {
     public void setUp() {
         // 공통 데이터 초기화
         folderCreateRequest = new FolderCreateRequest();
-        folderCreateRequest.setAccountId(1L);
         folderCreateRequest.setName("Test Folder");
 
         folderUpdateRequest = new FolderUpdateRequest();
@@ -83,7 +82,7 @@ public class FolderServiceTests {
         when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // when
-        FolderResponse response = folderService.createFolder(folderCreateRequest);
+        FolderResponse response = folderService.createFolder(1L, folderCreateRequest);
 
         // then
         assertThat(response).isNotNull();
@@ -128,7 +127,7 @@ public class FolderServiceTests {
         folderCreateRequest.setName(null);
 
         // when, then
-        assertThatThrownBy(() -> folderService.createFolder(folderCreateRequest))
+        assertThatThrownBy(() -> folderService.createFolder(1L, folderCreateRequest))
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("null");
     }
@@ -147,7 +146,6 @@ public class FolderServiceTests {
 
         // then
         assertThat(existingFolder.getName()).isEqualTo(folderUpdateRequest.getName());
-        assertThat(existingFolder.getParentFolder()).isEqualTo(parentFolder);
     }
 
     @Test
