@@ -6,7 +6,7 @@ import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 
 public interface FolderService {
-    // Folder 하위 조회(Folder, Deck)
+    // Folder 조회
     FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId);
 
     // Folder 이동

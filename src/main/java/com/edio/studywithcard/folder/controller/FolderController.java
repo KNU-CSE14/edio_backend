@@ -25,8 +25,8 @@ public class FolderController {
 
     private final FolderService folderService;
 
-    @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     @GetMapping("/folder")
+    @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     public FolderWithDeckResponse getFolderWithDeck(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long folderId

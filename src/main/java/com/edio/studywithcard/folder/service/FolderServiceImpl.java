@@ -1,8 +1,8 @@
 package com.edio.studywithcard.folder.service;
 
+import com.edio.common.exception.BadRequestException;
 import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
-import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
@@ -17,11 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -94,7 +89,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     /*
-        Folder 이동(하위 폴더, 덱)
+        Folder 이동
      */
     @Override
     @Transactional
@@ -111,55 +106,21 @@ public class FolderServiceImpl implements FolderService {
 
         // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
         if (isDescendant(folderToMove, newParentFolder)) {
-            throw new IllegalArgumentException("폴더를 자기 자신이나 하위 폴더로 이동할 수 없습니다.");
+            throw new BadRequestException(Folder.class, newParentId);
         }
 
-        // 폴더 이동
-        moveFolderAndChildren(folderToMove, newParentFolder);
+        folderToMove.setParentFolder(newParentFolder);
     }
 
-    /*
-        폴더 이동 무한 루프 사이클 방지 메서드
-     */
     private boolean isDescendant(Folder targetFolder, Folder newParentFolder) {
         // 부모 폴더를 타고 올라가며 사이클 여부 확인
         while (newParentFolder != null) {
             if (newParentFolder.getId().equals(targetFolder.getId())) {
-                return true; // 사이클 발생
+                return true;
             }
             newParentFolder = newParentFolder.getParentFolder();
         }
-        return false; // 사이클 없음
-    }
-
-    /*
-        하위 폴더 이동 재귀 메서드
-     */
-    private void moveFolderAndChildren(Folder rootFolder, Folder newParentFolder) {
-        // 스택을 사용한 반복 처리
-        Deque<Folder> stack = new ArrayDeque<>();
-        stack.push(rootFolder);
-
-        // 부모 폴더 설정
-        rootFolder.setParentFolder(newParentFolder);
-
-        while (!stack.isEmpty()) {
-            Folder currentFolder = stack.pop();
-
-            // 현재 폴더의 모든 하위 덱을 새로운 부모 폴더로 이동
-            if (newParentFolder != null) {
-                for (Deck deck : currentFolder.getDecks()) {
-                    deck.setFolder(newParentFolder);
-                }
-            }
-
-            // 스택에 하위 폴더 추가 (null 안전 처리)
-            for (Folder childFolder : Optional.ofNullable(currentFolder.getChildrenFolders())
-                    .orElse(Collections.emptyList())) {
-                stack.push(childFolder);
-                childFolder.setParentFolder(currentFolder); // 부모 설정
-            }
-        }
+        return false;
     }
 
     /*
