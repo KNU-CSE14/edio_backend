@@ -104,6 +104,12 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
+        // 디버깅용 로그 추가
+        log.error("CORS Configuration Loaded:");
+        log.error("Allowed Origins: " + configuration.getAllowedOrigins());
+        log.error("Allowed Methods: " + configuration.getAllowedMethods());
+
         return source;
     }
 }
