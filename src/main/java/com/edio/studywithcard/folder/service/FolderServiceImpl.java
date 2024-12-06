@@ -2,6 +2,7 @@ package com.edio.studywithcard.folder.service;
 
 import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
+import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
@@ -54,7 +55,7 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional
-    public FolderResponse createFolder(FolderCreateRequest folderCreateRequest) {
+    public FolderResponse createFolder(Long accoutId, FolderCreateRequest folderCreateRequest) {
         try {
             // 부모 폴더 설정
             Folder parentFolder = null;
@@ -63,7 +64,7 @@ public class FolderServiceImpl implements FolderService {
             }
 
             Folder newFolder = Folder.builder()
-                    .accountId(folderCreateRequest.getAccountId())
+                    .accountId(accoutId)
                     .parentFolder(parentFolder) // 부모 폴더 설정
                     .name(folderCreateRequest.getName())
                     .build();
@@ -75,7 +76,7 @@ public class FolderServiceImpl implements FolderService {
     }
 
     /*
-        Folder 수정
+        Folder명 수정
      */
     @Override
     @Transactional
@@ -85,16 +86,63 @@ public class FolderServiceImpl implements FolderService {
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.setName(folderUpdateRequest.getName());
+    }
 
-        // 부모 폴더 업데이트
+    /*
+        Folder 이동(하위 폴더, 덱)
+     */
+    @Override
+    @Transactional
+    public void moveFolder(Long folderId, Long newParentId) {
+        // 이동할 폴더 조회
+        Folder folderToMove = folderRepository.findByIdAndIsDeleted(folderId, false)
+                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+
+        // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
-        if (folderUpdateRequest.getParentId() != null) {
-            // 부모 폴더가 존재하는 경우 새로운 부모 폴더 조회
-            newParentFolder = entityManager.getReference(Folder.class, folderUpdateRequest.getParentId());
+        if (newParentId != null) {
+            newParentFolder = entityManager.getReference(Folder.class, newParentId);
         }
 
-        // 부모 폴더 설정
-        existingFolder.setParentFolder(newParentFolder);
+        // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
+        if (isDescendant(folderToMove, newParentFolder)) {
+            throw new IllegalArgumentException("폴더를 자기 자신이나 하위 폴더로 이동할 수 없습니다.");
+        }
+
+        // 폴더 이동
+        moveFolderAndChildren(folderToMove, newParentFolder);
+    }
+
+    /*
+        폴더 이동 무한 루프 사이클 방지 메서드
+     */
+    private boolean isDescendant(Folder targetFolder, Folder newParentFolder) {
+        // 부모 폴더를 타고 올라가며 사이클 여부 확인
+        while (newParentFolder != null) {
+            if (newParentFolder.getId().equals(targetFolder.getId())) {
+                return true; // 사이클 발생
+            }
+            newParentFolder = newParentFolder.getParentFolder();
+        }
+        return false; // 사이클 없음
+    }
+
+    /*
+        하위 폴더 이동 재귀 메서드
+     */
+    private void moveFolderAndChildren(Folder folder, Folder newParentFolder) {
+        // 현재 폴더의 부모를 설정
+        folder.setParentFolder(newParentFolder);
+
+        // 현재 폴더의 모든 하위 덱을 새로운 부모 폴더로 이동
+        for (Deck deck : folder.getDecks()) {
+            deck.setFolder(newParentFolder);
+        }
+
+        // 재귀적으로 하위 폴더 이동
+        for (Folder childFolder : folder.getChildrenFolders()) {
+            moveFolderAndChildren(childFolder, folder);
+        }
     }
 
     /*
