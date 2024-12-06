@@ -106,9 +106,9 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
 
         // 디버깅용 로그 추가
-        log.error("CORS Configuration Loaded:");
-        log.error("Allowed Origins: " + configuration.getAllowedOrigins());
-        log.error("Allowed Methods: " + configuration.getAllowedMethods());
+        log.info("CORS Configuration Loaded:");
+        log.info("Allowed Origins: " + configuration.getAllowedOrigins());
+        log.info("Allowed Methods: " + configuration.getAllowedMethods());
 
         return source;
     }
