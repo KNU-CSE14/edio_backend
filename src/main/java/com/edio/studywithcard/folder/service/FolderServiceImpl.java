@@ -18,6 +18,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayDeque;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.Optional;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -130,18 +135,30 @@ public class FolderServiceImpl implements FolderService {
     /*
         하위 폴더 이동 재귀 메서드
      */
-    private void moveFolderAndChildren(Folder folder, Folder newParentFolder) {
-        // 현재 폴더의 부모를 설정
-        folder.setParentFolder(newParentFolder);
+    private void moveFolderAndChildren(Folder rootFolder, Folder newParentFolder) {
+        // 스택을 사용한 반복 처리
+        Deque<Folder> stack = new ArrayDeque<>();
+        stack.push(rootFolder);
 
-        // 현재 폴더의 모든 하위 덱을 새로운 부모 폴더로 이동
-        for (Deck deck : folder.getDecks()) {
-            deck.setFolder(newParentFolder);
-        }
+        // 부모 폴더 설정
+        rootFolder.setParentFolder(newParentFolder);
 
-        // 재귀적으로 하위 폴더 이동
-        for (Folder childFolder : folder.getChildrenFolders()) {
-            moveFolderAndChildren(childFolder, folder);
+        while (!stack.isEmpty()) {
+            Folder currentFolder = stack.pop();
+
+            // 현재 폴더의 모든 하위 덱을 새로운 부모 폴더로 이동
+            if (newParentFolder != null) {
+                for (Deck deck : currentFolder.getDecks()) {
+                    deck.setFolder(newParentFolder);
+                }
+            }
+
+            // 스택에 하위 폴더 추가 (null 안전 처리)
+            for (Folder childFolder : Optional.ofNullable(currentFolder.getChildrenFolders())
+                    .orElse(Collections.emptyList())) {
+                stack.push(childFolder);
+                childFolder.setParentFolder(currentFolder); // 부모 설정
+            }
         }
     }
 
