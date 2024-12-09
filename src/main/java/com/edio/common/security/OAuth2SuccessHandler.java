@@ -38,8 +38,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String refreshToken = jwtToken.getRefreshToken();
 
         // 쿠키 생성 및 설정
-        String accessTokenCookie = String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; Domain=localhost; SameSite=None", accessToken);
-        String refreshTokenCookie = String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; Domain=localhost; SameSite=None", refreshToken);
+        String accessTokenCookie = String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None", accessToken);
+        String refreshTokenCookie = String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None", refreshToken);
 
         response.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie);
         response.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
