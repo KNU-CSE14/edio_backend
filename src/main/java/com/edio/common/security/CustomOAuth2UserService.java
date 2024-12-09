@@ -72,9 +72,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 new SimpleGrantedAuthority(accountResponse.roles().name())
         );
 
-        log.info("accountRes" + accountResponse.id());
-        log.info("accountResId" + accountResponse.loginId());
-
         return new CustomUserDetails(
                 accountResponse.id(),
                 accountResponse.loginId(),
