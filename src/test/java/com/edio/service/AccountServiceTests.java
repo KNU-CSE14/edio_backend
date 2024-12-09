@@ -44,9 +44,7 @@ public class AccountServiceTests {
     @BeforeEach
     public void setUp() {
         // 공통 테스트 데이터 초기화
-        accountRequest = new AccountCreateRequest();
-        accountRequest.setLoginId("testUser@gmail.com");
-        accountRequest.setMemberId(1L);
+        accountRequest = new AccountCreateRequest("testUser@gmail.com", 1L);
 
         mockMember = Member.builder()
                 .email("testUser@gmail.com")
@@ -55,10 +53,10 @@ public class AccountServiceTests {
                 .familyName("Gildong")
                 .profileUrl("http://example.com/profile.jpg")
                 .build();
-        ReflectionTestUtils.setField(mockMember, "id", accountRequest.getMemberId());
+        ReflectionTestUtils.setField(mockMember, "id", accountRequest.memberId());
 
         mockAccount = Account.builder()
-                .loginId(accountRequest.getLoginId())
+                .loginId(accountRequest.loginId())
                 .member(mockMember)
                 .loginType(AccountLoginType.GOOGLE) // 기본값 가정
                 .roles(AccountRole.ROLE_USER)          // 기본값 가정
@@ -68,7 +66,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
         // given
-        when(memberRepository.findById(accountRequest.getMemberId()))
+        when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
                 .thenReturn(mockAccount);
@@ -84,7 +82,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenAccountExists_throwsConflictException() {
         // given
-        when(memberRepository.findById(accountRequest.getMemberId()))
+        when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
                 .thenThrow(new ConflictException(Account.class, mockAccount.getLoginId()));
@@ -98,9 +96,9 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        accountRequest.setLoginId(null);
+        accountRequest = new AccountCreateRequest(null, 1L);
 
-        when(memberRepository.findById(accountRequest.getMemberId()))
+        when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
 
         // when, then
@@ -112,7 +110,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenSaveFails_throwsException() {
         // given
-        when(memberRepository.findById(accountRequest.getMemberId()))
+        when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
                 .thenThrow(new RuntimeException("Database error"));

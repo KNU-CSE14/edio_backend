@@ -24,16 +24,16 @@ public class MemberServiceImpl implements MemberService {
     public MemberResponse createMember(MemberCreateRequest memberCreateRequest) {
         try {
             Member newMember = Member.builder()
-                    .email(memberCreateRequest.getEmail())
-                    .name(memberCreateRequest.getName())
-                    .givenName(memberCreateRequest.getGivenName())
-                    .familyName(memberCreateRequest.getFamilyName())
-                    .profileUrl(memberCreateRequest.getProfileUrl())
+                    .email(memberCreateRequest.email())
+                    .name(memberCreateRequest.name())
+                    .givenName(memberCreateRequest.givenName())
+                    .familyName(memberCreateRequest.familyName())
+                    .profileUrl(memberCreateRequest.profileUrl())
                     .build();
             Member savedMember = memberRepository.save(newMember);
             return MemberResponse.from(savedMember);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Member.class, memberCreateRequest.getEmail());
+            throw new ConflictException(Member.class, memberCreateRequest.email());
         }
     }
 }
