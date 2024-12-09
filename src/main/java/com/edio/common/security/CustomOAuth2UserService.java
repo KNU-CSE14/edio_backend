@@ -62,7 +62,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                     "Default"
             );
             FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
-            accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.getId());
+            accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
         } catch (ConflictException e) {
             accountResponse = accountService.findOneAccountEmail(email);
         }

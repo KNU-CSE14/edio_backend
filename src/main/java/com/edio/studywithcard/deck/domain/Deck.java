@@ -14,12 +14,12 @@ import lombok.*;
 @Builder
 public class Deck extends BaseEntity {
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "folder_id", nullable = false)
     @Setter
     private Folder folder;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -37,5 +37,6 @@ public class Deck extends BaseEntity {
     private boolean isDeleted = false;
 
     @Column(nullable = false)
-    private String deckType;
+    @Builder.Default
+    private boolean isShared = false;
 }

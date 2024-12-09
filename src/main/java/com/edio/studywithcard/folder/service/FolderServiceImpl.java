@@ -11,7 +11,6 @@ import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class FolderServiceImpl implements FolderService {
-
-    private final EntityManager entityManager;
 
     private final FolderRepository folderRepository;
 
@@ -59,19 +56,19 @@ public class FolderServiceImpl implements FolderService {
         try {
             // 부모 폴더 설정
             Folder parentFolder = null;
-            if (folderCreateRequest.getParentId() != null) {
-                parentFolder = entityManager.getReference(Folder.class, folderCreateRequest.getParentId());
+            if (folderCreateRequest.parentId() != null) {
+                parentFolder = folderRepository.getReferenceById(folderCreateRequest.parentId());
             }
 
             Folder newFolder = Folder.builder()
                     .accountId(accoutId)
                     .parentFolder(parentFolder) // 부모 폴더 설정
-                    .name(folderCreateRequest.getName())
+                    .name(folderCreateRequest.name())
                     .build();
             Folder savedFolder = folderRepository.save(newFolder);
             return FolderResponse.from(savedFolder);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Folder.class, folderCreateRequest.getName());
+            throw new ConflictException(Folder.class, folderCreateRequest.name());
         }
     }
 
@@ -85,7 +82,7 @@ public class FolderServiceImpl implements FolderService {
         Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
-        existingFolder.setName(folderUpdateRequest.getName());
+        existingFolder.setName(folderUpdateRequest.name());
     }
 
     /*
@@ -95,21 +92,21 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void moveFolder(Long folderId, Long newParentId) {
         // 이동할 폴더 조회
-        Folder folderToMove = folderRepository.findByIdAndIsDeleted(folderId, false)
+        Folder folder = folderRepository.findByIdAndIsDeleted(folderId, false)
                 .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
 
         // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
         if (newParentId != null) {
-            newParentFolder = entityManager.getReference(Folder.class, newParentId);
+            newParentFolder = folderRepository.getReferenceById(newParentId);
         }
 
         // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
-        if (isDescendant(folderToMove, newParentFolder)) {
+        if (isDescendant(folder, newParentFolder)) {
             throw new BadRequestException(Folder.class, newParentId);
         }
 
-        folderToMove.setParentFolder(newParentFolder);
+        folder.setParentFolder(newParentFolder);
     }
 
     private boolean isDescendant(Folder targetFolder, Folder newParentFolder) {
