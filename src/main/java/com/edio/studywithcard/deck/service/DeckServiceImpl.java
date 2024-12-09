@@ -10,7 +10,6 @@ import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -21,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class DeckServiceImpl implements DeckService {
-
-    private final EntityManager entityManager;
 
     private final DeckRepository deckRepository;
 
@@ -35,23 +32,23 @@ public class DeckServiceImpl implements DeckService {
     public DeckResponse createDeck(DeckCreateRequest request) {
         try {
             // Folder와 Category를 조회
-            Folder folder = folderRepository.findById(request.getFolderId())
-                    .orElseThrow(() -> new NotFoundException(Folder.class, request.getFolderId()));
-            Category category = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new NotFoundException(Category.class, request.getCategoryId()));
+            Folder folder = folderRepository.findById(request.folderId())
+                    .orElseThrow(() -> new NotFoundException(Folder.class, request.folderId()));
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new NotFoundException(Category.class, request.categoryId()));
 
             // Deck 생성 및 저장
             Deck deck = Deck.builder()
                     .folder(folder)
                     .category(category)
-                    .name(request.getName())
-                    .description(request.getDescription())
-                    .deckType(request.getDeckType())
+                    .name(request.name())
+                    .description(request.description())
+                    .isShared(request.isShared())
                     .build();
             Deck savedDeck = deckRepository.save(deck);
             return DeckResponse.from(savedDeck);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, request.getName());
+            throw new ConflictException(Deck.class, request.name());
         }
     }
 
@@ -68,12 +65,7 @@ public class DeckServiceImpl implements DeckService {
         // 새로운 폴더 조회
         Folder newFolder = null;
         if (newFolderId != null) {
-            newFolder = entityManager.getReference(Folder.class, newFolderId);
-        }
-
-        // 동일 폴더로 이동 요청인지 확인
-        if (deck.getFolder() != null && deck.getFolder().equals(newFolder)) {
-            return;
+            newFolder = folderRepository.getReferenceById(newFolderId);
         }
 
         // 덱의 폴더 변경

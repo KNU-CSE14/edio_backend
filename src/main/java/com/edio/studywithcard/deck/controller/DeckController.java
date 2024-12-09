@@ -29,9 +29,9 @@ public class DeckController {
         return deckService.createDeck(request);
     }
 
-    @PatchMapping("/deck/{id}/move")
+    @PatchMapping("/deck/{id}/position")
     @Operation(summary = "Deck 이동", description = "Deck을 이동합니다.")
     public void moveDeck(@PathVariable Long id, @RequestBody DeckMoveRequest deckMoveRequest) {
-        deckService.moveDeck(id, deckMoveRequest.getParentId());
+        deckService.moveDeck(id, deckMoveRequest.parentId());
     }
 }

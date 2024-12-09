@@ -48,10 +48,10 @@ public class FolderController {
         folderService.updateFolder(id, folderUpdateRequest);
     }
 
-    @PatchMapping("/folder/{id}/move")
+    @PatchMapping("/folder/{id}/position")
     @Operation(summary = "Folder 이동", description = "Folder를 이동합니다.")
     public void moveFolder(@PathVariable Long id, @RequestBody FolderMoveRequest folderMoveRequest) {
-        folderService.moveFolder(id, folderMoveRequest.getParentId());
+        folderService.moveFolder(id, folderMoveRequest.parentId());
     }
 
     @DeleteMapping("/folder/{id}")
