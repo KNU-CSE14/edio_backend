@@ -67,11 +67,11 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest accountCreateRequest) {
         try {
-            Member member = memberRepository.findById(accountCreateRequest.getMemberId())
-                    .orElseThrow(() -> new NotFoundException(Member.class, accountCreateRequest.getMemberId()));
+            Member member = memberRepository.findById(accountCreateRequest.memberId())
+                    .orElseThrow(() -> new NotFoundException(Member.class, accountCreateRequest.memberId()));
 
             Account newAccount = Account.builder()
-                    .loginId(accountCreateRequest.getLoginId())
+                    .loginId(accountCreateRequest.loginId())
                     .password(oauthPassword)
                     .member(member)
                     .loginType(AccountLoginType.GOOGLE) // 기본값을 사용하지 않고 명시적으로 설정
@@ -80,7 +80,7 @@ public class AccountServiceImpl implements AccountService {
             Account savedAccount = accountRepository.save(newAccount);
             return AccountResponse.from(savedAccount);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Account.class, accountCreateRequest.getLoginId());
+            throw new ConflictException(Account.class, accountCreateRequest.loginId());
         }
     }
 
