@@ -1,0 +1,42 @@
+services:
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: edio
+      MYSQL_USER: manager
+      MYSQL_PASSWORD: manager0
+      MYSQL_ROOT_PASSWORD: manager0
+      TZ: Asia/Seoul
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    volumes:
+      - ./db/init/conf.d:/etc/mysql/conf.d
+      - ./db/init/init.d:/docker-entrypoint-initdb.d
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      SPRING_DEVTOOLS_RESTART_ENABLED: "true"
+      SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
+      SPRING_DEVTOOLS_RESTART_ADDITIONAL_PATHS: src/main/java
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      mysql:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - .:/app:cached
+      - /app/build # Gradle 빌드 결과 디렉토리를 내부에서 사용
+    command: ["gradle", "bootRun"] # 코드 변경 시 반영
+networks:
+  app-network:
+    driver: bridge
