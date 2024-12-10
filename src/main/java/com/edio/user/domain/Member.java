@@ -15,7 +15,7 @@ import lombok.*;
 @Builder
 public class Member extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
