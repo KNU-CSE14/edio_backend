@@ -21,19 +21,24 @@ public class Deck extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
+    @Setter
     private Category category;
 
+    @Setter
     @Column(nullable = false)
     private String name;
 
+    @Setter
     private String description;
 
     @Column(nullable = false)
     @Builder.Default
+    @Setter
     private boolean isFavorite = false;
 
     @Column(nullable = false)
     @Builder.Default
+    @Setter
     private boolean isDeleted = false;
 
     @Column(nullable = false)
