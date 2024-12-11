@@ -26,21 +26,16 @@ public class MemberServiceTests {
     @InjectMocks
     private MemberServiceImpl memberService;
 
+    String email = "test@example.com";
+    String name = "Hong gildong";
+    String givenName = "gildong";
+    String familyName = "Hong";
+    String profileUrl = "http://example.com/profile.jpg";
+
     @Test
     public void createMember_whenMemberDoesNotExist_createsNewMember() {
         // given
-        String email = "test@example.com";
-        String name = "Hong gildong";
-        String givenName = "gildong";
-        String familyName = "Hong";
-        String profileUrl = "http://example.com/profile.jpg";
-
-        MemberCreateRequest member = new MemberCreateRequest();
-        member.setEmail(email);
-        member.setName(name);
-        member.setGivenName(givenName);
-        member.setFamilyName(familyName);
-        member.setProfileUrl(profileUrl);
+        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
 
         // when
         when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
@@ -62,11 +57,11 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenMemberExists_throwsConflictException() {
         // given
-        MemberCreateRequest existingMember = new MemberCreateRequest();
-        existingMember.setEmail("test@example.com");
+        String email = "test@example.com";
+        MemberCreateRequest existingMember = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
 
         // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.getEmail()));
+        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.email()));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> memberService.createMember(existingMember))
@@ -78,8 +73,9 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenEmailIsNull_throwsException() {
         // given
-        MemberCreateRequest member = new MemberCreateRequest();
-        member.setEmail(null);
+        String email = null;
+        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
+
 
         // when, then
         assertThatThrownBy(() -> memberService.createMember(member))
@@ -91,8 +87,7 @@ public class MemberServiceTests {
     @Test
     public void createMember_whenSaveFails_throwsException() {
         // given
-        MemberCreateRequest member = new MemberCreateRequest();
-        member.setEmail("test@example.com");
+        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
 
         when(memberRepository.save(any(Member.class))).thenThrow(new RuntimeException("Database error"));
 
