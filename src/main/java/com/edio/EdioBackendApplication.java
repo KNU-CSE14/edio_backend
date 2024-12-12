@@ -28,6 +28,11 @@ public class EdioBackendApplication {
 
         System.setProperty("redirect.url", dotenv.get("REDIRECT_URL"));
 
+        System.setProperty("AWS_REGION", dotenv.get("AWS_REGION"));
+        System.setProperty("AWS_ACCESS_KEY_ID", dotenv.get("AWS_ACCESS_KEY_ID"));
+        System.setProperty("AWS_SECRET_KEY_ID", dotenv.get("AWS_SECRET_KEY_ID"));
+        System.setProperty("AWS_BUCKET_NAME", dotenv.get("AWS_BUCKET_NAME"));
+
         SpringApplication.run(EdioBackendApplication.class, args);
     }
 }
