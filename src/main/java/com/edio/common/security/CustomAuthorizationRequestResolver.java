@@ -1,5 +1,6 @@
 package com.edio.common.security;
 
+import com.edio.common.exception.UnprocessableException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -50,7 +51,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             String stateJson = objectMapper.writeValueAsString(stateMap); // JSON 변환
             encodedState = Base64.getEncoder().encodeToString(stateJson.getBytes(StandardCharsets.UTF_8)); // Base64 인코딩
         } catch (Exception e) {
-            throw new RuntimeException("Failed to encode state", e);
+            throw new UnprocessableException(CustomAuthorizationRequestResolver.class, stateMap);
         }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)
