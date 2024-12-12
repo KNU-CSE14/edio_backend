@@ -1,5 +1,6 @@
 package com.edio.common.security;
 
+import com.edio.common.exception.ForbiddenException;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -56,7 +57,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // CSRF 토큰 검증
         String csrfToken = stateMap.get("csrfToken");
         if (!isValidCsrfToken(csrfToken)) {
-            throw new IllegalArgumentException("Invalid CSRF token");
+            throw new ForbiddenException(OAuth2SuccessHandler.class, csrfToken);
         }
 
         // 복원된 redirectUri로 리다이렉트
