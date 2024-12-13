@@ -1,9 +1,7 @@
 package com.edio.studywithcard.attachment.domain;
 
 import com.edio.common.domain.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -37,4 +35,8 @@ public class Attachment extends BaseEntity {
     @Column(nullable = false)
     @Builder.Default
     private boolean isShared = false;
+
+    @ManyToOne
+    @JoinColumn(name = "attachment_deck_target_id", nullable = false)
+    private AttachmentDeckTarget attachmentDeckTarget;
 }
