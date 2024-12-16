@@ -1,10 +1,14 @@
 package com.edio.studywithcard.deck.domain;
 
 import com.edio.common.domain.BaseEntity;
+import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.folder.domain.Folder;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "deck")
@@ -22,6 +26,9 @@ public class Deck extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
+
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 
     @Column(nullable = false)
     private String name;

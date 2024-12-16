@@ -2,7 +2,6 @@ package com.edio.studywithcard.attachment.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
-import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,14 +39,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .fileType(file.getContentType())
                 .fileTarget("deck")
                 .build();
-        attachment = attachmentRepository.save(attachment);
-
-        AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
-                .attachment(attachment)
-                .build();
-        attachmentDeckTargetRepository.save(attachmentDeckTarget);
-
-        return attachment;
+        return attachmentRepository.save(attachment);
     }
 
     /*
