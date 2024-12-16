@@ -25,18 +25,22 @@ public class Deck extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
+    @Setter
     private Category category;
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 
     @Column(nullable = false)
+    @Setter
     private String name;
 
+    @Setter
     private String description;
 
     @Column(nullable = false)
     @Builder.Default
+    @Setter
     private boolean isFavorite = false;
 
     @Column(nullable = false)

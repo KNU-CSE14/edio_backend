@@ -12,6 +12,7 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
+import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
@@ -40,25 +41,38 @@ public class DeckServiceImpl implements DeckService {
 
     private final AttachmentDeckTargetRepository attachmentDeckTargetRepository;
 
+    /*
+        덱 조회
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public DeckResponse getDeck(Long id) {
+        Deck deck = deckRepository.findByIdAndIsDeleted(id, false)
+                .orElseThrow(() -> new NotFoundException(Deck.class, id));
+        return DeckResponse.from(deck);
+    }
+
+    /*
+        덱 생성
+     */
     @Override
     @Transactional
-    public DeckResponse createDeck(DeckCreateRequest request, MultipartFile file) {
+    public DeckResponse createDeck(DeckCreateRequest deckCreateRequest, MultipartFile file) {
         try {
             // Folder와 Category를 조회
-            Folder folder = folderRepository.findById(request.folderId())
-                    .orElseThrow(() -> new NotFoundException(Folder.class, request.folderId()));
-            Category category = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new NotFoundException(Category.class, request.categoryId()));
+            Folder folder = folderRepository.findById(deckCreateRequest.folderId())
+                    .orElseThrow(() -> new NotFoundException(Folder.class, deckCreateRequest.folderId()));
+            Category category = categoryRepository.findById(deckCreateRequest.categoryId())
+                    .orElseThrow(() -> new NotFoundException(Category.class, deckCreateRequest.categoryId()));
 
-            // 1. Deck 생성 및 저장
+            // Deck 생성 및 저장
             Deck deck = Deck.builder()
                     .folder(folder)
                     .category(category)
-                    .name(request.name())
-                    .description(request.description())
-                    .isShared(request.isShared())
+                    .name(deckCreateRequest.name())
+                    .description(deckCreateRequest.description())
+                    .isShared(deckCreateRequest.isShared())
                     .build();
-            Deck savedDeck = deckRepository.save(deck);
 
             // 2. 첨부파일 처리
             if (file != null && !file.isEmpty()) {
@@ -72,23 +86,57 @@ public class DeckServiceImpl implements DeckService {
                         .build();
                 attachmentDeckTargetRepository.save(attachmentDeckTarget);
             }
+
+            Deck savedDeck = deckRepository.save(deck);
             return DeckResponse.from(savedDeck);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, request.name());
+            throw new ConflictException(Deck.class, deckCreateRequest.name());
         } catch (IOException e) {
             throw new InternalServerException(e.getMessage());
         }
     }
 
     /*
-        Deck 이동
+        덱 수정
      */
     @Override
     @Transactional
-    public void moveDeck(Long deckId, Long newFolderId) {
-        // 이동할 덱 조회
-        Deck deck = deckRepository.findById(deckId)
+    public void updateDeck(Long deckId, DeckUpdateRequest deckUpdateRequest) {
+        Deck existingDeck = deckRepository.findByIdAndIsDeleted(deckId, false)
                 .orElseThrow(() -> new NotFoundException(Deck.class, deckId));
+
+        // 카테고리
+        if (deckUpdateRequest.categoryId() != null) {
+            Category newCategory = categoryRepository.getReferenceById(deckUpdateRequest.categoryId());
+            existingDeck.setCategory(newCategory);
+        }
+
+        // 덱 이름
+        if (deckUpdateRequest.name() != null && !deckUpdateRequest.name().isBlank()) {
+            existingDeck.setName(deckUpdateRequest.name());
+        }
+
+        // 덱 설명
+        if (deckUpdateRequest.description() != null && !deckUpdateRequest.description().isBlank()) {
+            existingDeck.setDescription(deckUpdateRequest.description());
+        }
+
+        // 덱 즐겨찾기 여부
+        if (deckUpdateRequest.isFavorite() != null) {
+            existingDeck.setFavorite(deckUpdateRequest.isFavorite());
+        }
+    }
+
+
+    /*
+        덱 이동
+     */
+    @Override
+    @Transactional
+    public void moveDeck(Long id, Long newFolderId) {
+        // 이동할 덱 조회
+        Deck deck = deckRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException(Deck.class, id));
 
         // 새로운 폴더 조회
         Folder newFolder = null;
@@ -98,5 +146,16 @@ public class DeckServiceImpl implements DeckService {
 
         // 덱의 폴더 변경
         deck.setFolder(newFolder);
+    }
+
+    /*
+        덱 삭제
+     */
+    @Override
+    @Transactional
+    public void deleteDeck(Long id) {
+        Deck existingDeck = deckRepository.findByIdAndIsDeleted(id, false)
+                .orElseThrow(() -> new NotFoundException(Deck.class, id));
+        existingDeck.setDeleted(true);
     }
 }

@@ -1,5 +1,6 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.exception.AuthenticationException;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -11,7 +12,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Component;
 
@@ -137,9 +137,11 @@ public class JwtTokenProvider {
             String authorities = claims.get("auth", String.class);
 
             // SecurityContext에서 현재 사용자 정보 가져오기
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            Authentication authentication = getAuthentication(refreshToken);
+
+//          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                throw new RuntimeException("User is not authenticated");
+                throw new AuthenticationException(JwtTokenProvider.class, refreshToken);
             }
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String loginId = userDetails.getUsername(); // loginId
@@ -173,6 +175,6 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         }
-        throw new RuntimeException("Invalid refresh token");
+        throw new AuthenticationException(JwtTokenProvider.class, refreshToken);
     }
 }
