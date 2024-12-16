@@ -42,7 +42,7 @@ public class AttachmentController {
      * @ 테스트
      */
     @DeleteMapping("/attachment")
-    public void uploadFile(@RequestParam("filePath") String filePath) {
+    public void deleteFile(@RequestParam("filePath") String filePath) {
         attachmentService.deleteAttachment(filePath);
     }
 }

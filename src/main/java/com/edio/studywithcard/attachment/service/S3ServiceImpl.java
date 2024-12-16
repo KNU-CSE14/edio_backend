@@ -42,13 +42,13 @@ public class S3ServiceImpl implements S3Service {
             );
         } catch (IOException e) {
             log.error("로컬 파일 처리 중 오류 발생: {}", e.getMessage(), e);
-            throw new InternalServerException(S3ServiceImpl.class, fileName);
+            throw new InternalServerException(e.getMessage());
         } catch (AwsServiceException e) {
             log.error("AWS S3 서비스 오류 발생: {}", e.getMessage(), e);
-            throw new InternalServerException(S3ServiceImpl.class, fileName);
+            throw new InternalServerException(e.getMessage());
         } catch (SdkClientException e) {
             log.error("AWS S3 업로드 중 클라이언트 오류 발생: {}", e.getMessage(), e);
-            throw new InternalServerException(S3ServiceImpl.class, fileName);
+            throw new InternalServerException(e.getMessage());
         }
         return fileName;
     }
@@ -67,13 +67,13 @@ public class S3ServiceImpl implements S3Service {
             );
         } catch (AwsServiceException e) {
             log.error("AWS 서비스 오류 발생 - 파일 삭제 실패: {}", filePath, e);
-            throw new InternalServerException(S3ServiceImpl.class, filePath);
+            throw new InternalServerException(e.getMessage());
         } catch (SdkClientException e) {
             log.error("AWS 클라이언트 오류 발생 - 파일 삭제 실패: {}", filePath, e);
-            throw new InternalServerException(S3ServiceImpl.class, filePath);
+            throw new InternalServerException(e.getMessage());
         } catch (Exception e) {
             log.error("알 수 없는 오류 발생 - 파일 삭제 실패: {}", filePath, e);
-            throw new InternalServerException(S3ServiceImpl.class, filePath);
+            throw new InternalServerException(e.getMessage());
         }
     }
 }

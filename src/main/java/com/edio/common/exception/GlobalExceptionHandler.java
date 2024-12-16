@@ -16,5 +16,4 @@ public class GlobalExceptionHandler {
         ErrorResponse response = new ErrorResponse(ex.isSuccess(), ex.getDetailMessage());
         return new ResponseEntity<>(response, ex.getStatus());
     }
-
 }
