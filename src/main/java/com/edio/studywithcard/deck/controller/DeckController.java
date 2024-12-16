@@ -44,7 +44,6 @@ public class DeckController {
     @Operation(summary = "Deck 등록", description = "Deck을 등록합니다.")
     public DeckResponse createDeck(@RequestPart DeckCreateRequest request,
                                    @RequestPart(value = "file", required = false) MultipartFile file) {
-        log.info("Request part (JSON): {}", request);
         return deckService.createDeck(request, file);
     }
 

@@ -23,6 +23,8 @@ public class S3ServiceImpl implements S3Service {
 
     private final String bucketName = System.getProperty("AWS_BUCKET_NAME");
 
+    private final String region = System.getProperty("AWS_REGION");
+
     /*
         파일 업로드
      */
@@ -50,7 +52,7 @@ public class S3ServiceImpl implements S3Service {
             log.error("AWS S3 업로드 중 클라이언트 오류 발생: {}", e.getMessage(), e);
             throw new InternalServerException(e.getMessage());
         }
-        return fileName;
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
     }
 
     /*

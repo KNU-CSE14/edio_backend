@@ -29,6 +29,7 @@ public class Deck extends BaseEntity {
     private Category category;
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 
     @Column(nullable = false)
@@ -45,6 +46,7 @@ public class Deck extends BaseEntity {
 
     @Column(nullable = false)
     @Builder.Default
+    @Setter
     private boolean isDeleted = false;
 
     @Column(nullable = false)

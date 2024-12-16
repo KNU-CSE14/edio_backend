@@ -73,6 +73,7 @@ public class DeckServiceImpl implements DeckService {
                     .description(deckCreateRequest.description())
                     .isShared(deckCreateRequest.isShared())
                     .build();
+            Deck savedDeck = deckRepository.save(deck);
 
             // 2. 첨부파일 처리
             if (file != null && !file.isEmpty()) {
@@ -82,12 +83,12 @@ public class DeckServiceImpl implements DeckService {
                 // AttachmentDeckTarget 저장
                 AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
                         .attachment(attachment)
-                        .deck(deck)
+                        .deck(savedDeck)
                         .build();
                 attachmentDeckTargetRepository.save(attachmentDeckTarget);
+                savedDeck.getAttachmentDeckTargets().add(attachmentDeckTarget);
             }
 
-            Deck savedDeck = deckRepository.save(deck);
             return DeckResponse.from(savedDeck);
         } catch (DataIntegrityViolationException e) {
             throw new ConflictException(Deck.class, deckCreateRequest.name());
