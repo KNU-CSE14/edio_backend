@@ -2,6 +2,8 @@ package com.edio.studywithcard.attachment.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
+import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
+import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,10 @@ import org.springframework.web.multipart.MultipartFile;
 public class AttachmentServiceImpl implements AttachmentService {
 
     private final S3Service s3Service;
+
     private final AttachmentRepository attachmentRepository;
+
+    private final AttachmentDeckTargetRepository attachmentDeckTargetRepository;
 
     /*
         파일 업로드 및 저장
@@ -27,14 +32,22 @@ public class AttachmentServiceImpl implements AttachmentService {
         String filePath = s3Service.uploadFile(file, folder);
 
         // 2. DB 저장
+        // FIXME: fileTarget을 제대로 된 값으로 수정
         Attachment attachment = Attachment.builder()
                 .fileName(file.getOriginalFilename())
                 .filePath(filePath)
                 .fileSize(convertFileSize(file.getSize()))
                 .fileType(file.getContentType())
-                .fileTarget("test")
+                .fileTarget("deck")
                 .build();
-        return attachmentRepository.save(attachment);
+        attachment = attachmentRepository.save(attachment);
+
+        AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
+                .attachment(attachment)
+                .build();
+        attachmentDeckTargetRepository.save(attachmentDeckTarget);
+
+        return attachment;
     }
 
     /*
@@ -63,3 +76,4 @@ public class AttachmentServiceImpl implements AttachmentService {
         }
     }
 }
+

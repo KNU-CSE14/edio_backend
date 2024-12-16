@@ -4,6 +4,9 @@ import com.edio.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "attachment")
 @Getter
@@ -36,7 +39,6 @@ public class Attachment extends BaseEntity {
     @Builder.Default
     private boolean isShared = false;
 
-    @ManyToOne
-    @JoinColumn(name = "attachment_deck_target_id", nullable = false)
-    private AttachmentDeckTarget attachmentDeckTarget;
+    @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 }
