@@ -1,5 +1,6 @@
 package com.edio.studywithcard.attachment.domain;
 
+import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -14,6 +15,10 @@ public class AttachmentDeckTarget {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "deck_id")
+    private Deck deck;
 
     @ManyToOne
     @JoinColumn(name = "attachment_id")
