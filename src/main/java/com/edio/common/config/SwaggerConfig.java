@@ -21,7 +21,8 @@ import org.springframework.context.annotation.Configuration;
         ),
         security = @SecurityRequirement(name = "bearerAuth"),
         servers = {
-                @Server(url = "https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com",
+//                @Server(url = "https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com",
+                @Server(url = "http://localhost:8080",
                         description = "서버 URL"),
         }
 )
