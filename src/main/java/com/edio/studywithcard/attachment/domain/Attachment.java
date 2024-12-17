@@ -25,7 +25,7 @@ public class Attachment extends BaseEntity {
     private String filePath;
 
     @Column(nullable = false)
-    private String fileSize;
+    private Long fileSize;
 
     @Column(nullable = false)
     private String fileTarget;

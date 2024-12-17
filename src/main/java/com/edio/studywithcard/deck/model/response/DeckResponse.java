@@ -28,8 +28,9 @@ public record DeckResponse(
                 deck.getDescription(),
                 deck.isShared(),
                 Optional.ofNullable(deck.getAttachmentDeckTargets())
-                        .orElse(Collections.emptyList()) // Null 처리
+                        .orElse(Collections.emptyList())
                         .stream()
+                        .filter(target -> !target.getAttachment().isDeleted())
                         .map(target -> AttachmentResponse.from(target.getAttachment()))
                         .collect(Collectors.toList())
         );

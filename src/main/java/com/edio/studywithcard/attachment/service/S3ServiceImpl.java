@@ -19,6 +19,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class S3ServiceImpl implements S3Service {
+
     private final S3Client s3Client;
 
     private final String bucketName = System.getProperty("AWS_BUCKET_NAME");

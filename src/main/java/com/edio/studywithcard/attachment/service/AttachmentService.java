@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 public interface AttachmentService {
-    Attachment saveAttachment(MultipartFile file, String folder) throws IOException;
+    Attachment saveAttachment(MultipartFile file, String folder, String target) throws IOException;
 
     void deleteAttachment(String filePath);
 }

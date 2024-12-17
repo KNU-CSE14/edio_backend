@@ -2,6 +2,7 @@ package com.edio.studywithcard.deck.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
+import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -38,6 +39,7 @@ public class DeckController {
 
     /**
      * @param request (folderId, categoryId, name, description, isShared) 등록할 Deck 객체
+     * @param file
      * @return 등록한 Deck의 상세 정보
      */
     @PostMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -48,31 +50,31 @@ public class DeckController {
     }
 
     /**
-     * @param id                수정할 Deck의 ID
-     * @param deckUpdateRequest (categoryId, name, description) 수정할 Deck 객체
+     * @param request (id, categoryId, name, description) 수정할 Deck 객체
+     * @param file
      */
-    @PatchMapping("/deck/{id}")
+    @PatchMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Deck 수정", description = "Deck을 수정합니다.")
-    public void updateDeck(@PathVariable Long id, @RequestBody DeckUpdateRequest deckUpdateRequest) {
-        deckService.updateDeck(id, deckUpdateRequest);
+    public void updateDeck(@RequestPart DeckUpdateRequest request,
+                           @RequestPart(value = "file", required = false) MultipartFile file) {
+        deckService.updateDeck(request, file);
     }
 
     /**
-     * @param id              수정할 Deck의 ID
-     * @param deckMoveRequest (parentId) 이동할 Deck의 부모 폴더 ID
+     * @param request (id, parentId) 이동할 Deck의 부모 폴더 ID
      */
-    @PatchMapping("/deck/{id}/position")
+    @PatchMapping("/deck/position")
     @Operation(summary = "Deck 이동", description = "Deck을 이동합니다.")
-    public void moveDeck(@PathVariable Long id, @RequestBody DeckMoveRequest deckMoveRequest) {
-        deckService.moveDeck(id, deckMoveRequest.parentId());
+    public void moveDeck(@RequestBody DeckMoveRequest request) {
+        deckService.moveDeck(request);
     }
 
     /**
-     * @param id 삭제할 Deck의 ID
+     * @param request (id) 삭제할 Deck의 ID
      */
-    @DeleteMapping("/deck/{id}")
+    @DeleteMapping("/deck")
     @Operation(summary = "Deck 삭제", description = "Deck을 삭제합니다.")
-    public void deleteDeck(@PathVariable Long id) {
-        deckService.deleteDeck(id);
+    public void deleteDeck(@RequestBody DeckDeleteRequest request) {
+        deckService.deleteDeck(request);
     }
 }

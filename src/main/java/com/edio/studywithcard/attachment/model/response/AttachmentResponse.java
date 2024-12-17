@@ -7,7 +7,7 @@ public record AttachmentResponse(
         String fileName,
         String fileType,
         String filePath,
-        String fileSize,
+        Long fileSize,
         String fileTarget
 ) {
     public static AttachmentResponse from(Attachment attachment) {

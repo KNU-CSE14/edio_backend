@@ -6,12 +6,15 @@ import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
+import com.edio.studywithcard.attachment.domain.enums.FileTarget;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
+import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
+import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
@@ -25,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -57,28 +61,30 @@ public class DeckServiceImpl implements DeckService {
      */
     @Override
     @Transactional
-    public DeckResponse createDeck(DeckCreateRequest deckCreateRequest, MultipartFile file) {
+    public DeckResponse createDeck(DeckCreateRequest request, MultipartFile file) {
         try {
             // Folder와 Category를 조회
-            Folder folder = folderRepository.findById(deckCreateRequest.folderId())
-                    .orElseThrow(() -> new NotFoundException(Folder.class, deckCreateRequest.folderId()));
-            Category category = categoryRepository.findById(deckCreateRequest.categoryId())
-                    .orElseThrow(() -> new NotFoundException(Category.class, deckCreateRequest.categoryId()));
+            Folder folder = folderRepository.findById(request.folderId())
+                    .orElseThrow(() -> new NotFoundException(Folder.class, request.folderId()));
+            Category category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new NotFoundException(Category.class, request.categoryId()));
 
-            // Deck 생성 및 저장
+            // 1. Deck 생성 및 저장
             Deck deck = Deck.builder()
                     .folder(folder)
                     .category(category)
-                    .name(deckCreateRequest.name())
-                    .description(deckCreateRequest.description())
-                    .isShared(deckCreateRequest.isShared())
+                    .name(request.name())
+                    .description(request.description())
+                    .isShared(request.isShared())
                     .build();
             Deck savedDeck = deckRepository.save(deck);
 
             // 2. 첨부파일 처리
             if (file != null && !file.isEmpty()) {
                 // Attachment 저장
-                Attachment attachment = attachmentService.saveAttachment(file, String.valueOf(AttachmentFolder.image));
+                String attachmentFolder = String.valueOf(AttachmentFolder.image);
+                String fileTarget = String.valueOf(FileTarget.DECK);
+                Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
 
                 // AttachmentDeckTarget 저장
                 AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
@@ -91,7 +97,7 @@ public class DeckServiceImpl implements DeckService {
 
             return DeckResponse.from(savedDeck);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, deckCreateRequest.name());
+            throw new ConflictException(Deck.class, request.name());
         } catch (IOException e) {
             throw new InternalServerException(e.getMessage());
         }
@@ -102,47 +108,68 @@ public class DeckServiceImpl implements DeckService {
      */
     @Override
     @Transactional
-    public void updateDeck(Long deckId, DeckUpdateRequest deckUpdateRequest) {
-        Deck existingDeck = deckRepository.findByIdAndIsDeleted(deckId, false)
-                .orElseThrow(() -> new NotFoundException(Deck.class, deckId));
+    public void updateDeck(DeckUpdateRequest request, MultipartFile file) {
+        Deck existingDeck = deckRepository.findByIdAndIsDeleted(request.id(), false)
+                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
 
         // 카테고리
-        if (deckUpdateRequest.categoryId() != null) {
-            Category newCategory = categoryRepository.getReferenceById(deckUpdateRequest.categoryId());
+        if (request.categoryId() != null) {
+            Category newCategory = categoryRepository.getReferenceById(request.categoryId());
             existingDeck.setCategory(newCategory);
         }
-
         // 덱 이름
-        if (deckUpdateRequest.name() != null && !deckUpdateRequest.name().isBlank()) {
-            existingDeck.setName(deckUpdateRequest.name());
+        if (request.name() != null && !request.name().isBlank()) {
+            existingDeck.setName(request.name());
         }
-
         // 덱 설명
-        if (deckUpdateRequest.description() != null && !deckUpdateRequest.description().isBlank()) {
-            existingDeck.setDescription(deckUpdateRequest.description());
+        if (request.description() != null && !request.description().isBlank()) {
+            existingDeck.setDescription(request.description());
+        }
+        // 덱 즐겨찾기 여부
+        if (request.isFavorite() != null) {
+            existingDeck.setFavorite(request.isFavorite());
         }
 
-        // 덱 즐겨찾기 여부
-        if (deckUpdateRequest.isFavorite() != null) {
-            existingDeck.setFavorite(deckUpdateRequest.isFavorite());
+        try {
+            // 첨부파일 수정
+            if (file != null && !file.isEmpty()) {
+                // 기존 첨부파일 삭제
+                List<AttachmentDeckTarget> targets = existingDeck.getAttachmentDeckTargets();
+                for (AttachmentDeckTarget target : targets) {
+                    attachmentService.deleteAttachment(target.getAttachment().getFilePath());
+                }
+
+                // 새 첨부파일 저장
+                String attachmentFolder = String.valueOf(AttachmentFolder.image);
+                String fileTarget = String.valueOf(FileTarget.DECK);
+                Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
+
+                AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
+                        .attachment(attachment)
+                        .deck(existingDeck)
+                        .build();
+                attachmentDeckTargetRepository.save(attachmentDeckTarget);
+                existingDeck.getAttachmentDeckTargets().add(attachmentDeckTarget);
+            }
+        } catch (IOException e) {
+            throw new InternalServerException(e.getMessage());
         }
     }
-
 
     /*
         덱 이동
      */
     @Override
     @Transactional
-    public void moveDeck(Long id, Long newFolderId) {
+    public void moveDeck(DeckMoveRequest request) {
         // 이동할 덱 조회
-        Deck deck = deckRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(Deck.class, id));
+        Deck deck = deckRepository.findById(request.id())
+                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
 
         // 새로운 폴더 조회
         Folder newFolder = null;
-        if (newFolderId != null) {
-            newFolder = folderRepository.getReferenceById(newFolderId);
+        if (request.parentId() != null) {
+            newFolder = folderRepository.getReferenceById(request.parentId());
         }
 
         // 덱의 폴더 변경
@@ -154,9 +181,15 @@ public class DeckServiceImpl implements DeckService {
      */
     @Override
     @Transactional
-    public void deleteDeck(Long id) {
-        Deck existingDeck = deckRepository.findByIdAndIsDeleted(id, false)
-                .orElseThrow(() -> new NotFoundException(Deck.class, id));
+    public void deleteDeck(DeckDeleteRequest request) {
+        Deck existingDeck = deckRepository.findByIdAndIsDeleted(request.id(), false)
+                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
+
+        existingDeck.getAttachmentDeckTargets().stream()
+                .map(AttachmentDeckTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted())
+                .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
+
         existingDeck.setDeleted(true);
     }
 }
