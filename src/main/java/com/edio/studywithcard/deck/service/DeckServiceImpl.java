@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -134,10 +133,10 @@ public class DeckServiceImpl implements DeckService {
             // 첨부파일 수정
             if (file != null && !file.isEmpty()) {
                 // 기존 첨부파일 삭제
-                List<AttachmentDeckTarget> targets = existingDeck.getAttachmentDeckTargets();
-                for (AttachmentDeckTarget target : targets) {
-                    attachmentService.deleteAttachment(target.getAttachment().getFilePath());
-                }
+                existingDeck.getAttachmentDeckTargets().stream()
+                        .map(AttachmentDeckTarget::getAttachment)
+                        .filter(attachment -> !attachment.isDeleted())
+                        .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
 
                 // 새 첨부파일 저장
                 String attachmentFolder = String.valueOf(AttachmentFolder.image);
