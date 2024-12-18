@@ -78,7 +78,7 @@ public class DeckServiceImpl implements DeckService {
             // 2. 첨부파일 처리
             if (file != null && !file.isEmpty()) {
                 // Attachment 저장
-                String attachmentFolder = String.valueOf(AttachmentFolder.image);
+                String attachmentFolder = String.valueOf(AttachmentFolder.IMAGE.getValue());
                 String fileTarget = String.valueOf(FileTarget.DECK);
                 Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
 
@@ -132,7 +132,7 @@ public class DeckServiceImpl implements DeckService {
                         .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
 
                 // 새 첨부파일 저장
-                String attachmentFolder = String.valueOf(AttachmentFolder.image);
+                String attachmentFolder = String.valueOf(AttachmentFolder.IMAGE.getValue());
                 String fileTarget = String.valueOf(FileTarget.DECK);
                 Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
 
