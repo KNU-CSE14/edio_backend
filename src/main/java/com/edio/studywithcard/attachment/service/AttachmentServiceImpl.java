@@ -2,8 +2,10 @@ package com.edio.studywithcard.attachment.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
+import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentRepository;
+import com.edio.studywithcard.deck.domain.Deck;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final AttachmentDeckTargetRepository attachmentDeckTargetRepository;
 
     /*
-        파일 업로드 및 저장
+        파일 업로드 및 Attachment 저장
      */
     @Override
     @Transactional
@@ -39,6 +41,20 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .fileTarget(target)
                 .build();
         return attachmentRepository.save(attachment);
+    }
+
+    /*
+        AttachmentDeckTarget 저장
+    */
+    @Override
+    @Transactional
+    public void saveAttachmentDeckTarget(Attachment attachment, Deck deck) {
+        AttachmentDeckTarget attachmentDeckTarget = AttachmentDeckTarget.builder()
+                .attachment(attachment)
+                .deck(deck)
+                .build();
+        attachmentDeckTargetRepository.save(attachmentDeckTarget);
+        deck.getAttachmentDeckTargets().add(attachmentDeckTarget);
     }
 
     /*
