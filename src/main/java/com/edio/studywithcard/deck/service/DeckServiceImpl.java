@@ -121,9 +121,10 @@ public class DeckServiceImpl implements DeckService {
             existingDeck.setFavorite(request.isFavorite());
         }
 
-        try {
-            // 첨부파일 수정
-            if (file != null && !file.isEmpty()) {
+
+        // 첨부파일 수정
+        if (file != null && !file.isEmpty()) {
+            try {
                 // 기존 첨부파일 삭제
                 existingDeck.getAttachmentDeckTargets().stream()
                         .map(AttachmentDeckTarget::getAttachment)
@@ -136,9 +137,9 @@ public class DeckServiceImpl implements DeckService {
                 Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
 
                 attachmentService.saveAttachmentDeckTarget(attachment, existingDeck);
+            } catch (IOException e) {
+                throw new InternalServerException(e.getMessage());
             }
-        } catch (IOException e) {
-            throw new InternalServerException(e.getMessage());
         }
     }
 

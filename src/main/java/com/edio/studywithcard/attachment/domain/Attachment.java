@@ -40,5 +40,6 @@ public class Attachment extends BaseEntity {
     private boolean isShared = false;
 
     @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 }
