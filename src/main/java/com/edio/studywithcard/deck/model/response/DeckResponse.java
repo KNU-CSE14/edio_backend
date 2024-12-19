@@ -3,9 +3,7 @@ package com.edio.studywithcard.deck.model.response;
 import com.edio.studywithcard.attachment.model.response.AttachmentResponse;
 import com.edio.studywithcard.deck.domain.Deck;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public record DeckResponse(
@@ -27,8 +25,7 @@ public record DeckResponse(
                 deck.getName(),
                 deck.getDescription(),
                 deck.isShared(),
-                Optional.ofNullable(deck.getAttachmentDeckTargets())
-                        .orElse(Collections.emptyList())
+                deck.getAttachmentDeckTargets()
                         .stream()
                         .filter(target -> !target.getAttachment().isDeleted())
                         .map(target -> AttachmentResponse.from(target.getAttachment()))

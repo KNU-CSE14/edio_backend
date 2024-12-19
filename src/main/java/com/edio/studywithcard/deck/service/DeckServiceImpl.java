@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -78,9 +79,7 @@ public class DeckServiceImpl implements DeckService {
             // 2. 첨부파일 처리
             if (file != null && !file.isEmpty()) {
                 // Attachment 저장
-                String attachmentFolder = String.valueOf(AttachmentFolder.IMAGE.getValue());
-                String fileTarget = String.valueOf(FileTarget.DECK);
-                Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
+                Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
 
                 // AttachmentDeckTarget 저장
                 attachmentService.saveAttachmentDeckTarget(attachment, savedDeck);
@@ -109,19 +108,18 @@ public class DeckServiceImpl implements DeckService {
             existingDeck.setCategory(newCategory);
         }
         // 덱 이름
-        if (request.name() != null && !request.name().isBlank()) {
+        if (StringUtils.hasText(request.name())) {
             existingDeck.setName(request.name());
         }
         // 덱 설명
-        if (request.description() != null && !request.description().isBlank()) {
+        if (StringUtils.hasText(request.description())) {
             existingDeck.setDescription(request.description());
         }
         // 덱 즐겨찾기 여부
         if (request.isFavorite() != null) {
             existingDeck.setFavorite(request.isFavorite());
         }
-
-
+        
         // 첨부파일 수정
         if (file != null && !file.isEmpty()) {
             try {
@@ -132,9 +130,7 @@ public class DeckServiceImpl implements DeckService {
                         .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
 
                 // 새 첨부파일 저장
-                String attachmentFolder = String.valueOf(AttachmentFolder.IMAGE.getValue());
-                String fileTarget = String.valueOf(FileTarget.DECK);
-                Attachment attachment = attachmentService.saveAttachment(file, attachmentFolder, fileTarget);
+                Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
 
                 attachmentService.saveAttachmentDeckTarget(attachment, existingDeck);
             } catch (IOException e) {

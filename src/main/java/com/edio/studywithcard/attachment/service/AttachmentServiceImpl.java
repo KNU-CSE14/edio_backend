@@ -30,6 +30,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Transactional
     public Attachment saveAttachment(MultipartFile file, String folder, String target) {
         // 1. S3 업로드
+        folder = folder.toLowerCase();
         String filePath = s3Service.uploadFile(file, folder);
 
         // 2. DB 저장
@@ -54,7 +55,6 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .deck(deck)
                 .build();
         attachmentDeckTargetRepository.save(attachmentDeckTarget);
-        deck.getAttachmentDeckTargets().add(attachmentDeckTarget);
     }
 
     /*
