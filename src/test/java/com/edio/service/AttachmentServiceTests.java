@@ -8,13 +8,14 @@ import com.edio.studywithcard.attachment.repository.AttachmentRepository;
 import com.edio.studywithcard.attachment.service.AttachmentServiceImpl;
 import com.edio.studywithcard.attachment.service.S3Service;
 import com.edio.studywithcard.deck.domain.Deck;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.mock.web.MockMultipartFile;
 
 import java.util.ArrayList;
 import java.util.Optional;
@@ -38,36 +39,56 @@ public class AttachmentServiceTests {
     @InjectMocks
     private AttachmentServiceImpl attachmentService;
 
+    private String fileName;
+    private String filePath;
+    private Long fileSize;
+    private String fileType;
+    private String fileTarget;
+    private String s3FolderName;
+
+    @BeforeEach
+    void setUp() {
+        fileName = "test.jpg";
+        filePath = "s3/image/test.jpg";
+        fileSize = 1024L;
+        fileType = "image/jpeg";
+        fileTarget = "DECK";
+        s3FolderName = "image";
+    }
+
     @Test
     void testSaveAttachment() {
         // Given
-        MultipartFile mockFile = mock(MultipartFile.class);
-        when(mockFile.getOriginalFilename()).thenReturn("test.jpg");
-        when(mockFile.getSize()).thenReturn(1024L);
-        when(mockFile.getContentType()).thenReturn("image/jpeg");
-        when(s3Service.uploadFile(mockFile, "image")).thenReturn("s3/image/test.jpg");
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                fileName,
+                fileType,
+                new byte[1024]
+        );
+        when(s3Service.uploadFile(mockFile, s3FolderName)).thenReturn(filePath);
 
         Attachment mockAttachment = Attachment.builder()
-                .fileName("test.jpg")
-                .filePath("s3/image/test.jpg")
-                .fileSize(1024L)
-                .fileType("image/jpeg")
-                .fileTarget("DECK")
+                .fileName(fileName)
+                .filePath(filePath)
+                .fileSize(fileSize)
+                .fileType(fileType)
+                .fileTarget(fileTarget)
                 .build();
 
         when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockAttachment);
 
         // When
-        Attachment result = attachmentService.saveAttachment(mockFile, "image", "DECK");
+        Attachment result = attachmentService.saveAttachment(mockFile, s3FolderName, fileTarget);
 
         // Then
         assertNotNull(result);
-        assertEquals("test.jpg", result.getFileName());
-        assertEquals("s3/image/test.jpg", result.getFilePath());
-        assertEquals(1024L, result.getFileSize());
-        verify(s3Service, times(1)).uploadFile(mockFile, "image");
+        assertEquals(fileName, result.getFileName());
+        assertEquals(filePath, result.getFilePath());
+        assertEquals(fileSize, result.getFileSize());
+        verify(s3Service, times(1)).uploadFile(mockFile, s3FolderName);
         verify(attachmentRepository, times(1)).save(any(Attachment.class));
     }
+
 
     @Test
     void testSaveAttachmentDeckTarget() {
@@ -91,7 +112,6 @@ public class AttachmentServiceTests {
     @Test
     void testDeleteAttachmentSuccess() {
         // Given
-        String filePath = "s3/image/test.jpg";
         Attachment mockAttachment = mock(Attachment.class);
 
         when(attachmentRepository.findByFilePathAndIsDeletedFalse(filePath)).thenReturn(Optional.of(mockAttachment));
@@ -108,8 +128,6 @@ public class AttachmentServiceTests {
     @Test
     void testDeleteAttachmentNotFound() {
         // Given
-        String filePath = "s3/image/test.jpg";
-
         when(attachmentRepository.findByFilePathAndIsDeletedFalse(filePath)).thenReturn(Optional.empty());
 
         // When & Then
