@@ -6,6 +6,7 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
+import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
@@ -45,6 +46,7 @@ public class DeckServiceTests {
     private Category category;
     private DeckCreateRequest deckCreateRequest;
     private DeckUpdateRequest deckUpdateRequest;
+    private DeckDeleteRequest deckDeleteRequest;
 
     @BeforeEach
     void setUp() {
@@ -60,26 +62,27 @@ public class DeckServiceTests {
                 .isDeleted(false)
                 .build();
         deckCreateRequest = new DeckCreateRequest(1L, 1L, "New Deck", "New Description", false);
-        deckUpdateRequest = new DeckUpdateRequest(1L, "Updated Deck", "Updated Description", true);
+        deckUpdateRequest = new DeckUpdateRequest(1L, 1L, "Updated Deck", "Updated Description", true);
+        deckDeleteRequest = new DeckDeleteRequest(1L);
     }
 
     @Test
     void testGetDeck() {
-        when(deckRepository.findByIdAndIsDeleted(1L, false)).thenReturn(Optional.of(existingDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.of(existingDeck));
 
         DeckResponse response = deckService.getDeck(1L);
 
         assertNotNull(response);
         assertEquals(existingDeck.getName(), response.name());
-        verify(deckRepository, times(1)).findByIdAndIsDeleted(1L, false);
+        verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
     }
 
     @Test
     void testGetDeck_NotFound() {
-        when(deckRepository.findByIdAndIsDeleted(1L, false)).thenReturn(Optional.empty());
+        when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> deckService.getDeck(1L));
-        verify(deckRepository, times(1)).findByIdAndIsDeleted(1L, false);
+        verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
     }
 
     @Test
@@ -88,7 +91,7 @@ public class DeckServiceTests {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(deckRepository.save(any(Deck.class))).thenReturn(existingDeck);
 
-        DeckResponse response = deckService.createDeck(deckCreateRequest);
+        DeckResponse response = deckService.createDeck(deckCreateRequest, null);
 
         assertNotNull(response);
         assertEquals(existingDeck.getName(), response.name());
@@ -103,7 +106,7 @@ public class DeckServiceTests {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(deckRepository.save(any(Deck.class))).thenThrow(DataIntegrityViolationException.class);
 
-        assertThrows(ConflictException.class, () -> deckService.createDeck(deckCreateRequest));
+        assertThrows(ConflictException.class, () -> deckService.createDeck(deckCreateRequest, null));
         verify(folderRepository, times(1)).findById(1L);
         verify(categoryRepository, times(1)).findById(1L);
         verify(deckRepository, times(1)).save(any(Deck.class));
@@ -111,12 +114,12 @@ public class DeckServiceTests {
 
     @Test
     void testUpdateDeck() {
-        when(deckRepository.findByIdAndIsDeleted(1L, false)).thenReturn(Optional.of(existingDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.of(existingDeck));
         when(categoryRepository.getReferenceById(1L)).thenReturn(category);
 
-        deckService.updateDeck(1L, deckUpdateRequest);
+        deckService.updateDeck(deckUpdateRequest, null);
 
-        verify(deckRepository, times(1)).findByIdAndIsDeleted(1L, false);
+        verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
         verify(categoryRepository, times(1)).getReferenceById(1L);
         assertEquals("Updated Deck", existingDeck.getName());
         assertEquals("Updated Description", existingDeck.getDescription());
@@ -125,11 +128,11 @@ public class DeckServiceTests {
 
     @Test
     void testDeleteDeck() {
-        when(deckRepository.findByIdAndIsDeleted(1L, false)).thenReturn(Optional.of(existingDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.of(existingDeck));
 
-        deckService.deleteDeck(1L);
+        deckService.deleteDeck(deckDeleteRequest);
 
-        verify(deckRepository, times(1)).findByIdAndIsDeleted(1L, false);
+        verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
         assertTrue(existingDeck.isDeleted());
     }
 }

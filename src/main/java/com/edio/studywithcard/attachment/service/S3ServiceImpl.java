@@ -19,19 +19,22 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class S3ServiceImpl implements S3Service {
+
     private final S3Client s3Client;
 
     private final String bucketName = System.getProperty("AWS_BUCKET_NAME");
 
+    private final String region = System.getProperty("AWS_REGION");
+
     /*
-        파일 업로드
+        S3 파일 업로드
      */
     @Override
     public String uploadFile(MultipartFile file, String folder) {
         // 고유 파일명 생성
         String fileName = folder + "/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
         try {
-            // S3에 업로드
+            // 업로드
             s3Client.putObject(
                     PutObjectRequest.builder()
                             .bucket(bucketName)
@@ -50,11 +53,11 @@ public class S3ServiceImpl implements S3Service {
             log.error("AWS S3 업로드 중 클라이언트 오류 발생: {}", e.getMessage(), e);
             throw new InternalServerException(e.getMessage());
         }
-        return fileName;
+        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
     }
 
     /*
-        파일 삭제
+        S3 파일 삭제
      */
     @Override
     public void deleteFile(String filePath) {
