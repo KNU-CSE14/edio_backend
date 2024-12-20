@@ -103,15 +103,17 @@ public class JwtTokenProvider {
             return true;
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT Token", e);
-            return false;  // 만료된 토큰인 경우
+            throw new AuthenticationException("Expired JWT Token", e);
         } catch (SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT Token", e);
+            throw new AuthenticationException("Invalid JWT Token", e);
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT Token", e);
+            throw new AuthenticationException("Unsupported JWT Token", e);
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            log.info("JWT claims string is empty", e);
+            throw new AuthenticationException("JWT claims string is empty", e);
         }
-        return false;
     }
 
     // 토큰 복호화
@@ -123,8 +125,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-//            return e.getClaims();
-            throw e;
+            throw new AuthenticationException("Expired JWT Token", e);
         }
     }
 
@@ -139,10 +140,15 @@ public class JwtTokenProvider {
             // SecurityContext에서 현재 사용자 정보 가져오기
             Authentication authentication = getAuthentication(refreshToken);
 
-//          Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            // FIXME: 토큰 재발급 테스트 후 아래 주석 제거 필요
+            // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                throw new AuthenticationException(JwtTokenProvider.class, refreshToken);
+                String errorMessage = authentication == null
+                        ? "Authentication object is null, cannot authenticate request."
+                        : "Authentication is not valid or user is not authenticated.";
+                throw new AuthenticationException(errorMessage);
             }
+
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String loginId = userDetails.getUsername(); // loginId
             Long accountId = userDetails.getAccountId();
@@ -175,6 +181,6 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         }
-        throw new AuthenticationException(JwtTokenProvider.class, refreshToken);
+        throw new AuthenticationException("Failed to refresh tokens");
     }
 }
