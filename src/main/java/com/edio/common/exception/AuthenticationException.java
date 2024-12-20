@@ -3,11 +3,11 @@ package com.edio.common.exception;
 import org.springframework.http.HttpStatus;
 
 public class AuthenticationException extends BaseException {
-    public <T> AuthenticationException(Class<T> entityClass, Long id) {
-        super(HttpStatus.UNAUTHORIZED, String.format("%s unAuthorized: %d", entityClass.getSimpleName(), id));
+    public <T> AuthenticationException(String message) {
+        super(HttpStatus.UNAUTHORIZED, message);
     }
 
-    public <T> AuthenticationException(Class<T> entityClass, Object message) {
-        super(HttpStatus.UNAUTHORIZED, String.format("%s unAuthorized: %s", entityClass.getSimpleName(), message));
+    public <T> AuthenticationException(String message, Throwable cause) {
+        super(HttpStatus.UNAUTHORIZED, cause.getMessage());
     }
 }
