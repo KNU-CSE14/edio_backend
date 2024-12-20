@@ -4,8 +4,6 @@ import com.edio.common.exception.ConflictException;
 import com.edio.common.exception.NotFoundException;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
-import com.edio.user.domain.enums.AccountLoginType;
-import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
@@ -74,8 +72,8 @@ public class AccountServiceImpl implements AccountService {
                     .loginId(accountCreateRequest.loginId())
                     .password(oauthPassword)
                     .member(member)
-                    .loginType(AccountLoginType.GOOGLE) // 기본값을 사용하지 않고 명시적으로 설정
-                    .roles(AccountRole.ROLE_USER) // 기본값을 사용하지 않고 명시적으로 설정
+                    .loginType(accountCreateRequest.loginType()) // 기본값을 사용하지 않고 명시적으로 설정
+                    .roles(accountCreateRequest.role()) // 기본값을 사용하지 않고 명시적으로 설정
                     .build();
             Account savedAccount = accountRepository.save(newAccount);
             return AccountResponse.from(savedAccount);

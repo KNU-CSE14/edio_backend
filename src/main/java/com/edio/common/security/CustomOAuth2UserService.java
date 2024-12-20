@@ -4,6 +4,8 @@ import com.edio.common.exception.ConflictException;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
+import com.edio.user.domain.enums.AccountLoginType;
+import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.AccountResponse;
@@ -52,8 +54,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
             MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
 
+            // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
+            AccountLoginType loginType = AccountLoginType.GOOGLE;
+            AccountRole role = AccountRole.ROLE_USER;
             // Account 생성
-            AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id());
+            AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id(), loginType, role);
             accountResponse = accountService.createAccount(accountCreateRequest);
 
             // RootFolder 생성
