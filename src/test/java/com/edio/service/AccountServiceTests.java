@@ -44,7 +44,7 @@ public class AccountServiceTests {
     @BeforeEach
     public void setUp() {
         // 공통 테스트 데이터 초기화
-        accountRequest = new AccountCreateRequest("testUser@gmail.com", 1L);
+        accountRequest = new AccountCreateRequest("testUser@gmail.com", 1L, AccountLoginType.GOOGLE, AccountRole.ROLE_USER);
 
         mockMember = Member.builder()
                 .email("testUser@gmail.com")
@@ -96,7 +96,7 @@ public class AccountServiceTests {
     @Test
     public void createAccount_whenLoginIdIsNull_throwsException() {
         // given
-        accountRequest = new AccountCreateRequest(null, 1L);
+        accountRequest = new AccountCreateRequest(null, 1L, AccountLoginType.GOOGLE, AccountRole.ROLE_USER);
 
         when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
