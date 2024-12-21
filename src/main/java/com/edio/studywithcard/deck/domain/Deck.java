@@ -33,7 +33,7 @@ public class Deck extends BaseEntity {
     @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<Card> cards = new ArrayList<>();
 
