@@ -2,9 +2,12 @@ package com.edio.studywithcard.attachment.service;
 
 import com.edio.common.exception.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
+import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
+import com.edio.studywithcard.attachment.repository.AttachmentCardTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentRepository;
+import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.deck.domain.Deck;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +25,8 @@ public class AttachmentServiceImpl implements AttachmentService {
     private final AttachmentRepository attachmentRepository;
 
     private final AttachmentDeckTargetRepository attachmentDeckTargetRepository;
+
+    private final AttachmentCardTargetRepository attachmentCardTargetRepository;
 
     /*
         파일 업로드 및 Attachment 저장
@@ -55,6 +60,19 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .deck(deck)
                 .build();
         attachmentDeckTargetRepository.save(attachmentDeckTarget);
+    }
+
+    /*
+        AttachmentCardTarget 저장
+    */
+    @Override
+    @Transactional
+    public void saveAttachmentCardTarget(Attachment attachment, Card card) {
+        AttachmentCardTarget attachmentCardTarget = AttachmentCardTarget.builder()
+                .attachment(attachment)
+                .card(card)
+                .build();
+        attachmentCardTargetRepository.save(attachmentCardTarget);
     }
 
     /*

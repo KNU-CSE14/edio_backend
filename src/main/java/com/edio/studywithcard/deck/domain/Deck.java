@@ -2,6 +2,7 @@ package com.edio.studywithcard.deck.domain;
 
 import com.edio.common.domain.BaseEntity;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
+import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.folder.domain.Folder;
 import jakarta.persistence.*;
@@ -31,6 +32,10 @@ public class Deck extends BaseEntity {
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Card> cards = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter

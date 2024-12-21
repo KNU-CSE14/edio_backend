@@ -42,4 +42,8 @@ public class Attachment extends BaseEntity {
     @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<AttachmentCardTarget> attachmentCardTargets = new ArrayList<>();
 }
