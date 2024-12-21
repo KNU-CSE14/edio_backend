@@ -25,7 +25,7 @@ public class Attachment extends BaseEntity {
     private String filePath;
 
     @Column(nullable = false)
-    private String fileSize;
+    private Long fileSize;
 
     @Column(nullable = false)
     private String fileTarget;
@@ -40,5 +40,6 @@ public class Attachment extends BaseEntity {
     private boolean isShared = false;
 
     @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 }
