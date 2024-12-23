@@ -1,4 +1,6 @@
 package com.edio.studywithcard.card.model.request;
 
-public class CardRequest {
+public record CardDeleteRequest(
+        Long id
+) {
 }

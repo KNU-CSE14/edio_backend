@@ -1,6 +1,7 @@
 package com.edio.studywithcard.deck.model.response;
 
 import com.edio.studywithcard.attachment.model.response.AttachmentResponse;
+import com.edio.studywithcard.card.model.response.CardResponse;
 import com.edio.studywithcard.deck.domain.Deck;
 
 import java.util.List;
@@ -14,7 +15,8 @@ public record DeckResponse(
         String name,
         String description,
         boolean isShared,
-        List<AttachmentResponse> attachments
+        List<AttachmentResponse> attachments,
+        List<CardResponse> cards
 ) {
     public static DeckResponse from(Deck deck) {
         return new DeckResponse(
@@ -29,6 +31,11 @@ public record DeckResponse(
                         .stream()
                         .filter(target -> !target.getAttachment().isDeleted())
                         .map(target -> AttachmentResponse.from(target.getAttachment()))
+                        .collect(Collectors.toList()),
+                deck.getCards() // cards 추가
+                        .stream()
+                        .filter(target -> !target.isDeleted())
+                        .map(CardResponse::from)
                         .collect(Collectors.toList())
         );
     }

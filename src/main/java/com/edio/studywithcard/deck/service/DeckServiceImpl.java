@@ -119,7 +119,7 @@ public class DeckServiceImpl implements DeckService {
         if (request.isFavorite() != null) {
             existingDeck.setFavorite(request.isFavorite());
         }
-        
+
         // 첨부파일 수정
         if (file != null && !file.isEmpty()) {
             try {
@@ -127,7 +127,7 @@ public class DeckServiceImpl implements DeckService {
                 existingDeck.getAttachmentDeckTargets().stream()
                         .map(AttachmentDeckTarget::getAttachment)
                         .filter(attachment -> !attachment.isDeleted())
-                        .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
+                        .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
 
                 // 새 첨부파일 저장
                 Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
@@ -171,7 +171,7 @@ public class DeckServiceImpl implements DeckService {
         existingDeck.getAttachmentDeckTargets().stream()
                 .map(AttachmentDeckTarget::getAttachment)
                 .filter(attachment -> !attachment.isDeleted())
-                .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFilePath()));
+                .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
 
         existingDeck.setDeleted(true);
     }

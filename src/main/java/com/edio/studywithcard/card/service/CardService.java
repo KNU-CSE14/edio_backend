@@ -1,7 +1,15 @@
 package com.edio.studywithcard.card.service;
 
-import java.util.List;
+import com.edio.studywithcard.card.model.request.CardCreateRequest;
+import com.edio.studywithcard.card.model.request.CardDeleteRequest;
+import com.edio.studywithcard.card.model.request.CardUpdateRequest;
+import com.edio.studywithcard.card.model.response.CardResponse;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface CardService {
-    List<String> getCardTest();
+    CardResponse createCard(CardCreateRequest request, MultipartFile[] files);
+
+    void updateCard(CardUpdateRequest request, MultipartFile[] files);
+
+    void deleteCard(CardDeleteRequest request);
 }

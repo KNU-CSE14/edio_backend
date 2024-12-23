@@ -102,17 +102,17 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
-            throw new AuthenticationException("Expired JWT Token", e);
+            log.info("Expired JWT Token");
+            return false;
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
-            throw new AuthenticationException("Invalid JWT Token", e);
+            log.info("Invalid JWT Token");
+            return false;
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
-            throw new AuthenticationException("Unsupported JWT Token", e);
+            log.info("Unsupported JWT Token");
+            return false;
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty", e);
-            throw new AuthenticationException("JWT claims string is empty", e);
+            log.info("JWT claims string is empty");
+            return false;
         }
     }
 
@@ -125,7 +125,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new AuthenticationException("Expired JWT Token", e);
+            throw new AuthenticationException("Expired JWT Token");
         }
     }
 

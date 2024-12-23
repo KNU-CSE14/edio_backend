@@ -7,6 +7,7 @@ public record AttachmentResponse(
         String fileName,
         String fileType,
         String filePath,
+        String filekey,
         Long fileSize,
         String fileTarget
 ) {
@@ -16,6 +17,7 @@ public record AttachmentResponse(
                 attachment.getFileName(),
                 attachment.getFileType(),
                 attachment.getFilePath(),
+                attachment.getFileKey(),
                 attachment.getFileSize(),
                 attachment.getFileTarget()
         );

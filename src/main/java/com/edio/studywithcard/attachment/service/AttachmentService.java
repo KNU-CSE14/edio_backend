@@ -1,6 +1,7 @@
 package com.edio.studywithcard.attachment.service;
 
 import com.edio.studywithcard.attachment.domain.Attachment;
+import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.deck.domain.Deck;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -11,5 +12,7 @@ public interface AttachmentService {
 
     void saveAttachmentDeckTarget(Attachment attachment, Deck deck);
 
-    void deleteAttachment(String filePath);
+    void saveAttachmentCardTarget(Attachment attachment, Card card);
+
+    void deleteAttachment(String fileKey);
 }

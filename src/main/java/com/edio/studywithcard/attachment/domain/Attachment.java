@@ -31,6 +31,9 @@ public class Attachment extends BaseEntity {
     private String fileTarget;
 
     @Column(nullable = false)
+    private String fileKey;
+
+    @Column(nullable = false)
     @Builder.Default
     @Setter
     private boolean isDeleted = false;
@@ -42,4 +45,8 @@ public class Attachment extends BaseEntity {
     @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
+
+    @OneToMany(mappedBy = "attachment", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<AttachmentCardTarget> attachmentCardTargets = new ArrayList<>();
 }

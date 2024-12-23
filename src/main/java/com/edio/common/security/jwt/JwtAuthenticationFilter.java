@@ -49,6 +49,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 setAuthentication(accessToken);
             } else {
                 handleRefreshToken(httpRequest, httpResponse);
+                if (httpResponse.isCommitted()) {
+                    return;
+                }
             }
         } catch (JwtException | IllegalArgumentException e) {
             handleInvalidToken(httpResponse, e);
@@ -85,6 +88,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
             httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Refresh token이 유효하지 않거나 없습니다. 다시 로그인해주세요.");
+            return;
         }
     }
 
@@ -110,6 +114,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         logger.info(e.getMessage());
         SecurityContextHolder.clearContext();
         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+        return;
     }
 
     // 계정이 없을 때 처리
@@ -118,6 +123,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         logger.info(e.getMessage());
         SecurityContextHolder.clearContext();
         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
+        return;
     }
 
     // AccessToken & RefreshToken 추출
