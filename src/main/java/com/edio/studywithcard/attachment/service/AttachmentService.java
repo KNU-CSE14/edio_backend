@@ -14,5 +14,5 @@ public interface AttachmentService {
 
     void saveAttachmentCardTarget(Attachment attachment, Card card);
 
-    void deleteAttachment(String filePath);
+    void deleteAttachment(String fileKey);
 }

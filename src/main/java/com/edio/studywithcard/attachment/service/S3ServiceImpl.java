@@ -1,6 +1,7 @@
 package com.edio.studywithcard.attachment.service;
 
 import com.edio.common.exception.InternalServerException;
+import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -33,7 +34,7 @@ public class S3ServiceImpl implements S3Service {
         S3 파일 업로드
      */
     @Override
-    public String uploadFile(MultipartFile file, String folder) {
+    public FileInfoResponse uploadFile(MultipartFile file, String folder) {
         // 파일 크기 검증
         validateFileSize(file);
 
@@ -56,26 +57,27 @@ public class S3ServiceImpl implements S3Service {
             log.error("알 수 없는 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
             throw new InternalServerException(e.getMessage());
         }
-        return String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName);
+
+        return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName), fileName);
     }
 
     /*
         S3 파일 삭제
      */
     @Override
-    public void deleteFile(String filePath) {
+    public void deleteFile(String fileKey) {
         try {
             s3Client.deleteObject(
                     DeleteObjectRequest.builder()
                             .bucket(bucketName)
-                            .key(filePath)
+                            .key(fileKey)
                             .build()
             );
         } catch (AwsServiceException | SdkClientException e) {
-            log.error("AWS 서비스 오류 발생 - 파일 삭제 실패: {}", filePath, e);
+            log.error("AWS 서비스 오류 발생 - 파일 삭제 실패: {}", fileKey, e);
             throw new InternalServerException(e.getMessage());
         } catch (Exception e) {
-            log.error("알 수 없는 오류 발생 - 파일 삭제 실패: {}", filePath, e);
+            log.error("알 수 없는 오류 발생 - 파일 삭제 실패: {}", fileKey, e);
             throw new InternalServerException(e.getMessage());
         }
     }

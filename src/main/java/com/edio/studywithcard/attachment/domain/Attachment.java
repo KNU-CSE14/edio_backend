@@ -31,6 +31,9 @@ public class Attachment extends BaseEntity {
     private String fileTarget;
 
     @Column(nullable = false)
+    private String fileKey;
+
+    @Column(nullable = false)
     @Builder.Default
     @Setter
     private boolean isDeleted = false;
