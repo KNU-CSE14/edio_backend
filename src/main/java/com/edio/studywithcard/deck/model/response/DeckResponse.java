@@ -34,6 +34,7 @@ public record DeckResponse(
                         .collect(Collectors.toList()),
                 deck.getCards() // cards 추가
                         .stream()
+                        .filter(target -> !target.isDeleted())
                         .map(CardResponse::from)
                         .collect(Collectors.toList())
         );

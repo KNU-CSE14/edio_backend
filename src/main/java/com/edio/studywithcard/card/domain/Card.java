@@ -23,9 +23,11 @@ public class Card extends BaseEntity {
     private Deck deck;
 
     @Column(nullable = false)
+    @Setter
     private String name;
 
     @Column(nullable = false)
+    @Setter
     private String description;
 
     @Column(nullable = false)
