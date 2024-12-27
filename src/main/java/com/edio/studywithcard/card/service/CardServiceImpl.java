@@ -53,15 +53,15 @@ public class CardServiceImpl implements CardService {
                     .name(request.name())
                     .description(request.description())
                     .build();
-            Card savedCard = cardRepository.save(card);
+            cardRepository.save(card);
 
             // 2. 첨부파일 처리
             for (MultipartFile file : files) {
                 if (file != null && !file.isEmpty()) {
-                    processAttachment(file, savedCard);
+                    processAttachment(file, card);
                 }
             }
-            return CardResponse.from(savedCard);
+            return CardResponse.from(card);
         } catch (DataIntegrityViolationException e) {
             throw new ConflictException(Deck.class, request.name()); // 409
         } catch (IOException e) {
