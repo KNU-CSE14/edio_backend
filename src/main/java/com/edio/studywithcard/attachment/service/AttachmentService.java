@@ -6,6 +6,7 @@ import com.edio.studywithcard.deck.domain.Deck;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 
 public interface AttachmentService {
     Attachment saveAttachment(MultipartFile file, String folder, String target) throws IOException;
@@ -14,5 +15,5 @@ public interface AttachmentService {
 
     void saveAttachmentCardTarget(Attachment attachment, Card card);
 
-    void deleteAttachment(String fileKey);
+    void deleteAttachmentsBulk(List<String> fileKeys);
 }

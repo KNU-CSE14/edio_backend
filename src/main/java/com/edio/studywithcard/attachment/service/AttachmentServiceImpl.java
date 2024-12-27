@@ -1,6 +1,5 @@
 package com.edio.studywithcard.attachment.service;
 
-import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
@@ -15,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -82,14 +83,12 @@ public class AttachmentServiceImpl implements AttachmentService {
      */
     @Override
     @Transactional
-    public void deleteAttachment(String fileKey) {
-        Attachment existingAttachment = attachmentRepository.findByFileKeyAndIsDeletedFalse(fileKey)
-                .orElseThrow(() -> new NotFoundException(Attachment.class, fileKey));
+    public void deleteAttachmentsBulk(List<String> fileKeys) {
+        // 1. DB 삭제 처리
+        List<Attachment> attachments = attachmentRepository.findAllByFileKeyInAndIsDeletedFalse(fileKeys);
+        attachments.forEach(attachment -> attachment.setDeleted(true));
 
-        // 1. DB 삭제
-        existingAttachment.setDeleted(true);
-
-        // 2. S3 삭제
-        s3Service.deleteFile(fileKey);
+        // 2. S3에서 파일 삭제
+        s3Service.deleteFiles(fileKeys);
     }
 }

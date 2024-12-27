@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -123,11 +125,16 @@ public class DeckServiceImpl implements DeckService {
         // 첨부파일 수정
         if (file != null && !file.isEmpty()) {
             try {
-                // 기존 첨부파일 삭제
-                existingDeck.getAttachmentDeckTargets().stream()
+                // 기존 첨부파일 삭제(Bulk)
+                List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()
                         .map(AttachmentDeckTarget::getAttachment)
                         .filter(attachment -> !attachment.isDeleted())
-                        .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
+                        .map(Attachment::getFileKey)
+                        .collect(Collectors.toList());
+
+                if (!fileKeys.isEmpty()) {
+                    attachmentService.deleteAttachmentsBulk(fileKeys);
+                }
 
                 // 새 첨부파일 저장
                 Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
@@ -167,11 +174,17 @@ public class DeckServiceImpl implements DeckService {
     public void deleteDeck(DeckDeleteRequest request) {
         Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(request.id())
                 .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
-
-        existingDeck.getAttachmentDeckTargets().stream()
+        
+        // 기존 첨부파일 삭제(Bulk)
+        List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()
                 .map(AttachmentDeckTarget::getAttachment)
                 .filter(attachment -> !attachment.isDeleted())
-                .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
+                .map(Attachment::getFileKey)
+                .collect(Collectors.toList());
+
+        if (!fileKeys.isEmpty()) {
+            attachmentService.deleteAttachmentsBulk(fileKeys);
+        }
 
         existingDeck.setDeleted(true);
     }
