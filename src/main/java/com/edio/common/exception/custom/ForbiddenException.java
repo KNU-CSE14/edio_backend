@@ -1,5 +1,6 @@
-package com.edio.common.exception;
+package com.edio.common.exception.custom;
 
+import com.edio.common.exception.base.BaseException;
 import org.springframework.http.HttpStatus;
 
 public class ForbiddenException extends BaseException {

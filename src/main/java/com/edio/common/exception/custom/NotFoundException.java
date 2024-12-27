@@ -1,6 +1,7 @@
-package com.edio.common.exception;
+package com.edio.common.exception.custom;
 
 import com.edio.common.domain.BaseEntity;
+import com.edio.common.exception.base.BaseException;
 import org.springframework.http.HttpStatus;
 
 public class NotFoundException extends BaseException {

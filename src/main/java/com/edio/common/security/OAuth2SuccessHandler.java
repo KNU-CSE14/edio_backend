@@ -1,6 +1,6 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.ForbiddenException;
+import com.edio.common.exception.custom.ForbiddenException;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;

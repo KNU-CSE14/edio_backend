@@ -1,6 +1,6 @@
 package com.edio.service;
 
-import com.edio.common.exception.ConflictException;
+import com.edio.common.exception.custom.ConflictException;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 import com.edio.user.domain.enums.AccountLoginType;

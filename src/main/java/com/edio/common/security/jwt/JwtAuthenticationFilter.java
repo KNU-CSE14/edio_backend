@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.base.ErrorMessages;
+import com.edio.common.exception.custom.NotFoundException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,9 +27,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // permitAll()로 설정된 엔드포인트인지 확인하는 메서드
     private boolean isPermitAllEndpoint(String requestURI) {
-        return requestURI.startsWith("/api/auth") ||
-                requestURI.startsWith("/swagger-ui") ||
-                requestURI.startsWith("/v3/api-docs");
+        return requestURI.startsWith("/swagger-ui") || requestURI.startsWith("/v3/api-docs");
     }
 
     @Override
@@ -66,9 +65,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // permitAll() 엔드포인트 처리
     private void handlePermitAllEndpoint(FilterChain chain, ServletRequest request, ServletResponse response, String requestURI) throws IOException, ServletException {
-        logger.info("PermitAll endpoint, skipping JWT validation for URI: " + requestURI);
         chain.doFilter(request, response);
-        logger.info("After chain.doFilter - Response Status: " + ((HttpServletResponse) response));
     }
 
     // Access Token 유효성 검사 후 인증 설정
@@ -87,7 +84,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Refresh token이 유효하지 않거나 없습니다. 다시 로그인해주세요.");
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
             return;
         }
     }
@@ -110,19 +107,17 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // 유효하지 않은 토큰 처리
     private void handleInvalidToken(HttpServletResponse httpResponse, Exception e) throws IOException {
-        log.info("유효하지 않은 토큰");
-        logger.info(e.getMessage());
+        logger.info("유효하지 않은 토큰: " + e.getMessage());
         SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "유효하지 않은 토큰입니다.");
+        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
         return;
     }
 
     // 계정이 없을 때 처리
     private void handleAccountNotFound(HttpServletResponse httpResponse, NotFoundException e) throws IOException {
-        log.info("계정이 없는 토큰");
-        logger.info(e.getMessage());
+        logger.info("계정이 없는 토큰: " + e.getMessage());
         SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "계정을 찾을 수 없습니다. 다시 로그인해주세요.");
+        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.ACCOUNT_NOT_FOUND.getMessage());
         return;
     }
 

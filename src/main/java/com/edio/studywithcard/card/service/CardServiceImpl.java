@@ -1,9 +1,9 @@
 package com.edio.studywithcard.card.service;
 
-import com.edio.common.exception.ConflictException;
-import com.edio.common.exception.IllegalArgumentException;
-import com.edio.common.exception.InternalServerException;
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.custom.IllegalArgumentException;
+import com.edio.common.exception.custom.NotFoundException;
+import com.edio.common.exception.custom.UnprocessableException;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
@@ -63,9 +63,9 @@ public class CardServiceImpl implements CardService {
             }
             return CardResponse.from(savedCard);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, request.name());
+            throw new ConflictException(Deck.class, request.name()); // 409
         } catch (IOException e) {
-            throw new InternalServerException(e.getMessage());
+            throw new UnprocessableException(e); // 422
         }
     }
 
@@ -99,7 +99,7 @@ public class CardServiceImpl implements CardService {
 
                     processAttachment(file, existingCard);
                 } catch (IOException e) {
-                    throw new InternalServerException(e.getMessage());
+                    throw new UnprocessableException(e); // 422
                 }
             }
         }

@@ -1,6 +1,6 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.ConflictException;
+import com.edio.common.exception.custom.ConflictException;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;

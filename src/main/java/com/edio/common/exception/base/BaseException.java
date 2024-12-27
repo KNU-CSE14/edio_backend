@@ -1,4 +1,4 @@
-package com.edio.common.exception;
+package com.edio.common.exception.base;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -11,7 +11,7 @@ public class BaseException extends RuntimeException {
     private final String detailMessage;
 
     public BaseException(HttpStatus status, String message) {
-        super(message);  // RuntimeException의 메시지 필드 설정
+        super(message);
         this.status = status;
         this.isSuccess = false;
         this.detailMessage = message;

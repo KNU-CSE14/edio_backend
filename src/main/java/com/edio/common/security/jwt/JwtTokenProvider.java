@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
-import com.edio.common.exception.AuthenticationException;
+import com.edio.common.exception.base.ErrorMessages;
+import com.edio.common.exception.custom.AuthenticationException;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -102,16 +103,16 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token");
+            log.error("Expired JWT Token");
             return false;
         } catch (SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token");
+            log.error("Invalid JWT Token");
             return false;
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token");
+            log.error("Unsupported JWT Token");
             return false;
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty");
+            log.error("JWT claims string is empty");
             return false;
         }
     }
@@ -125,7 +126,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new AuthenticationException("Expired JWT Token");
+            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
     }
 
@@ -143,10 +144,7 @@ public class JwtTokenProvider {
             // FIXME: 토큰 재발급 테스트 후 아래 주석 제거 필요
             // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                String errorMessage = authentication == null
-                        ? "Authentication object is null, cannot authenticate request."
-                        : "Authentication is not valid or user is not authenticated.";
-                throw new AuthenticationException(errorMessage);
+                throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.getMessage());
             }
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -181,6 +179,6 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         }
-        throw new AuthenticationException("Failed to refresh tokens");
+        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
     }
 }

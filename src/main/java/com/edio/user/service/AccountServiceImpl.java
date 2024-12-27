@@ -1,7 +1,7 @@
 package com.edio.user.service;
 
-import com.edio.common.exception.ConflictException;
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.custom.NotFoundException;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.AccountCreateRequest;

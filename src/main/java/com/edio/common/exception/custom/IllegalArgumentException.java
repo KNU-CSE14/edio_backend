@@ -1,5 +1,6 @@
-package com.edio.common.exception;
+package com.edio.common.exception.custom;
 
+import com.edio.common.exception.base.BaseException;
 import org.springframework.http.HttpStatus;
 
 public class IllegalArgumentException extends BaseException {
@@ -7,7 +8,7 @@ public class IllegalArgumentException extends BaseException {
         super(HttpStatus.BAD_REQUEST, message);
     }
 
-    public <T> IllegalArgumentException(String message, Throwable cause) {
+    public <T> IllegalArgumentException(Throwable cause) {
         super(HttpStatus.BAD_REQUEST, cause.getMessage());
     }
 }
