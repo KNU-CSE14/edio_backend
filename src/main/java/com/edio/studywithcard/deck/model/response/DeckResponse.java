@@ -32,7 +32,7 @@ public record DeckResponse(
                         .filter(target -> !target.getAttachment().isDeleted())
                         .map(target -> AttachmentResponse.from(target.getAttachment()))
                         .collect(Collectors.toList()),
-                deck.getCards() // cards 추가
+                deck.getCards()
                         .stream()
                         .filter(target -> !target.isDeleted())
                         .map(CardResponse::from)
