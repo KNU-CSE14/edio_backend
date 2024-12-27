@@ -25,6 +25,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,11 +93,16 @@ public class CardServiceImpl implements CardService {
         for (MultipartFile file : files) {
             if (file != null && !file.isEmpty()) {
                 try {
-                    // 기존 첨부파일 삭제
-                    existingCard.getAttachmentCardTargets().stream()
+                    // 기존 첨부파일 삭제(Bulk 작업)
+                    List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
                             .map(AttachmentCardTarget::getAttachment)
                             .filter(attachment -> !attachment.isDeleted())
-                            .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
+                            .map(Attachment::getFileKey)
+                            .collect(Collectors.toList());
+
+                    if (!fileKeys.isEmpty()) {
+                        attachmentService.deleteAttachmentsBulk(fileKeys);
+                    }
 
                     processAttachment(file, existingCard);
                 } catch (IOException e) {
@@ -114,10 +121,16 @@ public class CardServiceImpl implements CardService {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
                 .orElseThrow(() -> new NotFoundException(Card.class, request.id()));
 
-        existingCard.getAttachmentCardTargets().stream()
+        // Bulk 작업
+        List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
                 .map(AttachmentCardTarget::getAttachment)
                 .filter(attachment -> !attachment.isDeleted())
-                .forEach(attachment -> attachmentService.deleteAttachment(attachment.getFileKey()));
+                .map(Attachment::getFileKey)
+                .collect(Collectors.toList());
+
+        if (!fileKeys.isEmpty()) {
+            attachmentService.deleteAttachmentsBulk(fileKeys);
+        }
 
         existingCard.setDeleted(true);
     }
