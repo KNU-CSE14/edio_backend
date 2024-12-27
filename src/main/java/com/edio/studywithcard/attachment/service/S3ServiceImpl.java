@@ -1,6 +1,6 @@
 package com.edio.studywithcard.attachment.service;
 
-import com.edio.common.exception.InternalServerException;
+import com.edio.common.exception.custom.InternalServerException;
 import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

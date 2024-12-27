@@ -1,6 +1,6 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.NotFoundException;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;

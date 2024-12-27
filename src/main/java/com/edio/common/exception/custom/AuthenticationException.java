@@ -1,5 +1,6 @@
-package com.edio.common.exception;
+package com.edio.common.exception.custom;
 
+import com.edio.common.exception.base.BaseException;
 import org.springframework.http.HttpStatus;
 
 public class AuthenticationException extends BaseException {
@@ -7,7 +8,7 @@ public class AuthenticationException extends BaseException {
         super(HttpStatus.UNAUTHORIZED, message);
     }
 
-    public <T> AuthenticationException(String message, Throwable cause) {
+    public <T> AuthenticationException(Throwable cause) {
         super(HttpStatus.UNAUTHORIZED, cause.getMessage());
     }
 }

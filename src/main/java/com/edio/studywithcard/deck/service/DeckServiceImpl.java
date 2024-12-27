@@ -1,8 +1,8 @@
 package com.edio.studywithcard.deck.service;
 
-import com.edio.common.exception.ConflictException;
-import com.edio.common.exception.InternalServerException;
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.custom.InternalServerException;
+import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;

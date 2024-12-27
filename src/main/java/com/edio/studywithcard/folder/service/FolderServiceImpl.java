@@ -1,8 +1,8 @@
 package com.edio.studywithcard.folder.service;
 
-import com.edio.common.exception.BadRequestException;
-import com.edio.common.exception.ConflictException;
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.BadRequestException;
+import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;

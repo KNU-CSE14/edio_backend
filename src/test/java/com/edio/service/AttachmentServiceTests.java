@@ -1,6 +1,6 @@
 package com.edio.service;
 
-import com.edio.common.exception.NotFoundException;
+import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
