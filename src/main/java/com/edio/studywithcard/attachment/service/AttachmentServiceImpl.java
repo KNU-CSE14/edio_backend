@@ -83,7 +83,7 @@ public class AttachmentServiceImpl implements AttachmentService {
      */
     @Override
     @Transactional
-    public void deleteAttachmentsBulk(List<String> fileKeys) {
+    public void deleteAllAttachments(List<String> fileKeys) {
         // 1. DB 삭제 처리
         List<Attachment> attachments = attachmentRepository.findAllByFileKeyInAndIsDeletedFalse(fileKeys);
         attachments.forEach(attachment -> attachment.setDeleted(true));

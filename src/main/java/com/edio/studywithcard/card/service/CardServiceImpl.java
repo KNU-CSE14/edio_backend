@@ -101,7 +101,7 @@ public class CardServiceImpl implements CardService {
                             .collect(Collectors.toList());
 
                     if (!fileKeys.isEmpty()) {
-                        attachmentService.deleteAttachmentsBulk(fileKeys);
+                        attachmentService.deleteAllAttachments(fileKeys);
                     }
 
                     processAttachment(file, existingCard);
@@ -129,7 +129,7 @@ public class CardServiceImpl implements CardService {
                 .collect(Collectors.toList());
 
         if (!fileKeys.isEmpty()) {
-            attachmentService.deleteAttachmentsBulk(fileKeys);
+            attachmentService.deleteAllAttachments(fileKeys);
         }
 
         existingCard.setDeleted(true);

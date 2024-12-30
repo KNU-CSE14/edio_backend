@@ -133,7 +133,7 @@ public class DeckServiceImpl implements DeckService {
                         .collect(Collectors.toList());
 
                 if (!fileKeys.isEmpty()) {
-                    attachmentService.deleteAttachmentsBulk(fileKeys);
+                    attachmentService.deleteAllAttachments(fileKeys);
                 }
 
                 // 새 첨부파일 저장
@@ -174,7 +174,7 @@ public class DeckServiceImpl implements DeckService {
     public void deleteDeck(DeckDeleteRequest request) {
         Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(request.id())
                 .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
-        
+
         // 기존 첨부파일 삭제(Bulk)
         List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()
                 .map(AttachmentDeckTarget::getAttachment)
@@ -183,7 +183,7 @@ public class DeckServiceImpl implements DeckService {
                 .collect(Collectors.toList());
 
         if (!fileKeys.isEmpty()) {
-            attachmentService.deleteAttachmentsBulk(fileKeys);
+            attachmentService.deleteAllAttachments(fileKeys);
         }
 
         existingDeck.setDeleted(true);
