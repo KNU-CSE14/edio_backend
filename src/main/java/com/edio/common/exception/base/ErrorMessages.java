@@ -10,7 +10,12 @@ public enum ErrorMessages {
     ACCOUNT_NOT_FOUND("E401-002", "The associated account could not be found."),
     AUTHENTICATION_FAILED("E401-003", "Authentication failed. Please check your credentials or token."),
 
+    NOT_FOUND("E404-001", "Not found"),
+
+    CONFLICT("E409-001", "Conflict occurred"),
+
     UNPROCESSABLE_STATE_MAP("E422-001", "Failed to encode state map into JSON. Ensure the state map is serializable: %s");
+
 
     private final String code;
     private final String message;
