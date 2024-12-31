@@ -8,6 +8,7 @@ import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
+import com.edio.studywithcard.folder.model.response.UserFolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Slf4j
 @Service
@@ -45,6 +48,19 @@ public class FolderServiceImpl implements FolderService {
                     .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
         }
         return FolderWithDeckResponse.from(folder);
+    }
+
+    /*
+       사용자 Folder 목록 조회
+    */
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserFolderResponse> getUserFolders(Long accountId) {
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(accountId);
+
+        return folders.stream()
+                .map(UserFolderResponse::from)
+                .toList();
     }
 
     /*
@@ -79,7 +95,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void updateFolder(Long id, FolderUpdateRequest folderUpdateRequest) {
         // 폴더명 업데이트
-        Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.setName(folderUpdateRequest.name());
@@ -92,7 +108,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void moveFolder(Long folderId, Long newParentId) {
         // 이동할 폴더 조회
-        Folder folder = folderRepository.findByIdAndIsDeleted(folderId, false)
+        Folder folder = folderRepository.findByIdAndIsDeletedFalse(folderId)
                 .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
 
         // 새로운 부모 폴더 조회
@@ -126,7 +142,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional
     public void deleteFolder(Long id) {
-        Folder existingFolder = folderRepository.findByIdAndIsDeleted(id, false)
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(id)
                 .orElseThrow(() -> new NotFoundException(Folder.class, id));
 
         existingFolder.setDeleted(true);

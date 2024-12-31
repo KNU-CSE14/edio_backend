@@ -61,7 +61,7 @@ public class FolderServiceTests {
 
     // 헬퍼 메서드: Mock 설정
     private void mockFindFolder(Long folderId, Folder folder) {
-        when(folderRepository.findByIdAndIsDeleted(folderId, false)).thenReturn(Optional.ofNullable(folder));
+        when(folderRepository.findByIdAndIsDeletedFalse(folderId)).thenReturn(Optional.ofNullable(folder));
     }
 
     /*

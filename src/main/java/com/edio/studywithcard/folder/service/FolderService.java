@@ -4,10 +4,16 @@ import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
+import com.edio.studywithcard.folder.model.response.UserFolderResponse;
+
+import java.util.List;
 
 public interface FolderService {
     // Folder 조회
     FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId);
+
+    // 사용자 Folder 목록 조회
+    List<UserFolderResponse> getUserFolders(Long accountId);
 
     // Folder 이동
     void moveFolder(Long folderId, Long newParentId);
