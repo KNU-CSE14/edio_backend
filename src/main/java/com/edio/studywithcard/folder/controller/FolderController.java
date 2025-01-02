@@ -46,7 +46,7 @@ public class FolderController {
      * @param userDetails 사용자 ID
      * @return
      */
-    @GetMapping("/folders/my-folders")
+    @GetMapping("/folder/my-folders")
     @Operation(summary = "사용자 Folder 목록 조회", description = "사용자 Folder 목록을 조회합니다.")
     public List<AccountFolderResponse> getUserFolders(
             @AuthenticationPrincipal CustomUserDetails userDetails
