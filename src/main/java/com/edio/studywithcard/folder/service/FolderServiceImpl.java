@@ -6,9 +6,9 @@ import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
+import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
-import com.edio.studywithcard.folder.model.response.UserFolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
@@ -55,11 +55,11 @@ public class FolderServiceImpl implements FolderService {
     */
     @Override
     @Transactional(readOnly = true)
-    public List<UserFolderResponse> getUserFolders(Long accountId) {
+    public List<AccountFolderResponse> getAccountFolders(Long accountId) {
         List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(accountId);
 
         return folders.stream()
-                .map(UserFolderResponse::from)
+                .map(AccountFolderResponse::from)
                 .toList();
     }
 
@@ -68,7 +68,7 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional
-    public FolderResponse createFolder(Long accoutId, FolderCreateRequest folderCreateRequest) {
+    public FolderResponse createFolder(Long accountId, FolderCreateRequest folderCreateRequest) {
         try {
             // 부모 폴더 설정
             Folder parentFolder = null;
@@ -77,7 +77,7 @@ public class FolderServiceImpl implements FolderService {
             }
 
             Folder newFolder = Folder.builder()
-                    .accountId(accoutId)
+                    .accountId(accountId)
                     .parentFolder(parentFolder) // 부모 폴더 설정
                     .name(folderCreateRequest.name())
                     .build();
@@ -93,10 +93,10 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional
-    public void updateFolder(Long id, FolderUpdateRequest folderUpdateRequest) {
+    public void updateFolder(Long folderId, FolderUpdateRequest folderUpdateRequest) {
         // 폴더명 업데이트
-        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new NotFoundException(Folder.class, id));
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
+                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
 
         existingFolder.setName(folderUpdateRequest.name());
     }
@@ -141,9 +141,9 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional
-    public void deleteFolder(Long id) {
-        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new NotFoundException(Folder.class, id));
+    public void deleteFolder(Long folderId) {
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
+                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
 
         existingFolder.setDeleted(true);
     }

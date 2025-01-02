@@ -7,9 +7,19 @@ import java.util.List;
 import java.util.Optional;
 
 public interface FolderRepository extends JpaRepository<Folder, Long> {
-    // FolderID 조회
-    Optional<Folder> findByIdAndIsDeletedFalse(Long id);
+    /**
+     * Folder 조회
+     *
+     * @param folderId
+     * @return
+     */
+    Optional<Folder> findByIdAndIsDeletedFalse(Long folderId);
 
-    // AccountID 조회
-    List<Folder> findByAccountIdAndIsDeletedFalse(Long id);
+    /**
+     * Account Folder 조회
+     *
+     * @param accountId
+     * @return
+     */
+    List<Folder> findByAccountIdAndIsDeletedFalse(Long accountId);
 }
