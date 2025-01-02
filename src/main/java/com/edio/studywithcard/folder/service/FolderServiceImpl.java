@@ -30,7 +30,7 @@ public class FolderServiceImpl implements FolderService {
     private final AccountRepository accountRepository;
 
     /*
-        Folder 조회
+        Folder 조회 (1depth)
      */
     @Override
     @Transactional(readOnly = true)
