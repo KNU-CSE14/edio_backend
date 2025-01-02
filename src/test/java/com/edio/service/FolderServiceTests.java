@@ -40,19 +40,17 @@ public class FolderServiceTests {
     public void setUp() {
         // 공통 데이터 초기화
         folderCreateRequest = new FolderCreateRequest(null, "Test Folder");
-
         folderUpdateRequest = new FolderUpdateRequest("Updated Folder Name");
-
-        existingFolder = createFolder(1L, "Old Folder Name", null);
-        parentFolder = createFolder(2L, "Parent Folder", null);
+        existingFolder = createFolder(1L, "Old Folder Name");
+        parentFolder = createFolder(2L, "Parent Folder");
     }
 
     // 헬퍼 메서드: Folder 생성
-    private Folder createFolder(Long id, String name, Folder parent) {
+    private Folder createFolder(Long id, String name) {
         Folder folder = Folder.builder()
                 .accountId(1L)
                 .name(name)
-                .parentFolder(parent)
+                .parentFolder(null)
                 .isDeleted(false)
                 .build();
         ReflectionTestUtils.setField(folder, "id", id);
@@ -60,8 +58,8 @@ public class FolderServiceTests {
     }
 
     // 헬퍼 메서드: Mock 설정
-    private void mockFindFolder(Long folderId, Folder folder) {
-        when(folderRepository.findByIdAndIsDeletedFalse(folderId)).thenReturn(Optional.ofNullable(folder));
+    private void mockFindFolder(Folder folder) {
+        when(folderRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.ofNullable(folder));
     }
 
     /*
@@ -97,7 +95,7 @@ public class FolderServiceTests {
     @Test
     public void updateFolder_whenFolderExists_updatesFolder() {
         // Mock 설정
-        mockFindFolder(1L, existingFolder);
+        mockFindFolder(existingFolder);
 
         // when
         folderService.updateFolder(1L, folderUpdateRequest);
@@ -113,7 +111,7 @@ public class FolderServiceTests {
     @Test
     public void deleteFolder_whenFolderExists_deletesFolder() {
         // Mock 설정
-        mockFindFolder(1L, existingFolder);
+        mockFindFolder(existingFolder);
 
         // when
         folderService.deleteFolder(1L);
@@ -125,11 +123,11 @@ public class FolderServiceTests {
     @Test
     public void deleteFolder_whenFolderDoesNotExist_throwsException() {
         // Mock 설정
-        mockFindFolder(1L, null);
+        mockFindFolder(null);
 
         // when, then
         assertThatThrownBy(() -> folderService.deleteFolder(1L))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Folder not found");
+                .hasMessageContaining("Folder NOT_FOUND: 1");
     }
 }
