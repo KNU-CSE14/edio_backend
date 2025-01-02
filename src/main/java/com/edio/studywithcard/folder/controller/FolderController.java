@@ -5,9 +5,9 @@ import com.edio.common.security.CustomUserDetails;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderMoveRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
+import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
-import com.edio.studywithcard.folder.model.response.UserFolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,6 +28,11 @@ public class FolderController {
 
     private final FolderService folderService;
 
+    /**
+     * @param userDetails 사용자 ID
+     * @param folderId    조회 기준 폴더 ID
+     * @return
+     */
     @GetMapping("/folder")
     @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     public FolderWithDeckResponse getFolderWithDeck(
@@ -37,14 +42,23 @@ public class FolderController {
         return folderService.getFolderWithDeck(userDetails.getAccountId(), folderId);
     }
 
-    @GetMapping("/folder/user")
+    /**
+     * @param userDetails 사용자 ID
+     * @return
+     */
+    @GetMapping("/folders/my-folders")
     @Operation(summary = "사용자 Folder 목록 조회", description = "사용자 Folder 목록을 조회합니다.")
-    public List<UserFolderResponse> getUserFolders(
+    public List<AccountFolderResponse> getUserFolders(
             @AuthenticationPrincipal CustomUserDetails userDetails
     ) {
-        return folderService.getUserFolders(userDetails.getAccountId());
+        return folderService.getAccountFolders(userDetails.getAccountId());
     }
 
+    /**
+     * @param userDetails         사용자 ID
+     * @param folderCreateRequest (parentId, name)
+     * @return
+     */
     @PostMapping("/folder")
     @Operation(summary = "Folder 등록", description = "Folder를 등록합니다.")
     public FolderResponse createFolder(
@@ -53,18 +67,29 @@ public class FolderController {
         return folderService.createFolder(userDetails.getAccountId(), folderCreateRequest);
     }
 
+    /**
+     * @param id                  folderId
+     * @param folderUpdateRequest (name)
+     */
     @PatchMapping("/folder/{id}")
     @Operation(summary = "Folder명 수정", description = "Folder명을 수정합니다.")
     public void updateFolder(@PathVariable Long id, @RequestBody FolderUpdateRequest folderUpdateRequest) {
         folderService.updateFolder(id, folderUpdateRequest);
     }
 
+    /**
+     * @param id                folderId
+     * @param folderMoveRequest (parentId)
+     */
     @PatchMapping("/folder/{id}/position")
     @Operation(summary = "Folder 이동", description = "Folder를 이동합니다.")
     public void moveFolder(@PathVariable Long id, @RequestBody FolderMoveRequest folderMoveRequest) {
         folderService.moveFolder(id, folderMoveRequest.parentId());
     }
 
+    /**
+     * @param id folderId
+     */
     @DeleteMapping("/folder/{id}")
     @Operation(summary = "Folder 삭제", description = "Folder를 삭제합니다.")
     public void deleteFolder(@PathVariable Long id) {
