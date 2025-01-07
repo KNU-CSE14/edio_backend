@@ -33,6 +33,7 @@ public class FolderController {
      * @param folderId    조회 기준 폴더 ID
      * @return
      */
+    // FIXME: 폴더 조회 시 하위 전체 조회되도록 변경 예정 
     @GetMapping("/folder")
     @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     public FolderWithDeckResponse getFolderWithDeck(
