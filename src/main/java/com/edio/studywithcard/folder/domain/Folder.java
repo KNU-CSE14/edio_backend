@@ -23,11 +23,11 @@ public class Folder extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Folder parentFolder;
 
-    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Folder> childrenFolders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Deck> decks = new ArrayList<>();
 
@@ -39,7 +39,7 @@ public class Folder extends BaseEntity {
     @Setter
     @Builder.Default
     private boolean isDeleted = false;
-    
+
     public void setParentFolder(Folder parentFolder) {
         // 새로운 부모 폴더 설정
         this.parentFolder = parentFolder;

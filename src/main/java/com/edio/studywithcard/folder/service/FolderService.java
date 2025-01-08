@@ -3,6 +3,7 @@ package com.edio.studywithcard.folder.service;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 
@@ -17,6 +18,8 @@ public interface FolderService {
      * @return
      */
     FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId);
+
+    FolderAllResponse getAllFolders(Long accountId, Long folderId);
 
     /**
      * 사용자 Folder 목록 조회

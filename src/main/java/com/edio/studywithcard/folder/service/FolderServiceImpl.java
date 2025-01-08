@@ -7,6 +7,7 @@ import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
@@ -49,6 +50,28 @@ public class FolderServiceImpl implements FolderService {
         }
         return FolderWithDeckResponse.from(folder);
     }
+
+    /*
+        Folder 조회 (all depth)
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public FolderAllResponse getAllFolders(Long accountId, Long folderId) {
+        Folder folder;
+        // folderId가 null이면 루트 폴더 조회
+        if (folderId == null) {
+            Long rootFolderId = accountRepository.findById(accountId)
+                    .map(Account::getRootFolderId)
+                    .orElseThrow(() -> new NotFoundException(Account.class, accountId));
+            folder = folderRepository.findById(rootFolderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
+        } else {
+            folder = folderRepository.findById(folderId)
+                    .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+        }
+        return FolderAllResponse.from(folder);
+    }
+
 
     /*
        사용자 Folder 목록 조회

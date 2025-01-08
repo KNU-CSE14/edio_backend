@@ -6,6 +6,7 @@ import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderMoveRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
+import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.service.FolderService;
@@ -33,7 +34,20 @@ public class FolderController {
      * @param folderId    조회 기준 폴더 ID
      * @return
      */
-    // FIXME: 폴더 조회 시 하위 전체 조회되도록 변경 예정 
+    @GetMapping("/folder/all")
+    @Operation(summary = "Folder 전체 조회", description = "Folder 계층 전체를 조회합니다.")
+    public FolderAllResponse getAllFolders(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam(required = false) Long folderId
+    ) {
+        return folderService.getAllFolders(userDetails.getAccountId(), folderId);
+    }
+
+    /**
+     * @param userDetails 사용자 ID
+     * @param folderId    조회 기준 폴더 ID
+     * @return
+     */
     @GetMapping("/folder")
     @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
     public FolderWithDeckResponse getFolderWithDeck(
