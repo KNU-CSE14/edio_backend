@@ -1,5 +1,6 @@
 package com.edio.studywithcard.deck.controller;
 
+import com.edio.common.config.SwaggerBody;
 import com.edio.common.model.response.SwaggerCommonResponses;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
 import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
@@ -8,6 +9,8 @@ import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.service.DeckService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -42,6 +45,7 @@ public class DeckController {
      * @param file
      * @return 등록한 Deck의 상세 정보
      */
+    @SwaggerBody(content = @Content(encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE)))
     @PostMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Deck 등록", description = "Deck을 등록합니다.")
     public DeckResponse createDeck(@RequestPart DeckCreateRequest request,
@@ -53,6 +57,7 @@ public class DeckController {
      * @param request (id, categoryId, name, description) 수정할 Deck 객체
      * @param file
      */
+    @SwaggerBody(content = @Content(encoding = @Encoding(name = "request", contentType = MediaType.APPLICATION_JSON_VALUE)))
     @PatchMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Deck 수정", description = "Deck을 수정합니다.")
     public void updateDeck(@RequestPart DeckUpdateRequest request,
