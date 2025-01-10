@@ -30,6 +30,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return new CustomUserDetails(
                 account.getId(),
+                account.getRootFolderId(),
                 account.getLoginId(),
                 authorities,
                 Collections.emptyMap()

@@ -23,11 +23,11 @@ public class Folder extends BaseEntity {
     @JoinColumn(name = "parent_id")
     private Folder parentFolder;
 
-    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Folder> childrenFolders = new ArrayList<>();
 
-    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Deck> decks = new ArrayList<>();
 

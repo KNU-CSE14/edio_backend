@@ -11,7 +11,6 @@ import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +34,10 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional(readOnly = true)
-    public FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId) {
+    public FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId) {
         Folder folder;
         // folderId가 null이면 루트 폴더 조회
         if (folderId == null) {
-            Long rootFolderId = accountRepository.findById(accountId)
-                    .map(Account::getRootFolderId)
-                    .orElseThrow(() -> new NotFoundException(Account.class, accountId));
             folder = folderRepository.findById(rootFolderId)
                     .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
         } else {
@@ -56,13 +52,10 @@ public class FolderServiceImpl implements FolderService {
      */
     @Override
     @Transactional(readOnly = true)
-    public FolderAllResponse getAllFolders(Long accountId, Long folderId) {
+    public FolderAllResponse getAllFolders(Long rootFolderId, Long folderId) {
         Folder folder;
         // folderId가 null이면 루트 폴더 조회
         if (folderId == null) {
-            Long rootFolderId = accountRepository.findById(accountId)
-                    .map(Account::getRootFolderId)
-                    .orElseThrow(() -> new NotFoundException(Account.class, accountId));
             folder = folderRepository.findById(rootFolderId)
                     .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
         } else {

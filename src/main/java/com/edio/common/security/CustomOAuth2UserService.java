@@ -79,6 +79,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         return new CustomUserDetails(
                 accountResponse.id(),
+                accountResponse.rootFolderId(),
                 accountResponse.loginId(),
                 authorities,
                 oAuth2User.getAttributes() // OAuth2 사용자 속성 전달

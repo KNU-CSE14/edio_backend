@@ -13,13 +13,20 @@ public interface FolderService {
     /**
      * Folder 하위 1depth 조회
      *
-     * @param accountId
+     * @param rootFolderId
      * @param folderId
      * @return
      */
-    FolderWithDeckResponse getFolderWithDeck(Long accountId, Long folderId);
+    FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId);
 
-    FolderAllResponse getAllFolders(Long accountId, Long folderId);
+    /**
+     * Folder 하위 all-depth 조회
+     *
+     * @param rootFolderId
+     * @param folderId
+     * @return
+     */
+    FolderAllResponse getAllFolders(Long rootFolderId, Long folderId);
 
     /**
      * 사용자 Folder 목록 조회
