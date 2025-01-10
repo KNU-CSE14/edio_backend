@@ -13,6 +13,8 @@ import java.util.Map;
 public class CustomUserDetails implements UserDetails, OAuth2User {
     @Getter
     private final Long accountId;
+    @Getter
+    private final Long rootFolderId;
     private final String username;
     private final Collection<? extends GrantedAuthority> authorities;
     private final transient Map<String, Object> attributes; // OAuth2 사용자 속성

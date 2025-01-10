@@ -30,7 +30,7 @@ public class FolderController {
     private final FolderService folderService;
 
     /**
-     * @param userDetails 사용자 ID
+     * @param userDetails 루트 폴더 ID
      * @param folderId    조회 기준 폴더 ID
      * @return
      */
@@ -40,11 +40,11 @@ public class FolderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long folderId
     ) {
-        return folderService.getAllFolders(userDetails.getAccountId(), folderId);
+        return folderService.getAllFolders(userDetails.getRootFolderId(), folderId);
     }
 
     /**
-     * @param userDetails 사용자 ID
+     * @param userDetails 루트 폴더 ID
      * @param folderId    조회 기준 폴더 ID
      * @return
      */
@@ -54,7 +54,7 @@ public class FolderController {
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @RequestParam(required = false) Long folderId
     ) {
-        return folderService.getFolderWithDeck(userDetails.getAccountId(), folderId);
+        return folderService.getFolderWithDeck(userDetails.getRootFolderId(), folderId);
     }
 
     /**

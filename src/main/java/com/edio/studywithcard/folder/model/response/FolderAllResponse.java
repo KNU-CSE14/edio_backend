@@ -34,7 +34,7 @@ public record FolderAllResponse(
             boolean isShared,
             boolean isFavorite
     ) {
-        public static FolderAllResponse.SubDeck from(Deck deck) {
+        private static FolderAllResponse.SubDeck from(Deck deck) {
             return new FolderAllResponse.SubDeck(deck.getId(), deck.getName(), deck.getDescription(), deck.isShared(), deck.isFavorite());
         }
     }
