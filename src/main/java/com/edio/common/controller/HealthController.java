@@ -1,8 +1,5 @@
 package com.edio.common.controller;
 
-import com.edio.common.model.response.SwaggerCommonResponses;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,17 +11,15 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-@Tag(name = "DB Health", description = "DB 연결 확인")
 @RestController
 @RequestMapping("/api")
-public class HealthController {
+public class HealthController implements HealthApiDoc {
 
     @Autowired
     private DataSource dataSource;
 
     @GetMapping("/health/db")
-    @Operation(summary = "DB 연결", description = "DB 연결을 확인합니다.")
-    @SwaggerCommonResponses //Swagger 공통 응답 어노테이션
+    @Override
     public ResponseEntity<String> checkDatabaseConnection() {
         try (Connection connection = dataSource.getConnection()) {
             if (connection != null && !connection.isClosed()) {
