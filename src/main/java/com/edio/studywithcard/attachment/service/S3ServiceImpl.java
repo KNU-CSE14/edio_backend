@@ -1,6 +1,6 @@
 package com.edio.studywithcard.attachment.service;
 
-import com.edio.common.exception.custom.InternalServerException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,10 +58,10 @@ public class S3ServiceImpl implements S3Service {
             );
         } catch (AwsServiceException | SdkClientException e) {
             log.error("AWS 서비스 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         } catch (IOException e) {
             log.error("알 수 없는 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
 
         return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName), fileName);
@@ -90,10 +90,10 @@ public class S3ServiceImpl implements S3Service {
             log.info("Successfully deleted files: {}", fileKeys);
         } catch (AwsServiceException | SdkClientException e) {
             log.error("AWS 서비스 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         } catch (Exception e) {
             log.error("알 수 없는 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 

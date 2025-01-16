@@ -1,7 +1,6 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.NotFoundException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,6 +17,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         } catch (JwtException | IllegalArgumentException e) {
             handleInvalidToken(httpResponse, e);
             return;
-        } catch (NotFoundException e) {
+        } catch (NoSuchElementException e) {
             handleAccountNotFound(httpResponse, e);
             return;
         }
@@ -84,7 +84,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.format(refreshToken));
             return;
         }
     }
@@ -114,7 +114,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     // 계정이 없을 때 처리
-    private void handleAccountNotFound(HttpServletResponse httpResponse, NotFoundException e) throws IOException {
+    private void handleAccountNotFound(HttpServletResponse httpResponse, NoSuchElementException e) throws IOException {
         logger.info("계정이 없는 토큰: " + e.getMessage());
         SecurityContextHolder.clearContext();
         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.ACCOUNT_NOT_FOUND.getMessage());

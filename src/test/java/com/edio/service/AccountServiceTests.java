@@ -1,6 +1,6 @@
 package com.edio.service;
 
-import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 import com.edio.user.domain.enums.AccountLoginType;
@@ -85,12 +85,12 @@ public class AccountServiceTests {
         when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
-                .thenThrow(new ConflictException(Account.class, mockAccount.getLoginId()));
+                .thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.format(mockAccount.getLoginId())));
 
         // when & then
         assertThatThrownBy(() -> accountService.createAccount(accountRequest))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("testUser@gmail.com");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Conflict");
     }
 
     @Test

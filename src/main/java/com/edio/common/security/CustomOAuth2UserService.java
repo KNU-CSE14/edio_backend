@@ -1,6 +1,5 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.custom.ConflictException;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
@@ -68,7 +67,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             );
             FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
             accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
-        } catch (ConflictException e) {
+        } catch (IllegalStateException e) {
             accountResponse = accountService.findOneAccountEmail(email);
         }
 

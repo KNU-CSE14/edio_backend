@@ -1,6 +1,6 @@
 package com.edio.user.service;
 
-import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
@@ -33,7 +33,7 @@ public class MemberServiceImpl implements MemberService {
             Member savedMember = memberRepository.save(newMember);
             return MemberResponse.from(savedMember);
         } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Member.class, memberCreateRequest.email());
+            throw new IllegalStateException(ErrorMessages.CONFLICT.format(e.getMessage()));
         }
     }
 }

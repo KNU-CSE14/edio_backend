@@ -1,7 +1,5 @@
 package com.edio.service;
 
-import com.edio.common.exception.custom.ConflictException;
-import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -21,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -81,7 +80,7 @@ public class DeckServiceTests {
     void testGetDeck_NotFound() {
         when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> deckService.getDeck(1L));
+        assertThrows(NoSuchElementException.class, () -> deckService.getDeck(1L));
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
     }
 
@@ -106,7 +105,7 @@ public class DeckServiceTests {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(deckRepository.save(any(Deck.class))).thenThrow(DataIntegrityViolationException.class);
 
-        assertThrows(ConflictException.class, () -> deckService.createDeck(deckCreateRequest, null));
+        assertThrows(IllegalStateException.class, () -> deckService.createDeck(deckCreateRequest, null));
         verify(folderRepository, times(1)).findById(1L);
         verify(categoryRepository, times(1)).findById(1L);
         verify(deckRepository, times(1)).save(any(Deck.class));

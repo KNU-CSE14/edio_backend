@@ -1,6 +1,6 @@
 package com.edio.service;
 
-import com.edio.common.exception.custom.ConflictException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
@@ -61,12 +61,12 @@ public class MemberServiceTests {
         MemberCreateRequest existingMember = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
 
         // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Member.class))).thenThrow(new ConflictException(Member.class, existingMember.email()));
+        when(memberRepository.save(any(Member.class))).thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.format(existingMember.email())));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> memberService.createMember(existingMember))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("test@example.com"); // accountId가 포함된 메시지를 기대
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Conflict");
     }
 
     // 잘못된 데이터로 요청이 들어온 경우 예외 발생

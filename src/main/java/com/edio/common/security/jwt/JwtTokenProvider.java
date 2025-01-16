@@ -1,7 +1,6 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.AuthenticationException;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -118,7 +118,8 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.format(token)) {
+            };
         }
     }
 
@@ -136,7 +137,8 @@ public class JwtTokenProvider {
             // FIXME: 토큰 재발급 테스트 후 아래 주석 제거 필요
             // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.getMessage());
+                throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.format(refreshToken)) {
+                };
             }
 
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -171,6 +173,7 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         }
-        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.format(refreshToken)) {
+        };
     }
 }

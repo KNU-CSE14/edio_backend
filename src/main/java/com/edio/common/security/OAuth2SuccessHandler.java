@@ -1,6 +1,6 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.custom.ForbiddenException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -57,7 +58,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // CSRF 토큰 검증
         String csrfToken = stateMap.get("csrfToken");
         if (!isValidCsrfToken(csrfToken)) {
-            throw new ForbiddenException(OAuth2SuccessHandler.class, csrfToken);
+            throw new AccessDeniedException(ErrorMessages.INVALID_CSRF_TOKEN.format(csrfToken));
         }
 
         // 복원된 redirectUri로 리다이렉트
