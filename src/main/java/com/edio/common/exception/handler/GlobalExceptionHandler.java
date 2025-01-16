@@ -80,7 +80,7 @@ public class GlobalExceptionHandler {
      * UNSUPPORTED_MEDIA_TYPE 동작(파일의 상태가 적당하지 않은 경우)
      *
      * @param ex
-     * @return 409, 415, 500
+     * @return 409, 415, 422, 500
      */
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
@@ -88,7 +88,9 @@ public class GlobalExceptionHandler {
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         if (ex.getMessage().contains("File")) {
-            status = HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+            status = ex.getMessage().contains("Failed")
+                    ? HttpStatus.UNPROCESSABLE_ENTITY
+                    : HttpStatus.UNSUPPORTED_MEDIA_TYPE;
         } else if (ex.getMessage().contains("Conflict")) {
             status = HttpStatus.CONFLICT;
         }
