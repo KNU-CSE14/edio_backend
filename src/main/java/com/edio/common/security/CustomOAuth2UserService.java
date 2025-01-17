@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -47,8 +48,13 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String familyName = oAuth2User.getAttribute("family_name"); // OAuth2 공급자가 제공하는 last name
         String profileUrl = oAuth2User.getAttribute("picture"); // 프로필 사진 URL
 
+        // 계정 조회
+        Optional<AccountResponse> existingAccount = accountService.findOneAccountEmail(email);
+
         AccountResponse accountResponse;
-        try {
+        if (existingAccount.isPresent()) {
+            accountResponse = existingAccount.get();
+        } else {
             // Member 생성
             MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
             MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
@@ -56,6 +62,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
             AccountLoginType loginType = AccountLoginType.GOOGLE;
             AccountRole role = AccountRole.ROLE_USER;
+
             // Account 생성
             AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id(), loginType, role);
             accountResponse = accountService.createAccount(accountCreateRequest);
@@ -67,8 +74,6 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             );
             FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
             accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
-        } catch (IllegalStateException e) {
-            accountResponse = accountService.findOneAccountEmail(email);
         }
 
         // 권한 정보 설정

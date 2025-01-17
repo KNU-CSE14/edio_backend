@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -53,10 +54,9 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional(readOnly = true)
     @Override
-    public AccountResponse findOneAccountEmail(String email) {
-        Account account = accountRepository.findByLoginIdAndIsDeleted(email, false)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, email)));
-        return AccountResponse.from(account);
+    public Optional<AccountResponse> findOneAccountEmail(String email) {
+        return accountRepository.findByLoginIdAndIsDeleted(email, false)
+                .map(AccountResponse::from);
     }
 
     /*
