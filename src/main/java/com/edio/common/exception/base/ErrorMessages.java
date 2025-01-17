@@ -23,8 +23,8 @@ public enum ErrorMessages {
     FILE_PROCESSING_ERROR("E422-001", "File Processing Failed: %s"),
     UNPROCESSABLE_STATE_MAP("E422-002", "Failed To Encode State Map: %s"),
 
-    INTERNAL_SERVER_ERROR("E500-001", "An Unexpected Error Occurred On The Server");
-
+    INTERNAL_SERVER_ERROR("E500-001", "An Unexpected Error Occurred On The Server"),
+    GENERAL_CREATION_FAILED("E500-002", "Create Account Failed");
 
     private final String code;
     private final String message;

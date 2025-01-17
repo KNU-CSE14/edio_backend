@@ -3,6 +3,7 @@ package com.edio.common.security;
 import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Account;
 import com.edio.user.repository.AccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -13,7 +14,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
         Account account = accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), loginId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), loginId)));
 
         GrantedAuthority authority = new SimpleGrantedAuthority(account.getRoles().name());
         Collection<GrantedAuthority> authorities = Collections.singletonList(authority);

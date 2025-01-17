@@ -1,12 +1,10 @@
 package com.edio.user.service;
 
-import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Member;
 import com.edio.user.model.request.MemberCreateRequest;
 import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,18 +20,15 @@ public class MemberServiceImpl implements MemberService {
     @Override
     @Transactional
     public MemberResponse createMember(MemberCreateRequest memberCreateRequest) {
-        try {
-            Member newMember = Member.builder()
-                    .email(memberCreateRequest.email())
-                    .name(memberCreateRequest.name())
-                    .givenName(memberCreateRequest.givenName())
-                    .familyName(memberCreateRequest.familyName())
-                    .profileUrl(memberCreateRequest.profileUrl())
-                    .build();
-            Member savedMember = memberRepository.save(newMember);
-            return MemberResponse.from(savedMember);
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalStateException(ErrorMessages.CONFLICT.format(e.getMessage()));
-        }
+        Member newMember = Member.builder()
+                .email(memberCreateRequest.email())
+                .name(memberCreateRequest.name())
+                .givenName(memberCreateRequest.givenName())
+                .familyName(memberCreateRequest.familyName())
+                .profileUrl(memberCreateRequest.profileUrl())
+                .build();
+        Member savedMember = memberRepository.save(newMember);
+        return MemberResponse.from(savedMember);
+
     }
 }

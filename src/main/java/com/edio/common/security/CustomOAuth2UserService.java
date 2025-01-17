@@ -1,5 +1,6 @@
 package com.edio.common.security;
 
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.service.FolderService;
@@ -55,25 +56,29 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         if (existingAccount.isPresent()) {
             accountResponse = existingAccount.get();
         } else {
-            // Member 생성
-            MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
-            MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
+            try {
+                // Member 생성
+                MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
+                MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
 
-            // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
-            AccountLoginType loginType = AccountLoginType.GOOGLE;
-            AccountRole role = AccountRole.ROLE_USER;
+                // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
+                AccountLoginType loginType = AccountLoginType.GOOGLE;
+                AccountRole role = AccountRole.ROLE_USER;
 
-            // Account 생성
-            AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id(), loginType, role);
-            accountResponse = accountService.createAccount(accountCreateRequest);
+                // Account 생성
+                AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id(), loginType, role);
+                accountResponse = accountService.createAccount(accountCreateRequest);
 
-            // RootFolder 생성
-            FolderCreateRequest rootFolderRequest = new FolderCreateRequest(
-                    null,
-                    "Default"
-            );
-            FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
-            accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
+                // RootFolder 생성
+                FolderCreateRequest rootFolderRequest = new FolderCreateRequest(
+                        null,
+                        "Default"
+                );
+                FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
+                accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
+            } catch (Exception e) {
+                throw new RuntimeException(ErrorMessages.GENERAL_CREATION_FAILED.getMessage());
+            }
         }
 
         // 권한 정보 설정

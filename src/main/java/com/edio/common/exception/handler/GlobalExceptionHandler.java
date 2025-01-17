@@ -1,14 +1,18 @@
 package com.edio.common.exception.handler;
 
 import com.edio.common.exception.base.BaseException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.common.model.response.ErrorResponse;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.util.NoSuchElementException;
 
@@ -68,11 +72,37 @@ public class GlobalExceptionHandler {
      * @param ex
      * @return 404
      */
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
+    @ExceptionHandler({NoSuchElementException.class, EntityNotFoundException.class})
+    public ResponseEntity<ErrorResponse> handleNotFoundException(RuntimeException ex) {
         log.error("Error occurred: {}", ex.getMessage());
         ErrorResponse response = new ErrorResponse(false, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+    }
+
+    /**
+     * DataIntegrityViolationException(CONFLICT)
+     *
+     * @param ex
+     * @return 409
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+        log.error("Error occurred: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse(false, ErrorMessages.CONFLICT.format(ex.getMessage()));
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
+    /**
+     * UnsupportedMediaTypeStatusException(
+     *
+     * @param ex
+     * @return 415
+     */
+    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
+        log.error("Error occurred: {}", ex.getMessage());
+        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     /**
@@ -88,9 +118,7 @@ public class GlobalExceptionHandler {
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         if (ex.getMessage().contains("File")) {
-            status = ex.getMessage().contains("Failed")
-                    ? HttpStatus.UNPROCESSABLE_ENTITY
-                    : HttpStatus.UNSUPPORTED_MEDIA_TYPE;
+            status = HttpStatus.UNPROCESSABLE_ENTITY;
         } else if (ex.getMessage().contains("Conflict")) {
             status = HttpStatus.CONFLICT;
         }
@@ -108,7 +136,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
+        ErrorResponse response = new ErrorResponse(false, ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

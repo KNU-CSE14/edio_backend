@@ -7,13 +7,12 @@ import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Slf4j
@@ -34,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Long getAccountIdByLoginId(String loginId) {
         return accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, loginId)))
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, loginId)))
                 .getId();
     }
 
@@ -45,7 +44,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse findOneAccount(Long accountId) {
         Account account = accountRepository.findByIdAndIsDeleted(accountId, false)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, accountId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, accountId)));
         return AccountResponse.from(account);
     }
 
@@ -65,22 +64,18 @@ public class AccountServiceImpl implements AccountService {
     @Override
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest accountCreateRequest) {
-        try {
-            Member member = memberRepository.findById(accountCreateRequest.memberId())
-                    .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Member.class, accountCreateRequest.memberId())));
+        Member member = memberRepository.findById(accountCreateRequest.memberId())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Member.class, accountCreateRequest.memberId())));
 
-            Account newAccount = Account.builder()
-                    .loginId(accountCreateRequest.loginId())
-                    .password(oauthPassword)
-                    .member(member)
-                    .loginType(accountCreateRequest.loginType()) // 기본값을 사용하지 않고 명시적으로 설정
-                    .roles(accountCreateRequest.role()) // 기본값을 사용하지 않고 명시적으로 설정
-                    .build();
-            Account savedAccount = accountRepository.save(newAccount);
-            return AccountResponse.from(savedAccount);
-        } catch (DataIntegrityViolationException e) {
-            throw new IllegalStateException(ErrorMessages.CONFLICT.format(e.getMessage()));
-        }
+        Account newAccount = Account.builder()
+                .loginId(accountCreateRequest.loginId())
+                .password(oauthPassword)
+                .member(member)
+                .loginType(accountCreateRequest.loginType()) // 기본값을 사용하지 않고 명시적으로 설정
+                .roles(accountCreateRequest.role()) // 기본값을 사용하지 않고 명시적으로 설정
+                .build();
+        Account savedAccount = accountRepository.save(newAccount);
+        return AccountResponse.from(savedAccount);
     }
 
     /*
@@ -90,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void updateRootFolderId(Long accountId, Long rootFolderId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new NoSuchElementException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, accountId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class, accountId)));
         account.setRootFolderId(rootFolderId);
     }
 }

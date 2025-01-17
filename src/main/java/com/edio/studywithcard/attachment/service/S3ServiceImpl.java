@@ -56,9 +56,6 @@ public class S3ServiceImpl implements S3Service {
                             .build(),
                     RequestBody.fromBytes(file.getBytes())
             );
-        } catch (AwsServiceException | SdkClientException e) {
-            log.error("AWS 서비스 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
-            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         } catch (IOException e) {
             log.error("알 수 없는 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
             throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
