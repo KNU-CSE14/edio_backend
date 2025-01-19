@@ -125,7 +125,7 @@ public class FolderServiceImpl implements FolderService {
 
         // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
         if (isDescendant(folder, newParentFolder)) {
-            throw new IllegalArgumentException(ErrorMessages.BAD_REQUEST.format("Folder %d cannot be its own descendant", folderId));
+            throw new IllegalArgumentException(ErrorMessages.BAD_REQUEST.getMessage());
         }
 
         folder.setParentFolder(newParentFolder);

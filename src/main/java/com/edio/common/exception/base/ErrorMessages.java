@@ -6,7 +6,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum ErrorMessages {
-    BAD_REQUEST("E400-001", "Invalid Request: %s"),
+    BAD_REQUEST("E400-001", "Invalid Request"),
 
     TOKEN_EXPIRED("E401-001", "Token Invalid or Expired: %s"),
     AUTHENTICATION_FAILED("E401-002", "Authentication Failed: %s"),
