@@ -63,7 +63,7 @@ public class CardServiceImpl implements CardService {
             }
             return CardResponse.from(card);
         } catch (IOException e) {
-            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.format(e.getMessage())); // 422
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
         }
     }
 
@@ -102,7 +102,7 @@ public class CardServiceImpl implements CardService {
 
                     processAttachment(file, existingCard);
                 } catch (IOException e) {
-                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.format(e.getMessage())); // 422
+                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
                 }
             }
         }
