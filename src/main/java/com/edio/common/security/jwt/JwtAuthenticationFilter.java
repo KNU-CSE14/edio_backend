@@ -1,7 +1,8 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import io.jsonwebtoken.JwtException;
+import com.edio.common.exception.custom.AccountNotFoundException;
+import com.edio.common.exception.custom.JwtAuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -17,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -44,20 +44,21 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         try {
             String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-            if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-                setAuthentication(accessToken);
+            if (accessToken != null) {
+                boolean isValid = jwtTokenProvider.validateToken(accessToken);
+                if (isValid) {
+                    setAuthentication(accessToken);
+                } else {
+                    throw new JwtAuthenticationException();
+                }
             } else {
                 handleRefreshToken(httpRequest, httpResponse);
                 if (httpResponse.isCommitted()) {
                     return;
                 }
             }
-        } catch (JwtException | IllegalArgumentException e) {
-            handleInvalidToken(httpResponse, e);
-            return;
-        } catch (NoSuchElementException e) {
-            handleAccountNotFound(httpResponse, e);
-            return;
+        } catch (JwtAuthenticationException | AccountNotFoundException e) {
+            throw e;  // Spring Security의 AuthenticationEntryPoint에서 처리
         }
 
         chain.doFilter(request, response);
@@ -103,22 +104,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         // HttpHeaders를 활용하여 쿠키 헤더 추가
         httpResponse.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie);
         httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
-    }
-
-    // 유효하지 않은 토큰 처리
-    private void handleInvalidToken(HttpServletResponse httpResponse, Exception e) throws IOException {
-        logger.info("유효하지 않은 토큰: " + e.getMessage());
-        SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
-        return;
-    }
-
-    // 계정이 없을 때 처리
-    private void handleAccountNotFound(HttpServletResponse httpResponse, NoSuchElementException e) throws IOException {
-        logger.info("계정이 없는 토큰: " + e.getMessage());
-        SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.ACCOUNT_NOT_FOUND.getMessage());
-        return;
     }
 
     // AccessToken & RefreshToken 추출
