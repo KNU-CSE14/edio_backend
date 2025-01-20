@@ -3,6 +3,7 @@ package com.edio.common.security.jwt;
 import com.edio.common.exception.base.ErrorMessages;
 import com.edio.common.exception.custom.AccountNotFoundException;
 import com.edio.common.exception.custom.JwtAuthenticationException;
+import com.edio.common.security.constants.CookieConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -93,11 +94,11 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     // 쿠키 설정
     private void setCookies(HttpServletResponse httpResponse, JwtToken newTokens) {
         String accessTokenCookie = String.format(
-                "accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None",
+                CookieConstants.COOKIE_ACCESS_TOKEN,
                 newTokens.getAccessToken()
         );
         String refreshTokenCookie = String.format(
-                "refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None",
+                CookieConstants.COOKIE_REFRESH_TOKEN,
                 newTokens.getRefreshToken()
         );
 

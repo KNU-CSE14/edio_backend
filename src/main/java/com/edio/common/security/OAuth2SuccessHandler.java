@@ -1,6 +1,7 @@
 package com.edio.common.security;
 
 import com.edio.common.exception.base.ErrorMessages;
+import com.edio.common.security.constants.CookieConstants;
 import com.edio.common.security.jwt.JwtToken;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,8 +41,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String refreshToken = jwtToken.getRefreshToken();
 
         // 쿠키 생성 및 설정
-        String accessTokenCookie = String.format("accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None", accessToken);
-        String refreshTokenCookie = String.format("refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None", refreshToken);
+        String accessTokenCookie = String.format(CookieConstants.COOKIE_ACCESS_TOKEN, accessToken);
+        String refreshTokenCookie = String.format(CookieConstants.COOKIE_REFRESH_TOKEN, refreshToken);
 
         log.info(accessTokenCookie);
         log.info(refreshTokenCookie);
