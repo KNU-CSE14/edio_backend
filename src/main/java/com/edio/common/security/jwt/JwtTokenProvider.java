@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
+import com.edio.common.exception.custom.JwtAuthenticationException;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -118,8 +119,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage()) {
-            };
+            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
     }
 
@@ -172,8 +172,8 @@ public class JwtTokenProvider {
                     .accessToken(newAccessToken)
                     .refreshToken(newRefreshToken)
                     .build();
+        } else {
+            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
-        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage()) {
-        };
     }
 }

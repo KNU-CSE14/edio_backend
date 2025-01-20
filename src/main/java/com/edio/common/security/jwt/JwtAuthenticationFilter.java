@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -50,7 +51,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 if (isValid) {
                     setAuthentication(accessToken);
                 } else {
-                    throw new JwtAuthenticationException();
+                    throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
                 }
             } else {
                 handleRefreshToken(httpRequest, httpResponse);
@@ -60,6 +61,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             }
         } catch (JwtAuthenticationException | AccountNotFoundException e) {
             throw e;  // Spring Security의 AuthenticationEntryPoint에서 처리
+        } catch (Exception e) {
+            throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.getMessage()) {
+            };
         }
 
         chain.doFilter(request, response);
@@ -80,15 +84,20 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
         String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
-        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+        if (refreshToken == null) {
+            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+        }
+
+        boolean isValid = jwtTokenProvider.validateToken(refreshToken);
+        if (isValid) {
             JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
             setCookies(httpResponse, newTokens);
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
-            return;
+            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
+
     }
 
     // 쿠키 설정

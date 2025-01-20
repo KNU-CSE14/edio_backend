@@ -3,8 +3,8 @@ package com.edio.common.exception.custom;
 import org.springframework.security.core.AuthenticationException;
 
 public class JwtAuthenticationException extends AuthenticationException {
-    public JwtAuthenticationException() {
-        super("Unauthorized");
+    public JwtAuthenticationException(String msg) {
+        super(msg);
     }
 
     public JwtAuthenticationException(String msg, Throwable cause) {
