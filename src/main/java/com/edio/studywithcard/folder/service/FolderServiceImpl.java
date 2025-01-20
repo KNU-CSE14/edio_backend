@@ -37,10 +37,10 @@ public class FolderServiceImpl implements FolderService {
         // folderId가 null이면 루트 폴더 조회
         if (folderId == null) {
             folder = folderRepository.findById(rootFolderId)
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), rootFolderId)));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
         } else {
             folder = folderRepository.findById(folderId)
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
         }
         return FolderWithDeckResponse.from(folder);
     }
@@ -54,7 +54,7 @@ public class FolderServiceImpl implements FolderService {
         Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
 
         Folder folder = folderRepository.findById(targetFolderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), targetFolderId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         return FolderAllResponse.from(folder);
     }
@@ -102,7 +102,7 @@ public class FolderServiceImpl implements FolderService {
     public void updateFolder(Long folderId, FolderUpdateRequest folderUpdateRequest) {
         // 폴더명 업데이트
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         existingFolder.setName(folderUpdateRequest.name());
     }
@@ -115,7 +115,7 @@ public class FolderServiceImpl implements FolderService {
     public void moveFolder(Long folderId, Long newParentId) {
         // 이동할 폴더 조회
         Folder folder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
@@ -149,7 +149,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void deleteFolder(Long folderId) {
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         existingFolder.setDeleted(true);
     }

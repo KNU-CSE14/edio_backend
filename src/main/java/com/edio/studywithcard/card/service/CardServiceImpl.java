@@ -45,7 +45,7 @@ public class CardServiceImpl implements CardService {
         try {
             // Deck 조회
             Deck deck = deckRepository.findById(request.deckId())
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.deckId())));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
             // 1. Card 생성 및 저장
             Card card = Card.builder()
@@ -74,7 +74,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void updateCard(CardUpdateRequest request, MultipartFile[] files) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         // 카드 이름
         if (StringUtils.hasText(request.name())) {
@@ -115,7 +115,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void deleteCard(CardDeleteRequest request) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
 
         // Bulk 작업
         List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
@@ -146,12 +146,12 @@ public class CardServiceImpl implements CardService {
                 // 오디오 파일 처리
                 attachment = attachmentService.saveAttachment(file, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name());
             } else {
-                throw new UnsupportedMediaTypeStatusException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.format("Unsupported file type " + contentType));
+                throw new UnsupportedMediaTypeStatusException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
             }
             // Card Target 저장
             attachmentService.saveAttachmentCardTarget(attachment, card);
         } else {
-            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.format("File content type is null"));
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
         }
     }
 }

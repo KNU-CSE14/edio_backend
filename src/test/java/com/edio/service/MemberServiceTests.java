@@ -61,7 +61,7 @@ public class MemberServiceTests {
         MemberCreateRequest existingMember = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
 
         // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Member.class))).thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.format(existingMember.email())));
+        when(memberRepository.save(any(Member.class))).thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.getMessage()));
 
         // when & then: ConflictException 발생을 기대함
         assertThatThrownBy(() -> memberService.createMember(existingMember))

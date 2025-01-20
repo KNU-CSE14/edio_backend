@@ -51,7 +51,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             String stateJson = objectMapper.writeValueAsString(stateMap); // JSON 변환
             encodedState = Base64.getEncoder().encodeToString(stateJson.getBytes(StandardCharsets.UTF_8)); // Base64 인코딩
         } catch (Exception e) {
-            throw new IllegalStateException(ErrorMessages.UNPROCESSABLE_STATE_MAP.format(stateMap.toString()));
+            throw new IllegalStateException(ErrorMessages.UNPROCESSABLE_STATE_MAP.getMessage());
         }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)

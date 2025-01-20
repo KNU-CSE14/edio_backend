@@ -85,7 +85,7 @@ public class AccountServiceTests {
         when(memberRepository.findById(accountRequest.memberId()))
                 .thenReturn(Optional.of(mockMember));
         when(accountRepository.save(any(Account.class)))
-                .thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.format(mockAccount.getLoginId())));
+                .thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.getMessage()));
 
         // when & then
         assertThatThrownBy(() -> accountService.createAccount(accountRequest))

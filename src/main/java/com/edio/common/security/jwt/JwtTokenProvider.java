@@ -118,7 +118,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.format(token)) {
+            throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage()) {
             };
         }
     }
@@ -137,7 +137,7 @@ public class JwtTokenProvider {
             // FIXME: 토큰 재발급 테스트 후 아래 주석 제거 필요
             // Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !authentication.isAuthenticated()) {
-                throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.format(refreshToken)) {
+                throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.getMessage()) {
                 };
             }
 
@@ -173,7 +173,7 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         }
-        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.format(refreshToken)) {
+        throw new AuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage()) {
         };
     }
 }

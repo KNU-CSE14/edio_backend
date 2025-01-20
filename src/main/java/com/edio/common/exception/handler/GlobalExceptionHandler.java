@@ -88,7 +88,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ErrorMessages.CONFLICT.format(ex.getMessage()));
+        ErrorResponse response = new ErrorResponse(false, ErrorMessages.CONFLICT.getMessage());
         return new ResponseEntity<>(response, HttpStatus.CONFLICT);
     }
 

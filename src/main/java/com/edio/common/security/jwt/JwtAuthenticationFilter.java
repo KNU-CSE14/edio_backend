@@ -84,7 +84,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.format(refreshToken));
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
             return;
         }
     }

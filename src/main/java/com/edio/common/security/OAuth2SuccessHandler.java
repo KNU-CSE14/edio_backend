@@ -58,7 +58,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // CSRF 토큰 검증
         String csrfToken = stateMap.get("csrfToken");
         if (!isValidCsrfToken(csrfToken)) {
-            throw new AccessDeniedException(ErrorMessages.INVALID_CSRF_TOKEN.format(csrfToken));
+            throw new AccessDeniedException(ErrorMessages.INVALID_CSRF_TOKEN.getMessage());
         }
 
         // 복원된 redirectUri로 리다이렉트
