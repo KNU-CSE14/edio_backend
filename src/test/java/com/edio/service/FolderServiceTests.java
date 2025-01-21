@@ -6,6 +6,7 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.studywithcard.folder.service.FolderServiceImpl;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -127,7 +128,7 @@ public class FolderServiceTests {
 
         // when, then
         assertThatThrownBy(() -> folderService.deleteFolder(1L))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Folder NOT_FOUND: 1");
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Not Found with ID: 1");
     }
 }

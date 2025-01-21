@@ -33,7 +33,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Long getAccountIdByLoginId(String loginId) {
         return accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()))
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), loginId)))
                 .getId();
     }
 
@@ -44,7 +44,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public AccountResponse findOneAccount(Long accountId) {
         Account account = accountRepository.findByIdAndIsDeleted(accountId, false)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), accountId)));
         return AccountResponse.from(account);
     }
 
@@ -65,7 +65,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public AccountResponse createAccount(AccountCreateRequest accountCreateRequest) {
         Member member = memberRepository.findById(accountCreateRequest.memberId())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Member.class.getSimpleName(), accountCreateRequest.memberId())));
 
         Account newAccount = Account.builder()
                 .loginId(accountCreateRequest.loginId())
@@ -85,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional
     public void updateRootFolderId(Long accountId, Long rootFolderId) {
         Account account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.getMessage()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), accountId)));
         account.setRootFolderId(rootFolderId);
     }
 }

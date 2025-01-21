@@ -96,7 +96,7 @@ class JwtTokenProviderTest {
                 .compact();
 
         // when & then
-        assertThrows(io.jsonwebtoken.ExpiredJwtException.class,
+        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
                 () -> jwtTokenProvider.getAuthentication(expiredToken));
     }
 }

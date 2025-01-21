@@ -8,8 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
@@ -46,34 +44,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
-    }
-
     /**
-     * FORBIDDEN 동작(권한)
+     * NoSuchElementException
      *
      * @param ex
-     * @return 403
+     * @return
      */
-    @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+        ErrorResponse response = new ErrorResponse(false, ErrorMessages.DATA_NOT_FOUND.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
     }
 
     /**
-     * NOT_FOUND 동작(요청 자체는 유효하지만 결과가 없음)
+     * EntityNotFoundException (명시적 호출)
      *
      * @param ex
      * @return 404
      */
-    @ExceptionHandler({NoSuchElementException.class, EntityNotFoundException.class})
-    public ResponseEntity<ErrorResponse> handleNotFoundException(RuntimeException ex) {
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.error("Error occurred: {}", ex.getMessage());
         ErrorResponse response = new ErrorResponse(false, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
@@ -93,7 +84,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * UnsupportedMediaTypeStatusException(
+     * UnsupportedMediaTypeStatusException
      *
      * @param ex
      * @return 415
@@ -136,8 +127,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
+        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 }
