@@ -1,17 +1,14 @@
 package com.edio.common.security;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
-import com.edio.studywithcard.folder.model.response.FolderResponse;
-import com.edio.studywithcard.folder.service.FolderService;
+import com.edio.studywithcard.folder.domain.Folder;
+import com.edio.studywithcard.folder.repository.FolderRepository;
+import com.edio.user.domain.Account;
+import com.edio.user.domain.Member;
 import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
-import com.edio.user.model.request.AccountCreateRequest;
-import com.edio.user.model.request.MemberCreateRequest;
-import com.edio.user.model.response.AccountResponse;
-import com.edio.user.model.response.MemberResponse;
-import com.edio.user.service.AccountService;
-import com.edio.user.service.MemberService;
+import com.edio.user.repository.AccountRepository;
+import com.edio.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,11 +29,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
-    private final AccountService accountService;
+    private final MemberRepository memberRepository;
 
-    private final MemberService memberService;
+    private final AccountRepository accountRepository;
 
-    private final FolderService folderService;
+    private final FolderRepository folderRepository;
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
@@ -50,47 +47,63 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String profileUrl = oAuth2User.getAttribute("picture"); // 프로필 사진 URL
 
         // 계정 조회
-        Optional<AccountResponse> existingAccount = accountService.findOneAccountEmail(email);
+        Optional<Account> existingAccount = accountRepository.findByLoginIdAndIsDeleted(email, false);
 
-        AccountResponse accountResponse;
+        Account account;
         if (existingAccount.isPresent()) {
-            accountResponse = existingAccount.get();
+            account = existingAccount.get();
         } else {
             try {
-                // Member 생성
-                MemberCreateRequest memberCreateRequest = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
-                MemberResponse memberResponse = memberService.createMember(memberCreateRequest);
+                // Member 생성 및 저장
+                Member newMember = Member.builder()
+                        .email(email)
+                        .name(name)
+                        .givenName(givenName)
+                        .familyName(familyName)
+                        .profileUrl(profileUrl)
+                        .build();
+                Member savedMember = memberRepository.save(newMember);
 
                 // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
                 AccountLoginType loginType = AccountLoginType.GOOGLE;
                 AccountRole role = AccountRole.ROLE_USER;
 
-                // Account 생성
-                AccountCreateRequest accountCreateRequest = new AccountCreateRequest(email, memberResponse.id(), loginType, role);
-                accountResponse = accountService.createAccount(accountCreateRequest);
+                // Account 생성 및 저장
+                account = Account.builder()
+                        .loginId(email)
+                        .password("oauth_password")
+                        .member(savedMember)
+                        .loginType(loginType)
+                        .roles(role)
+                        .build();
+                account = accountRepository.save(account);
 
-                // RootFolder 생성
-                FolderCreateRequest rootFolderRequest = new FolderCreateRequest(
-                        null,
-                        "Default"
-                );
-                FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
-                accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
+                // RootFolder 생성 및 저장
+                Folder rootFolder = Folder.builder()
+                        .accountId(account.getId())
+                        .parentFolder(null)  // 루트 폴더이므로 부모 없음
+                        .name("Default")
+                        .build();
+                Folder savedFolder = folderRepository.save(rootFolder);
+
+                // Account에 RootFolder ID 업데이트
+                account.setRootFolderId(savedFolder.getId());
+                accountRepository.save(account);
             } catch (Exception e) {
-                log.error(e.getMessage());
+                log.error("Error occurred during OAuth2 registration: {}", e.getMessage(), e);
                 throw new OAuth2AuthenticationException(ErrorMessages.GENERAL_CREATION_FAILED.getMessage());
             }
         }
 
         // 권한 정보 설정
         Collection<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority(accountResponse.roles().name())
+                new SimpleGrantedAuthority(account.getRoles().name())
         );
 
         return new CustomUserDetails(
-                accountResponse.id(),
-                accountResponse.rootFolderId(),
-                accountResponse.loginId(),
+                account.getId(),
+                account.getRootFolderId(),
+                account.getLoginId(),
                 authorities,
                 oAuth2User.getAttributes() // OAuth2 사용자 속성 전달
         );
