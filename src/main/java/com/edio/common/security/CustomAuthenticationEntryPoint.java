@@ -15,13 +15,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
         try {
-            if (authException instanceof JwtAuthenticationException) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
-            } else if (authException instanceof AccountNotFoundException) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.ACCOUNT_NOT_FOUND.getMessage());
-            } else {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.AUTHENTICATION_FAILED.getMessage());
-            }
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
         } catch (IOException e) {
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
