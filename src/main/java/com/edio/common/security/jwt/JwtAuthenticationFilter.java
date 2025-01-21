@@ -1,8 +1,6 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.AccountNotFoundException;
-import com.edio.common.exception.custom.JwtAuthenticationException;
 import com.edio.common.security.constants.CookieConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -14,8 +12,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -44,26 +42,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
-        try {
-            String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-            if (accessToken != null) {
-                boolean isValid = jwtTokenProvider.validateToken(accessToken);
-                if (isValid) {
-                    setAuthentication(accessToken);
-                } else {
-                    throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
-                }
+        String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
+        if (accessToken != null) {
+            boolean isValid = jwtTokenProvider.validateToken(accessToken);
+            if (isValid) {
+                setAuthentication(accessToken);
             } else {
-                handleRefreshToken(httpRequest, httpResponse);
-                if (httpResponse.isCommitted()) {
-                    return;
-                }
+                throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
             }
-        } catch (JwtAuthenticationException | AccountNotFoundException e) {
-            throw e;  // Spring Security의 AuthenticationEntryPoint에서 처리
-        } catch (Exception e) {
-            throw new AuthenticationException(ErrorMessages.AUTHENTICATION_FAILED.getMessage()) {
-            };
+        } else {
+            handleRefreshToken(httpRequest, httpResponse);
+            if (httpResponse.isCommitted()) {
+                return;
+            }
         }
 
         chain.doFilter(request, response);
@@ -85,7 +76,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
         if (refreshToken == null) {
-            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
 
         boolean isValid = jwtTokenProvider.validateToken(refreshToken);
@@ -95,7 +86,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
 
     }

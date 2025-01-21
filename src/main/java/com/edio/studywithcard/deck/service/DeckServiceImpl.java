@@ -87,6 +87,7 @@ public class DeckServiceImpl implements DeckService {
 
             return DeckResponse.from(savedDeck);
         } catch (IOException e) {
+            log.error(e.getMessage());
             throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
@@ -137,6 +138,7 @@ public class DeckServiceImpl implements DeckService {
 
                 attachmentService.saveAttachmentDeckTarget(attachment, existingDeck);
             } catch (IOException e) {
+                log.error(e.getMessage());
                 throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
             }
         }

@@ -1,6 +1,5 @@
 package com.edio.common.security;
 
-import com.edio.common.exception.custom.CustomAuthenticationEntryPoint;
 import com.edio.common.security.jwt.JwtAuthenticationFilter;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;

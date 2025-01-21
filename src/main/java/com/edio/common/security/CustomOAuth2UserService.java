@@ -77,7 +77,8 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 FolderResponse rootFolderResponse = folderService.createFolder(accountResponse.id(), rootFolderRequest);
                 accountService.updateRootFolderId(accountResponse.id(), rootFolderResponse.id());
             } catch (Exception e) {
-                throw new RuntimeException(ErrorMessages.GENERAL_CREATION_FAILED.getMessage());
+                log.error(e.getMessage());
+                throw new OAuth2AuthenticationException(ErrorMessages.GENERAL_CREATION_FAILED.getMessage());
             }
         }
 

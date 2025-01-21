@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -85,9 +83,6 @@ public class S3ServiceImpl implements S3Service {
             s3Client.deleteObjects(deleteObjectsRequest);
 
             log.info("Successfully deleted files: {}", fileKeys);
-        } catch (AwsServiceException | SdkClientException e) {
-            log.error("AWS 서비스 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
-            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         } catch (Exception e) {
             log.error("알 수 없는 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
             throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());

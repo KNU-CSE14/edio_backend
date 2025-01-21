@@ -1,7 +1,6 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.JwtAuthenticationException;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
@@ -9,6 +8,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -119,7 +119,8 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token)
                     .getBody();
         } catch (ExpiredJwtException e) {
-            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            log.error(e.getMessage());
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
     }
 
@@ -173,7 +174,7 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         } else {
-            throw new JwtAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
     }
 }

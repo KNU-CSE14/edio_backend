@@ -16,6 +16,7 @@ import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -26,6 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
@@ -63,6 +65,7 @@ public class CardServiceImpl implements CardService {
             }
             return CardResponse.from(card);
         } catch (IOException e) {
+            log.error(e.getMessage());
             throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
         }
     }
@@ -102,6 +105,7 @@ public class CardServiceImpl implements CardService {
 
                     processAttachment(file, existingCard);
                 } catch (IOException e) {
+                    log.error(e.getMessage());
                     throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
                 }
             }
