@@ -1,14 +1,9 @@
 package com.edio.service;
 
-import com.edio.common.exception.base.ErrorMessages;
 import com.edio.user.domain.Member;
-import com.edio.user.model.request.MemberCreateRequest;
-import com.edio.user.model.response.MemberResponse;
 import com.edio.user.repository.MemberRepository;
-import com.edio.user.service.MemberServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -20,11 +15,11 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class MemberServiceTests {
 
+    /*
+        Service 메서드가 존재하지 않기 때문에 Respository Save 테스트만 존재
+     */
     @Mock
     private MemberRepository memberRepository;
-
-    @InjectMocks
-    private MemberServiceImpl memberService;
 
     String email = "test@example.com";
     String name = "Hong gildong";
@@ -33,66 +28,45 @@ public class MemberServiceTests {
     String profileUrl = "http://example.com/profile.jpg";
 
     @Test
-    public void createMember_whenMemberDoesNotExist_createsNewMember() {
+    public void saveMember_whenValidMember_savesSuccessfully() {
         // given
-        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .givenName(givenName)
+                .familyName(familyName)
+                .profileUrl(profileUrl)
+                .build();
+
+        when(memberRepository.save(any(Member.class))).thenReturn(member);
 
         // when
-        when(memberRepository.save(any(Member.class))).thenAnswer(invocation -> {
-            return invocation.getArgument(0);
-        });
-
-        MemberResponse response = memberService.createMember(member);
+        Member savedMember = memberRepository.save(member);
 
         // then
-        assertThat(response).isNotNull();
-        assertThat(response.email()).isEqualTo(email);
-        assertThat(response.name()).isEqualTo(name);
-        assertThat(response.givenName()).isEqualTo(givenName);
-        assertThat(response.familyName()).isEqualTo(familyName);
-        assertThat(response.profileUrl()).isEqualTo(profileUrl);
+        assertThat(savedMember).isNotNull();
+        assertThat(savedMember.getEmail()).isEqualTo(email);
+        assertThat(savedMember.getName()).isEqualTo(name);
+        assertThat(savedMember.getGivenName()).isEqualTo(givenName);
+        assertThat(savedMember.getFamilyName()).isEqualTo(familyName);
+        assertThat(savedMember.getProfileUrl()).isEqualTo(profileUrl);
     }
 
-    // 멤버가 이미 존재할 때 기존 멤버를 반환
     @Test
-    public void createMember_whenMemberExists_throwsConflictException() {
+    public void saveMember_whenSaveFails_throwsException() {
         // given
-        String email = "test@example.com";
-        MemberCreateRequest existingMember = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
-
-        // save 호출 시 ConflictException 발생하도록 설정
-        when(memberRepository.save(any(Member.class))).thenThrow(new IllegalStateException(ErrorMessages.CONFLICT.getMessage()));
-
-        // when & then: ConflictException 발생을 기대함
-        assertThatThrownBy(() -> memberService.createMember(existingMember))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Conflict");
-    }
-
-    // 잘못된 데이터로 요청이 들어온 경우 예외 발생
-    @Test
-    public void createMember_whenEmailIsNull_throwsException() {
-        // given
-        String email = null;
-        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
-
-
-        // when, then
-        assertThatThrownBy(() -> memberService.createMember(member))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("null");
-    }
-
-    // 저장 실패 시 예외를 처리
-    @Test
-    public void createMember_whenSaveFails_throwsException() {
-        // given
-        MemberCreateRequest member = new MemberCreateRequest(email, name, givenName, familyName, profileUrl);
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .givenName(givenName)
+                .familyName(familyName)
+                .profileUrl(profileUrl)
+                .build();
 
         when(memberRepository.save(any(Member.class))).thenThrow(new RuntimeException("Database error"));
 
-        // when, then
-        assertThatThrownBy(() -> memberService.createMember(member))
+        // when & then
+        assertThatThrownBy(() -> memberRepository.save(member))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Database error");
     }

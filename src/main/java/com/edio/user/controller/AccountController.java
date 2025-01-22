@@ -2,7 +2,6 @@ package com.edio.user.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
 import com.edio.common.security.CustomUserDetails;
-import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.service.AccountService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -11,7 +10,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Tag(name = "Accounts", description = "Accounts 관련 API")
 @SecurityRequirement(name = "bearerAuth")
@@ -29,11 +30,4 @@ public class AccountController {
     public AccountResponse getAccount(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return accountService.findOneAccount(userDetails.getAccountId());
     }
-
-    @PostMapping("/account")
-    @Operation(summary = "Account 등록", description = "Account를 등록합니다.")
-    public AccountResponse createAccount(@RequestBody AccountCreateRequest accountCreateRequest) {
-        return accountService.createAccount(accountCreateRequest);
-    }
-
 }
