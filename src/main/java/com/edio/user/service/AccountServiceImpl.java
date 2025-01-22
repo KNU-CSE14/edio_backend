@@ -13,8 +13,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -25,17 +23,6 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
 
     private final MemberRepository memberRepository;
-
-    /*
-        AccountId 조회
-     */
-    @Transactional(readOnly = true)
-    @Override
-    public Long getAccountIdByLoginId(String loginId) {
-        return accountRepository.findByLoginIdAndIsDeleted(loginId, false)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), loginId)))
-                .getId();
-    }
 
     /*
         Account 조회(active)
@@ -53,9 +40,10 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional(readOnly = true)
     @Override
-    public Optional<AccountResponse> findOneAccountEmail(String email) {
-        return accountRepository.findByLoginIdAndIsDeleted(email, false)
-                .map(AccountResponse::from);
+    public AccountResponse findOneAccountEmail(String email) {
+        Account account = accountRepository.findByLoginIdAndIsDeleted(email, false)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), email)));
+        return AccountResponse.from(account);
     }
 
     /*

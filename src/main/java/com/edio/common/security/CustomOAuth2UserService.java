@@ -37,6 +37,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     private final FolderRepository folderRepository;
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = delegate.loadUser(userRequest);
@@ -66,49 +67,53 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 oAuth2User.getAttributes() // OAuth2 사용자 속성 전달
         );
     }
-
-    @Transactional
+    
     public Account createAccount(String email, String name, String givenName, String familyName, String profileUrl) {
         try {
-            // Member 생성 및 저장
-            Member newMember = Member.builder()
-                    .email(email)
-                    .name(name)
-                    .givenName(givenName)
-                    .familyName(familyName)
-                    .profileUrl(profileUrl)
-                    .build();
-            newMember = memberRepository.save(newMember);
-
-            // FIXME: OAuth 로그인 추가되면 동적으로 loginType, Role 생성으로 수정 필요
-            AccountLoginType loginType = AccountLoginType.GOOGLE;
-            AccountRole role = AccountRole.ROLE_USER;
-
-            // Account 생성
-            Account newAccount = Account.builder()
-                    .loginId(email)
-                    .password("oauth_password")
-                    .member(newMember)
-                    .loginType(loginType)
-                    .roles(role)
-                    .build();
-            newAccount = accountRepository.save(newAccount);  // 여기서 ID가 생성됨
-
-            // RootFolder 생성 및 Account에 할당
-            Folder rootFolder = Folder.builder()
-                    .accountId(newAccount.getId())
-                    .parentFolder(null)
-                    .name("Default")
-                    .build();
-            rootFolder = folderRepository.save(rootFolder);
+            Member newMember = saveMember(email, name, givenName, familyName, profileUrl);
+            Account newAccount = saveAccount(email, newMember);
+            Folder rootFolder = saveRootFolder(newAccount.getId());
 
             newAccount.setRootFolderId(rootFolder.getId());
-            accountRepository.save(newAccount);
 
             return newAccount;
         } catch (Exception e) {
             log.error("Error occurred during OAuth2 registration: {}", e.getMessage(), e);
             throw new OAuth2AuthenticationException(ErrorMessages.GENERAL_CREATION_FAILED.getMessage());
         }
+    }
+
+    // 회원 생성 및 저장 메서드
+    private Member saveMember(String email, String name, String givenName, String familyName, String profileUrl) {
+        Member member = Member.builder()
+                .email(email)
+                .name(name)
+                .givenName(givenName)
+                .familyName(familyName)
+                .profileUrl(profileUrl)
+                .build();
+        return memberRepository.save(member);
+    }
+
+    // 계정 생성 및 저장 메서드
+    private Account saveAccount(String email, Member member) {
+        Account newAccount = Account.builder()
+                .loginId(email)
+                .password("oauth_password")
+                .member(member)
+                .loginType(AccountLoginType.GOOGLE)  // 로그인 타입 고정값
+                .roles(AccountRole.ROLE_USER)        // 권한 고정값
+                .build();
+        return accountRepository.save(newAccount);
+    }
+
+    // 루트 폴더 생성 및 저장 메서드
+    private Folder saveRootFolder(Long accountId) {
+        Folder rootFolder = Folder.builder()
+                .accountId(accountId)
+                .parentFolder(null)
+                .name("Default")
+                .build();
+        return folderRepository.save(rootFolder);
     }
 }
