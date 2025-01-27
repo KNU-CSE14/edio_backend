@@ -1,6 +1,6 @@
 package com.edio.studywithcard.attachment.service;
 
-import com.edio.common.exception.custom.InternalServerException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
-import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Delete;
@@ -56,12 +54,9 @@ public class S3ServiceImpl implements S3Service {
                             .build(),
                     RequestBody.fromBytes(file.getBytes())
             );
-        } catch (AwsServiceException | SdkClientException e) {
-            log.error("AWS 서비스 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
-            throw new InternalServerException(e.getMessage());
         } catch (IOException e) {
             log.error("알 수 없는 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
 
         return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, fileName), fileName);
@@ -88,12 +83,9 @@ public class S3ServiceImpl implements S3Service {
             s3Client.deleteObjects(deleteObjectsRequest);
 
             log.info("Successfully deleted files: {}", fileKeys);
-        } catch (AwsServiceException | SdkClientException e) {
-            log.error("AWS 서비스 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
-            throw new InternalServerException(e.getMessage());
         } catch (Exception e) {
             log.error("알 수 없는 오류 발생 - 파일 벌크 삭제 실패: {}", fileKeys, e);
-            throw new InternalServerException(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 

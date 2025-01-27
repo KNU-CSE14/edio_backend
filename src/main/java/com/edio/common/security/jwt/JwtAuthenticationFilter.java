@@ -1,8 +1,7 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.NotFoundException;
-import io.jsonwebtoken.JwtException;
+import com.edio.common.security.constants.CookieConstants;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
@@ -13,6 +12,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
@@ -42,22 +42,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
-        try {
-            String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-            if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+        String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
+        if (accessToken != null) {
+            boolean isValid = jwtTokenProvider.validateToken(accessToken);
+            if (isValid) {
                 setAuthentication(accessToken);
             } else {
-                handleRefreshToken(httpRequest, httpResponse);
-                if (httpResponse.isCommitted()) {
-                    return;
-                }
+                throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
             }
-        } catch (JwtException | IllegalArgumentException e) {
-            handleInvalidToken(httpResponse, e);
-            return;
-        } catch (NotFoundException e) {
-            handleAccountNotFound(httpResponse, e);
-            return;
+        } else {
+            handleRefreshToken(httpRequest, httpResponse);
+            if (httpResponse.isCommitted()) {
+                return;
+            }
         }
 
         chain.doFilter(request, response);
@@ -78,47 +75,36 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
         String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
-        if (refreshToken != null && jwtTokenProvider.validateToken(refreshToken)) {
+        if (refreshToken == null) {
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+        }
+
+        boolean isValid = jwtTokenProvider.validateToken(refreshToken);
+        if (isValid) {
             JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
             setCookies(httpResponse, newTokens);
             setAuthentication(newTokens.getAccessToken());
             logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
         } else {
-            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
-            return;
+            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
         }
+
     }
 
     // 쿠키 설정
     private void setCookies(HttpServletResponse httpResponse, JwtToken newTokens) {
         String accessTokenCookie = String.format(
-                "accessToken=%s; HttpOnly; Secure; Path=/; Max-Age=3600; SameSite=None",
+                CookieConstants.COOKIE_ACCESS_TOKEN,
                 newTokens.getAccessToken()
         );
         String refreshTokenCookie = String.format(
-                "refreshToken=%s; HttpOnly; Secure; Path=/; Max-Age=86400; SameSite=None",
+                CookieConstants.COOKIE_REFRESH_TOKEN,
                 newTokens.getRefreshToken()
         );
 
         // HttpHeaders를 활용하여 쿠키 헤더 추가
         httpResponse.addHeader(HttpHeaders.SET_COOKIE, accessTokenCookie);
         httpResponse.addHeader(HttpHeaders.SET_COOKIE, refreshTokenCookie);
-    }
-
-    // 유효하지 않은 토큰 처리
-    private void handleInvalidToken(HttpServletResponse httpResponse, Exception e) throws IOException {
-        logger.info("유효하지 않은 토큰: " + e.getMessage());
-        SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.TOKEN_EXPIRED.getMessage());
-        return;
-    }
-
-    // 계정이 없을 때 처리
-    private void handleAccountNotFound(HttpServletResponse httpResponse, NotFoundException e) throws IOException {
-        logger.info("계정이 없는 토큰: " + e.getMessage());
-        SecurityContextHolder.clearContext();
-        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, ErrorMessages.ACCOUNT_NOT_FOUND.getMessage());
-        return;
     }
 
     // AccessToken & RefreshToken 추출

@@ -1,8 +1,6 @@
 package com.edio.studywithcard.deck.service;
 
-import com.edio.common.exception.custom.ConflictException;
-import com.edio.common.exception.custom.InternalServerException;
-import com.edio.common.exception.custom.NotFoundException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
@@ -19,9 +17,9 @@ import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -51,7 +49,7 @@ public class DeckServiceImpl implements DeckService {
     @Transactional(readOnly = true)
     public DeckResponse getDeck(Long id) {
         Deck deck = deckRepository.findByIdAndIsDeletedFalse(id)
-                .orElseThrow(() -> new NotFoundException(Deck.class, id));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), id)));
         return DeckResponse.from(deck);
     }
 
@@ -64,9 +62,9 @@ public class DeckServiceImpl implements DeckService {
         try {
             // Folder와 Category를 조회
             Folder folder = folderRepository.findById(request.folderId())
-                    .orElseThrow(() -> new NotFoundException(Folder.class, request.folderId()));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), request.folderId())));
             Category category = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new NotFoundException(Category.class, request.categoryId()));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Category.class.getSimpleName(), request.categoryId())));
 
             // 1. Deck 생성 및 저장
             Deck deck = Deck.builder()
@@ -88,10 +86,9 @@ public class DeckServiceImpl implements DeckService {
             }
 
             return DeckResponse.from(savedDeck);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, request.name());
         } catch (IOException e) {
-            throw new InternalServerException(e.getMessage());
+            log.error(e.getMessage());
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 
@@ -102,7 +99,7 @@ public class DeckServiceImpl implements DeckService {
     @Transactional
     public void updateDeck(DeckUpdateRequest request, MultipartFile file) {
         Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.id())));
 
         // 카테고리
         if (request.categoryId() != null) {
@@ -141,7 +138,8 @@ public class DeckServiceImpl implements DeckService {
 
                 attachmentService.saveAttachmentDeckTarget(attachment, existingDeck);
             } catch (IOException e) {
-                throw new InternalServerException(e.getMessage());
+                log.error(e.getMessage());
+                throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
             }
         }
     }
@@ -154,7 +152,7 @@ public class DeckServiceImpl implements DeckService {
     public void moveDeck(DeckMoveRequest request) {
         // 이동할 덱 조회
         Deck deck = deckRepository.findById(request.id())
-                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.id())));
 
         // 새로운 폴더 조회
         Folder newFolder = null;
@@ -173,7 +171,7 @@ public class DeckServiceImpl implements DeckService {
     @Transactional
     public void deleteDeck(DeckDeleteRequest request) {
         Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new NotFoundException(Deck.class, request.id()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class, request.id())));
 
         // 기존 첨부파일 삭제(Bulk)
         List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()

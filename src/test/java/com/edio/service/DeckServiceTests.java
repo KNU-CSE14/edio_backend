@@ -1,7 +1,5 @@
 package com.edio.service;
 
-import com.edio.common.exception.custom.ConflictException;
-import com.edio.common.exception.custom.NotFoundException;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -13,6 +11,7 @@ import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.deck.service.DeckServiceImpl;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -81,7 +80,7 @@ public class DeckServiceTests {
     void testGetDeck_NotFound() {
         when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.empty());
 
-        assertThrows(NotFoundException.class, () -> deckService.getDeck(1L));
+        assertThrows(EntityNotFoundException.class, () -> deckService.getDeck(1L));
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
     }
 
@@ -106,7 +105,7 @@ public class DeckServiceTests {
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(deckRepository.save(any(Deck.class))).thenThrow(DataIntegrityViolationException.class);
 
-        assertThrows(ConflictException.class, () -> deckService.createDeck(deckCreateRequest, null));
+        assertThrows(RuntimeException.class, () -> deckService.createDeck(deckCreateRequest, null));
         verify(folderRepository, times(1)).findById(1L);
         verify(categoryRepository, times(1)).findById(1L);
         verify(deckRepository, times(1)).save(any(Deck.class));

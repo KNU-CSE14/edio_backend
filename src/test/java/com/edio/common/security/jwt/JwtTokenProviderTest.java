@@ -41,6 +41,7 @@ class JwtTokenProviderTest {
     void testGetAuthentication() {
         // given
         Long accountId = 1L;
+        Long rootFolderId = 1L;
         String loginId = "629jyh7@gmail.com";
         Claims claims = Jwts.claims().setSubject(loginId);
         claims.put("auth", "ROLE_USER");
@@ -53,6 +54,7 @@ class JwtTokenProviderTest {
         // Mock CustomUserDetails
         CustomUserDetails userDetails = new CustomUserDetails(
                 accountId,
+                rootFolderId,
                 loginId,
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 Collections.emptyMap()
@@ -94,7 +96,7 @@ class JwtTokenProviderTest {
                 .compact();
 
         // when & then
-        assertThrows(io.jsonwebtoken.ExpiredJwtException.class,
+        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
                 () -> jwtTokenProvider.getAuthentication(expiredToken));
     }
 }

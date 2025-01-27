@@ -1,7 +1,6 @@
 package com.edio.user.controller;
 
 import com.edio.common.security.CustomUserDetails;
-import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.service.AccountService;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +21,4 @@ public class AccountController implements AccountApiDoc {
     public AccountResponse getAccount(@AuthenticationPrincipal CustomUserDetails userDetails) {
         return accountService.findOneAccount(userDetails.getAccountId());
     }
-
-    @PostMapping("/account")
-    @Override
-    public AccountResponse createAccount(@RequestBody AccountCreateRequest accountCreateRequest) {
-        return accountService.createAccount(accountCreateRequest);
-    }
-
 }

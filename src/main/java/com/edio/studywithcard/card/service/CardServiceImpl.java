@@ -1,9 +1,6 @@
 package com.edio.studywithcard.card.service;
 
-import com.edio.common.exception.custom.ConflictException;
-import com.edio.common.exception.custom.IllegalArgumentException;
-import com.edio.common.exception.custom.NotFoundException;
-import com.edio.common.exception.custom.UnprocessableException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
@@ -17,17 +14,20 @@ import com.edio.studywithcard.card.model.response.CardResponse;
 import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CardServiceImpl implements CardService {
@@ -47,7 +47,7 @@ public class CardServiceImpl implements CardService {
         try {
             // Deck 조회
             Deck deck = deckRepository.findById(request.deckId())
-                    .orElseThrow(() -> new NotFoundException(Deck.class, request.deckId()));
+                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.deckId())));
 
             // 1. Card 생성 및 저장
             Card card = Card.builder()
@@ -64,10 +64,9 @@ public class CardServiceImpl implements CardService {
                 }
             }
             return CardResponse.from(card);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Deck.class, request.name()); // 409
         } catch (IOException e) {
-            throw new UnprocessableException(e); // 422
+            log.error(e.getMessage());
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
         }
     }
 
@@ -78,7 +77,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void updateCard(CardUpdateRequest request, MultipartFile[] files) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new NotFoundException(Card.class, request.id()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
 
         // 카드 이름
         if (StringUtils.hasText(request.name())) {
@@ -106,7 +105,8 @@ public class CardServiceImpl implements CardService {
 
                     processAttachment(file, existingCard);
                 } catch (IOException e) {
-                    throw new UnprocessableException(e); // 422
+                    log.error(e.getMessage());
+                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
                 }
             }
         }
@@ -119,7 +119,7 @@ public class CardServiceImpl implements CardService {
     @Transactional
     public void deleteCard(CardDeleteRequest request) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new NotFoundException(Card.class, request.id()));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
 
         // Bulk 작업
         List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
@@ -150,12 +150,12 @@ public class CardServiceImpl implements CardService {
                 // 오디오 파일 처리
                 attachment = attachmentService.saveAttachment(file, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name());
             } else {
-                throw new IllegalArgumentException("Unsupported file type: " + contentType);
+                throw new UnsupportedMediaTypeStatusException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
             }
             // Card Target 저장
             attachmentService.saveAttachmentCardTarget(attachment, card);
         } else {
-            throw new IllegalArgumentException("File content type is null");
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
         }
     }
 }

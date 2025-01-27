@@ -40,6 +40,8 @@ public class SecurityConfig {
 
     private final OAuth2AuthorizationRequestResolver authorizationRequestResolver;
 
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
     @Value("${redirect.url}")
     private String redirectUrl;
 
@@ -70,9 +72,7 @@ public class SecurityConfig {
                         .successHandler(oAuth2SuccessHandler)
                 )
                 .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        })
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler((request, response, accessDeniedException) -> {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied");
                         })

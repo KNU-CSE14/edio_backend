@@ -1,8 +1,6 @@
 package com.edio.studywithcard.folder.service;
 
-import com.edio.common.exception.custom.BadRequestException;
-import com.edio.common.exception.custom.ConflictException;
-import com.edio.common.exception.custom.NotFoundException;
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
@@ -12,9 +10,9 @@ import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.repository.AccountRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,15 +33,11 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional(readOnly = true)
     public FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId) {
-        Folder folder;
-        // folderId가 null이면 루트 폴더 조회
-        if (folderId == null) {
-            folder = folderRepository.findById(rootFolderId)
-                    .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
-        } else {
-            folder = folderRepository.findById(folderId)
-                    .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
-        }
+        Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
+
+        Folder folder = folderRepository.findById(targetFolderId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), targetFolderId)));
+
         return FolderWithDeckResponse.from(folder);
     }
 
@@ -53,15 +47,11 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional(readOnly = true)
     public FolderAllResponse getAllFolders(Long rootFolderId, Long folderId) {
-        Folder folder;
-        // folderId가 null이면 루트 폴더 조회
-        if (folderId == null) {
-            folder = folderRepository.findById(rootFolderId)
-                    .orElseThrow(() -> new NotFoundException(Folder.class, rootFolderId));
-        } else {
-            folder = folderRepository.findById(folderId)
-                    .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
-        }
+        Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
+
+        Folder folder = folderRepository.findById(targetFolderId)
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), targetFolderId)));
+
         return FolderAllResponse.from(folder);
     }
 
@@ -85,23 +75,19 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional
     public FolderResponse createFolder(Long accountId, FolderCreateRequest folderCreateRequest) {
-        try {
-            // 부모 폴더 설정
-            Folder parentFolder = null;
-            if (folderCreateRequest.parentId() != null) {
-                parentFolder = folderRepository.getReferenceById(folderCreateRequest.parentId());
-            }
-
-            Folder newFolder = Folder.builder()
-                    .accountId(accountId)
-                    .parentFolder(parentFolder) // 부모 폴더 설정
-                    .name(folderCreateRequest.name())
-                    .build();
-            Folder savedFolder = folderRepository.save(newFolder);
-            return FolderResponse.from(savedFolder);
-        } catch (DataIntegrityViolationException e) {
-            throw new ConflictException(Folder.class, folderCreateRequest.name());
+        // 부모 폴더 설정
+        Folder parentFolder = null;
+        if (folderCreateRequest.parentId() != null) {
+            parentFolder = folderRepository.getReferenceById(folderCreateRequest.parentId());
         }
+
+        Folder newFolder = Folder.builder()
+                .accountId(accountId)
+                .parentFolder(parentFolder) // 부모 폴더 설정
+                .name(folderCreateRequest.name())
+                .build();
+        Folder savedFolder = folderRepository.save(newFolder);
+        return FolderResponse.from(savedFolder);
     }
 
     /*
@@ -112,7 +98,7 @@ public class FolderServiceImpl implements FolderService {
     public void updateFolder(Long folderId, FolderUpdateRequest folderUpdateRequest) {
         // 폴더명 업데이트
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class, folderId)));
 
         existingFolder.setName(folderUpdateRequest.name());
     }
@@ -125,7 +111,7 @@ public class FolderServiceImpl implements FolderService {
     public void moveFolder(Long folderId, Long newParentId) {
         // 이동할 폴더 조회
         Folder folder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
 
         // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
@@ -135,7 +121,7 @@ public class FolderServiceImpl implements FolderService {
 
         // 사이클 방지: 새로운 부모 폴더가 이동 대상 폴더의 하위인지 확인
         if (isDescendant(folder, newParentFolder)) {
-            throw new BadRequestException(Folder.class, newParentId);
+            throw new IllegalArgumentException(ErrorMessages.BAD_REQUEST.getMessage());
         }
 
         folder.setParentFolder(newParentFolder);
@@ -159,7 +145,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void deleteFolder(Long folderId) {
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new NotFoundException(Folder.class, folderId));
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
 
         existingFolder.setDeleted(true);
     }

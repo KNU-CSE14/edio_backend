@@ -1,10 +1,10 @@
 package com.edio.common.security;
 
 import com.edio.common.exception.base.ErrorMessages;
-import com.edio.common.exception.custom.UnprocessableException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
 
@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
 
@@ -52,7 +53,8 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             String stateJson = objectMapper.writeValueAsString(stateMap); // JSON 변환
             encodedState = Base64.getEncoder().encodeToString(stateJson.getBytes(StandardCharsets.UTF_8)); // Base64 인코딩
         } catch (Exception e) {
-            throw new UnprocessableException(String.format(ErrorMessages.UNPROCESSABLE_STATE_MAP.getMessage(), stateMap));
+            log.error(e.getMessage());
+            throw new IllegalStateException(ErrorMessages.UNPROCESSABLE_STATE_MAP.getMessage());
         }
 
         return OAuth2AuthorizationRequest.from(authorizationRequest)

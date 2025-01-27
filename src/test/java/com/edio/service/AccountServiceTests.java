@@ -1,15 +1,13 @@
 package com.edio.service;
 
-import com.edio.common.exception.custom.ConflictException;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
-import com.edio.user.model.request.AccountCreateRequest;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
-import com.edio.user.repository.MemberRepository;
 import com.edio.user.service.AccountServiceImpl;
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,102 +20,70 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTests {
 
-    @Mock
-    private AccountRepository accountRepository;
+    /*
+        FIXME: 현재 AccountService에 findOneAccount만 테스트 하고 있기 때문에, Respository 테스트도 추가 필요 
+     */
 
     @Mock
-    private MemberRepository memberRepository;
+    private AccountRepository accountRepository;
 
     @InjectMocks
     private AccountServiceImpl accountService;
 
-    private AccountCreateRequest accountRequest;
-    private Member mockMember;
     private Account mockAccount;
+    private Member mockMember;
 
     @BeforeEach
     public void setUp() {
-        // 공통 테스트 데이터 초기화
-        accountRequest = new AccountCreateRequest("testUser@gmail.com", 1L, AccountLoginType.GOOGLE, AccountRole.ROLE_USER);
-
         mockMember = Member.builder()
                 .email("testUser@gmail.com")
                 .name("Hong Gildong")
-                .givenName("Hong")
-                .familyName("Gildong")
+                .givenName("gildong")
+                .familyName("Hong")
                 .profileUrl("http://example.com/profile.jpg")
                 .build();
-        ReflectionTestUtils.setField(mockMember, "id", accountRequest.memberId());
+        ReflectionTestUtils.setField(mockMember, "id", 1L);
 
         mockAccount = Account.builder()
-                .loginId(accountRequest.loginId())
+                .loginId("testUser@gmail.com")
                 .member(mockMember)
-                .loginType(AccountLoginType.GOOGLE) // 기본값 가정
-                .roles(AccountRole.ROLE_USER)          // 기본값 가정
+                .isDeleted(false)
+                .loginType(AccountLoginType.GOOGLE)
+                .roles(AccountRole.ROLE_USER)
                 .build();
+        ReflectionTestUtils.setField(mockAccount, "id", 1L);
     }
 
     @Test
-    public void createAccount_whenAccountDoesNotExist_createsNewAccount() {
+    public void findOneAccount_whenAccountExists_returnsAccountResponse() {
+        assertThat(mockAccount.getMember()).isNotNull();
+
         // given
-        when(memberRepository.findById(accountRequest.memberId()))
-                .thenReturn(Optional.of(mockMember));
-        when(accountRepository.save(any(Account.class)))
-                .thenReturn(mockAccount);
+        when(accountRepository.findByIdAndIsDeleted(1L, false))
+                .thenReturn(Optional.of(mockAccount));
 
         // when
-        AccountResponse response = accountService.createAccount(accountRequest);
+        AccountResponse response = accountService.findOneAccount(1L);
 
         // then
         assertThat(response).isNotNull();
-        assertThat(response.memberResponse().email()).isEqualTo(mockMember.getEmail());
+        assertThat(response.loginId()).isEqualTo(mockAccount.getLoginId());
     }
 
     @Test
-    public void createAccount_whenAccountExists_throwsConflictException() {
+    public void findOneAccount_whenAccountDoesNotExist_throwsEntityNotFoundException() {
         // given
-        when(memberRepository.findById(accountRequest.memberId()))
-                .thenReturn(Optional.of(mockMember));
-        when(accountRepository.save(any(Account.class)))
-                .thenThrow(new ConflictException(Account.class, mockAccount.getLoginId()));
+        when(accountRepository.findByIdAndIsDeleted(1L, false))
+                .thenReturn(Optional.empty());
 
         // when & then
-        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
-                .isInstanceOf(ConflictException.class)
-                .hasMessageContaining("testUser@gmail.com");
-    }
-
-    @Test
-    public void createAccount_whenLoginIdIsNull_throwsException() {
-        // given
-        accountRequest = new AccountCreateRequest(null, 1L, AccountLoginType.GOOGLE, AccountRole.ROLE_USER);
-
-        when(memberRepository.findById(accountRequest.memberId()))
-                .thenReturn(Optional.of(mockMember));
-
-        // when, then
-        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("null");
-    }
-
-    @Test
-    public void createAccount_whenSaveFails_throwsException() {
-        // given
-        when(memberRepository.findById(accountRequest.memberId()))
-                .thenReturn(Optional.of(mockMember));
-        when(accountRepository.save(any(Account.class)))
-                .thenThrow(new RuntimeException("Database error"));
-
-        // when, then
-        assertThatThrownBy(() -> accountService.createAccount(accountRequest))
-                .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("Database error");
+        assertThatThrownBy(() -> accountService.findOneAccount(1L))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Account");
     }
 }
