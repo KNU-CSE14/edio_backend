@@ -37,7 +37,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class OAuth2UserServiceTests {
+public class CustomOAuth2UserServiceTests {
 
     @Mock
     private MemberRepository memberRepository;
@@ -157,7 +157,7 @@ public class OAuth2UserServiceTests {
             verify(accountRepository, never()).save(any(Account.class));
             verify(folderRepository, never()).save(any(Folder.class));
 
-            // 8. 반환된 OAuth2User가 CustomUserDetails 타입인지, 그리고 내부에 저장된 계정 정보가 mockAccount와 일치하는지 확인
+            // 반환된 OAuth2User가 CustomUserDetails 타입인지, 그리고 내부에 저장된 계정 정보가 mockAccount와 일치하는지 확인
             assertInstanceOf(CustomUserDetails.class, result);
             CustomUserDetails userDetails = (CustomUserDetails) result;
             assertEquals(mockAccount.getId(), userDetails.getAccountId());
