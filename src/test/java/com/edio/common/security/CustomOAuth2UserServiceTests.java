@@ -94,17 +94,10 @@ public class CustomOAuth2UserServiceTests {
         // getAttribute()가 attributes 맵에서 값을 가져오도록 설정
         when(dummyOAuth2User.getAttribute(anyString())).thenAnswer(invocation -> attributes.get(invocation.getArgument(0)));
 
-        // CustomOAuth2UserService에서 super.loadUser()를 미리 처리
+        // CustomOAuth2UserService super.loadUser()를 미리 처리
         doReturn(dummyOAuth2User)
                 .when(customOAuth2UserService)
                 .defaultLoadUser(any(OAuth2UserRequest.class));
-
-//        userRequest = new OAuth2UserRequest(clientRegistration, new OAuth2AccessToken(
-//                OAuth2AccessToken.TokenType.BEARER,
-//                "access-token",
-//                Instant.now(),
-//                Instant.now().plus(Duration.ofHours(1))
-//        ));
 
         userRequest = mock(OAuth2UserRequest.class);
     }
@@ -151,7 +144,7 @@ public class CustomOAuth2UserServiceTests {
         when(accountRepository.save(any(Account.class))).thenReturn(mockAccount);
         when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
 
-        // when: loadUser 호출 (신규 계정 생성 경로)
+        // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
         // then: 신규 계정 생성과 관련한 repository의 save 메서드들이 호출되었는지 검증
