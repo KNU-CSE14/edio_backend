@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -40,12 +39,6 @@ public class CustomOAuth2UserServiceTests {
 
     @Mock
     private FolderRepository folderRepository;
-
-//    @Mock
-//    private ClientRegistration clientRegistration;
-//
-//    @Mock
-//    private DefaultOAuth2UserService defaultOAuth2UserService;
 
     @Spy
     @InjectMocks
@@ -101,23 +94,10 @@ public class CustomOAuth2UserServiceTests {
         // getAttribute()가 attributes 맵에서 값을 가져오도록 설정
         when(dummyOAuth2User.getAttribute(anyString())).thenAnswer(invocation -> attributes.get(invocation.getArgument(0)));
 
-        // 테스트를 위해 최소한의 정보로 OAuth2UserRequest 생성
-//        ClientRegistration clientRegistration = ClientRegistration.withRegistrationId("google")
-//                .clientId("client-id")
-//                .clientSecret("client-secret")
-//                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-//                .authorizationUri("https://accounts.google.com/o/oauth2/auth")
-//                .tokenUri("https://accounts.google.com/o/oauth2/token")
-//                .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
-//                .userNameAttributeName("sub")
-//                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-//                .build();
-
-
+        // CustomOAuth2UserService에서 super.loadUser()를 미리 처리
         doReturn(dummyOAuth2User)
-                .when((DefaultOAuth2UserService) customOAuth2UserService)
-                .loadUser(any(OAuth2UserRequest.class));
-
+                .when(customOAuth2UserService)
+                .defaultLoadUser(any(OAuth2UserRequest.class));
 
 //        userRequest = new OAuth2UserRequest(clientRegistration, new OAuth2AccessToken(
 //                OAuth2AccessToken.TokenType.BEARER,
@@ -138,8 +118,6 @@ public class CustomOAuth2UserServiceTests {
         // 기존 계정이 존재한다고 가정하고, accountRepository.findByLoginIdAndIsDeleted()가 testAccount를 반환하도록 설정
         when(accountRepository.findByLoginIdAndIsDeleted(eq("test@example.com"), eq(false)))
                 .thenReturn(Optional.of(mockAccount));
-
-//        when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
 
         // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
@@ -172,8 +150,6 @@ public class CustomOAuth2UserServiceTests {
         when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
         when(accountRepository.save(any(Account.class))).thenReturn(mockAccount);
         when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
-
-//        when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
 
         // when: loadUser 호출 (신규 계정 생성 경로)
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);

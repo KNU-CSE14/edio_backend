@@ -38,7 +38,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = super.loadUser(userRequest);
+        OAuth2User oAuth2User = defaultLoadUser(userRequest);
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
@@ -113,5 +113,10 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .name("Default")
                 .build();
         return folderRepository.save(rootFolder);
+    }
+
+    // super.loadUser를 호출하는 부분을 분리
+    protected OAuth2User defaultLoadUser(OAuth2UserRequest userRequest) {
+        return super.loadUser(userRequest);
     }
 }
