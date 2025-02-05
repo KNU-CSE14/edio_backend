@@ -15,7 +15,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -28,7 +27,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final MemberRepository memberRepository;
 
@@ -39,8 +38,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2UserService<OAuth2UserRequest, OAuth2User> delegate = new DefaultOAuth2UserService();
-        OAuth2User oAuth2User = delegate.loadUser(userRequest);
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
@@ -67,7 +65,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 oAuth2User.getAttributes() // OAuth2 사용자 속성 전달
         );
     }
-    
+
     public Account createAccount(String email, String name, String givenName, String familyName, String profileUrl) {
         try {
             Member newMember = saveMember(email, name, givenName, familyName, profileUrl);
