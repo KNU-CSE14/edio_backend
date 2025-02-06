@@ -1,5 +1,6 @@
 package com.edio.studywithcard.card.controller;
 
+import com.edio.studywithcard.card.model.request.CardCreateOrUpdateRequest;
 import com.edio.studywithcard.card.model.request.CardCreateRequest;
 import com.edio.studywithcard.card.model.request.CardDeleteRequest;
 import com.edio.studywithcard.card.model.request.CardUpdateRequest;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -37,5 +40,18 @@ public class CardController implements CardApiDoc {
     @Override
     public void deleteCard(@RequestBody CardDeleteRequest request) {
         cardService.deleteCard(request);
+    }
+
+    /*
+        다중 처리를 위한 테스트 API
+     */
+    @PostMapping(value = "/card/multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public List<CardResponse> createOrUpdateCard(@RequestPart("request") List<CardCreateOrUpdateRequest> requests,
+                                                 @RequestPart(value = "files", required = false) List<List<MultipartFile>> fileGroups) {
+        log.info(requests.toString());
+        log.info(fileGroups.toString());
+        return null;
+//        return cardService.createOrUpdateCard(requests, fileGroups);
     }
 }
