@@ -7,6 +7,7 @@ import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
 import com.edio.studywithcard.attachment.domain.enums.FileTarget;
 import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.card.domain.Card;
+import com.edio.studywithcard.card.model.request.CardCreateOrUpdateRequest;
 import com.edio.studywithcard.card.model.request.CardCreateRequest;
 import com.edio.studywithcard.card.model.request.CardDeleteRequest;
 import com.edio.studywithcard.card.model.request.CardUpdateRequest;
@@ -24,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -134,6 +136,60 @@ public class CardServiceImpl implements CardService {
 
         existingCard.setDeleted(true);
     }
+
+    /*
+        카드 생성 or 수정
+     */
+    @Override
+    @Transactional
+    public List<CardResponse> createOrUpdateCard(List<CardCreateOrUpdateRequest> requests, List<MultipartFile[]> fileGroups) {
+        List<CardResponse> responses = new ArrayList<>();
+
+        if (requests.size() != fileGroups.size()) {
+            throw new IllegalArgumentException("JSON 요청 개수와 파일 개수가 일치하지 않습니다.");
+        }
+
+        for (int i = 0; i < requests.size(); i++) {
+            CardCreateOrUpdateRequest request = requests.get(i);
+            MultipartFile[] files = fileGroups.get(i);
+
+            if (request.cardId() == null) { // 카드 등록 (생성)
+                try {
+                    // 1. Deck 조회
+                    Deck deck = deckRepository.findById(request.deckId())
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.deckId())));
+
+                    // 2. 카드 생성 및 저장
+                    Card card = Card.builder()
+                            .deck(deck)
+                            .name(request.name())
+                            .description(request.description())
+                            .build();
+                    cardRepository.save(card);
+
+                    // 3. 첨부파일 처리
+                    for (MultipartFile file : files) {
+                        if (file != null && !file.isEmpty()) {
+                            processAttachment(file, card);
+                        }
+                    }
+
+                    // 4. 생성된 카드 응답 저장
+                    responses.add(CardResponse.from(card));
+
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
+                }
+            } else { // 카드 수정
+
+            }
+        }
+
+        return responses;
+    }
+
 
     /*
         파일 처리 메서드
