@@ -6,6 +6,7 @@ import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -104,7 +105,7 @@ public class JwtTokenProvider {
                     .parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException | SecurityException | MalformedJwtException | UnsupportedJwtException |
-                 IllegalArgumentException e) {
+                 IllegalArgumentException | SignatureException e) {
             log.error(e.getMessage());
             return false;
         }
