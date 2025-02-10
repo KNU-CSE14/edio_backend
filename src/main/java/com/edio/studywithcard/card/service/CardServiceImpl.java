@@ -28,8 +28,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -162,13 +163,13 @@ public class CardServiceImpl implements CardService {
                 String key = "files[" + i + "]";
                 List<MultipartFile> filesForItem = fileMap.get(key);
 
-                List<MultipartFile> actualFiles = new ArrayList<>();
-                if (filesForItem != null) {
-                    actualFiles = filesForItem.stream()
-                            .filter(file -> !file.isEmpty())
-                            .toList();
-                }
-                
+                // 첨부 파일 null 여부 확인 후, 빈 파일 검사까지 진행
+                List<MultipartFile> actualFiles = Optional.ofNullable(filesForItem)
+                        .orElse(Collections.emptyList())
+                        .stream()
+                        .filter(file -> !file.isEmpty())
+                        .toList();
+
                 if (!actualFiles.isEmpty()) {
                     log.info("요청 항목 " + i + "에 첨부된 파일 개수: " + actualFiles.size());
                     for (MultipartFile file : actualFiles) {
