@@ -1,10 +1,10 @@
 package com.edio.studywithcard.card.service;
 
-import com.edio.studywithcard.card.model.request.CardCreateOrUpdateRequest;
 import com.edio.studywithcard.card.model.request.CardCreateRequest;
 import com.edio.studywithcard.card.model.request.CardDeleteRequest;
 import com.edio.studywithcard.card.model.request.CardUpdateRequest;
 import com.edio.studywithcard.card.model.response.CardResponse;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -16,5 +16,5 @@ public interface CardService {
 
     void deleteCard(CardDeleteRequest request);
 
-    List<CardResponse> createOrUpdateCard(List<CardCreateOrUpdateRequest> requests, List<MultipartFile[]> fileGroups);
+    List<CardResponse> createOrUpdateCard(String request, MultiValueMap<String, MultipartFile> fileMap);
 }
