@@ -1,7 +1,6 @@
 package com.edio.studywithcard.card.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
-import com.edio.studywithcard.card.model.request.CardCreateOrUpdateRequest;
 import com.edio.studywithcard.card.model.request.CardCreateRequest;
 import com.edio.studywithcard.card.model.request.CardDeleteRequest;
 import com.edio.studywithcard.card.model.request.CardUpdateRequest;
@@ -9,6 +8,7 @@ import com.edio.studywithcard.card.model.response.CardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -39,9 +39,8 @@ public interface CardApiDoc {
     void deleteCard(CardDeleteRequest request);
 
     /**
-     * @param requests
-     * @param fileGroups
-     * @return
+     * @param data
+     * @param fileMap
      */
-    List<CardResponse> createOrUpdateCard(List<CardCreateOrUpdateRequest> requests, List<List<MultipartFile>> fileGroups);
+    List<CardResponse> createOrUpdateCard(String data, MultiValueMap<String, MultipartFile> fileMap);
 }
