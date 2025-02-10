@@ -13,8 +13,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -40,7 +40,9 @@ public class CustomOAuth2UserServiceTests {
     @Mock
     private FolderRepository folderRepository;
 
-    @Spy
+    @Mock
+    private DefaultOAuth2UserService defaultOAuth2UserService;
+
     @InjectMocks
     private CustomOAuth2UserService customOAuth2UserService;
 
@@ -94,11 +96,6 @@ public class CustomOAuth2UserServiceTests {
         // getAttribute()가 attributes 맵에서 값을 가져오도록 설정
         when(dummyOAuth2User.getAttribute(anyString())).thenAnswer(invocation -> attributes.get(invocation.getArgument(0)));
 
-        // CustomOAuth2UserService super.loadUser()를 미리 처리
-        doReturn(dummyOAuth2User)
-                .when(customOAuth2UserService)
-                .defaultLoadUser(any(OAuth2UserRequest.class));
-
         userRequest = mock(OAuth2UserRequest.class);
     }
 
@@ -111,6 +108,10 @@ public class CustomOAuth2UserServiceTests {
         // 기존 계정이 존재한다고 가정하고, accountRepository.findByLoginIdAndIsDeleted()가 testAccount를 반환하도록 설정
         when(accountRepository.findByLoginIdAndIsDeleted(eq("test@example.com"), eq(false)))
                 .thenReturn(Optional.of(mockAccount));
+
+        // defaultOAuth2UserService loadUser 처리
+        when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class)))
+                .thenReturn(dummyOAuth2User);
 
         // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
@@ -127,7 +128,6 @@ public class CustomOAuth2UserServiceTests {
         CustomUserDetails userDetails = (CustomUserDetails) result;
         assertEquals(mockAccount.getId(), userDetails.getAccountId());
         assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
-
     }
 
     /**
@@ -144,6 +144,10 @@ public class CustomOAuth2UserServiceTests {
         when(accountRepository.save(any(Account.class))).thenReturn(mockAccount);
         when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
 
+        // defaultOAuth2UserService loadUser 처리
+        when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class)))
+                .thenReturn(dummyOAuth2User);
+
         // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
@@ -159,6 +163,5 @@ public class CustomOAuth2UserServiceTests {
         CustomUserDetails userDetails = (CustomUserDetails) result;
         assertEquals(mockAccount.getId(), userDetails.getAccountId());
         assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
-
     }
 }

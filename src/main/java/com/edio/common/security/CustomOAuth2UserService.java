@@ -11,10 +11,12 @@ import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
+import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -27,7 +29,7 @@ import java.util.Optional;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CustomOAuth2UserService extends DefaultOAuth2UserService {
+public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final MemberRepository memberRepository;
 
@@ -35,10 +37,14 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final FolderRepository folderRepository;
 
+    // defaultOAuth2UserService 동적 할당
+    private final ObjectProvider<DefaultOAuth2UserService> defaultOAuth2UserServiceProvider;
+
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        OAuth2User oAuth2User = defaultLoadUser(userRequest);
+        DefaultOAuth2UserService defaultOAuth2UserService = defaultOAuth2UserServiceProvider.getIfAvailable();
+        OAuth2User oAuth2User = defaultOAuth2UserService.loadUser(userRequest);
 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
@@ -113,10 +119,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .name("Default")
                 .build();
         return folderRepository.save(rootFolder);
-    }
-
-    // super.loadUser를 호출하는 부분을 분리
-    protected OAuth2User defaultLoadUser(OAuth2UserRequest userRequest) {
-        return super.loadUser(userRequest);
     }
 }
