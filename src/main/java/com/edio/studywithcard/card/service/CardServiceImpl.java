@@ -15,17 +15,19 @@ import com.edio.studywithcard.card.model.response.CardResponse;
 import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +41,8 @@ public class CardServiceImpl implements CardService {
     private final DeckRepository deckRepository;
 
     private final AttachmentService attachmentService;
+
+    private final ObjectMapper objectMapper;
 
     /*
         카드 생성
@@ -142,8 +146,40 @@ public class CardServiceImpl implements CardService {
      */
     @Override
     @Transactional
-    public List<CardResponse> createOrUpdateCard(List<CardCreateOrUpdateRequest> requests, List<MultipartFile[]> fileGroups) {
-        List<CardResponse> responses = new ArrayList<>();
+    public List<CardResponse> createOrUpdateCard(String request, MultiValueMap<String, MultipartFile> fileMap) {
+        try {
+            List<CardCreateOrUpdateRequest> requestList = objectMapper.readValue(request,
+                    new TypeReference<List<CardCreateOrUpdateRequest>>() {
+                    });
+
+            for (int i = 0; i < requestList.size(); i++) {
+                /*
+                    FIXME: cardId가 없으면 등록, 있으면 수정
+                 */
+
+                // 클라이언트는 첫 번째 요청 항목 파일들을 "files[0]"라는 이름으로 보냈다고 가정
+                String key = "files[" + i + "]";
+                List<MultipartFile> filesForItem = fileMap.get(key);
+
+                List<MultipartFile> actualFiles = filesForItem.stream()
+                        .filter(file -> !file.isEmpty())
+                        .toList();
+
+                if (!actualFiles.isEmpty()) {
+                    log.info("요청 항목 " + i + "에 첨부된 파일 개수: " + actualFiles.size());
+                    for (MultipartFile file : actualFiles) {
+                        /*
+                            FIXME: 파일 저장에 대한 처리 필요
+                         */
+                        log.info("요청 항목 " + i + "의 파일명: " + file.getOriginalFilename());
+                    }
+                } else {
+                    log.info("요청 항목 " + i + "에는 파일이 없습니다.");
+                }
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
 //
 //        if (requests.size() != fileGroups.size()) {
 //            throw new IllegalArgumentException("JSON 요청 개수와 파일 개수가 일치하지 않습니다.");
@@ -187,7 +223,7 @@ public class CardServiceImpl implements CardService {
 //            }
 //        }
 
-        return responses;
+        return null;
     }
 
 
