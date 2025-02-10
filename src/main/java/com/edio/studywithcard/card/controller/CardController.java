@@ -1,8 +1,12 @@
 package com.edio.studywithcard.card.controller;
 
-import com.edio.studywithcard.card.model.request.*;
+import com.edio.studywithcard.card.model.request.CardCreateOrUpdateRequest;
+import com.edio.studywithcard.card.model.request.CardCreateRequest;
+import com.edio.studywithcard.card.model.request.CardDeleteRequest;
+import com.edio.studywithcard.card.model.request.CardUpdateRequest;
 import com.edio.studywithcard.card.model.response.CardResponse;
 import com.edio.studywithcard.card.service.CardService;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,12 +53,12 @@ public class CardController implements CardApiDoc {
      */
     @PostMapping(value = "/card/multi", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public List<CardResponse> createOrUpdateCard(@RequestPart("data") String request,
+    public List<CardResponse> createOrUpdateCard(@RequestPart("request") String request,
                                                  @RequestParam MultiValueMap<String, MultipartFile> fileMap) {
         try {
-            CardCreateOrUpdateWrapper requestWrapper = objectMapper.readValue(request, CardCreateOrUpdateWrapper.class);
-
-            List<CardCreateOrUpdateRequest> requestList = requestWrapper.getRequest();  // 실제 DTO 타입에 맞게 제네릭 지정 가능
+            List<CardCreateOrUpdateRequest> requestList = objectMapper.readValue(request,
+                    new TypeReference<List<CardCreateOrUpdateRequest>>() {
+                    });
 
             for (int i = 0; i < requestList.size(); i++) {
                 // 클라이언트는 첫 번째 요청 항목 파일들을 "files[0]"라는 이름으로 보냈다고 가정
@@ -62,12 +66,12 @@ public class CardController implements CardApiDoc {
                 List<MultipartFile> filesForItem = fileMap.get(key);
 
                 if (filesForItem == null || filesForItem.isEmpty()) {
-                    System.out.println("요청 항목 " + i + "에는 파일이 없습니다.");
+                    log.info("요청 항목 " + i + "에는 파일이 없습니다.");
                 } else {
-                    System.out.println("요청 항목 " + i + "에 첨부된 파일 개수: " + filesForItem.size());
+                    log.info("요청 항목 " + i + "에 첨부된 파일 개수: " + filesForItem.size());
                     for (MultipartFile file : filesForItem) {
                         // 각 파일 처리 로직 구현 (예: 파일 저장, 파일명 확인 등)
-                        System.out.println("요청 항목 " + i + "의 파일명: " + file.getOriginalFilename());
+                        log.info("요청 항목 " + i + "의 파일명: " + file.getOriginalFilename());
                     }
                 }
             }
