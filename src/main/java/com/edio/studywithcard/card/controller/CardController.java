@@ -65,11 +65,15 @@ public class CardController implements CardApiDoc {
                 String key = "files[" + i + "]";
                 List<MultipartFile> filesForItem = fileMap.get(key);
 
-                if (filesForItem == null || filesForItem.isEmpty()) {
+                List<MultipartFile> actualFiles = filesForItem.stream()
+                        .filter(file -> !file.isEmpty())
+                        .toList();
+
+                if (actualFiles.isEmpty()) {
                     log.info("요청 항목 " + i + "에는 파일이 없습니다.");
                 } else {
-                    log.info("요청 항목 " + i + "에 첨부된 파일 개수: " + filesForItem.size());
-                    for (MultipartFile file : filesForItem) {
+                    log.info("요청 항목 " + i + "에 첨부된 파일 개수: " + actualFiles.size());
+                    for (MultipartFile file : actualFiles) {
                         // 각 파일 처리 로직 구현 (예: 파일 저장, 파일명 확인 등)
                         log.info("요청 항목 " + i + "의 파일명: " + file.getOriginalFilename());
                     }
