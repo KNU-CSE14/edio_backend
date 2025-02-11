@@ -34,18 +34,15 @@ public class CardController implements CardApiDoc {
         cardService.updateCard(request, files);
     }
 
-    @DeleteMapping("/card")
-    @Override
-    public void deleteCard(@RequestBody CardDeleteRequest request) {
-        cardService.deleteCard(request);
-    }
-
-    /*
-        다중 처리를 위한 테스트 API
-     */
     @PostMapping(value = "/cards", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
     public void createOrUpdateCards(@ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper) {
         cardService.createOrUpdateCard(cardBulkRequestWrapper);
+    }
+
+    @DeleteMapping("/card")
+    @Override
+    public void deleteCard(@RequestBody CardDeleteRequest request) {
+        cardService.deleteCard(request);
     }
 }

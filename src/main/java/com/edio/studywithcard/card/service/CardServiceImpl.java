@@ -115,29 +115,6 @@ public class CardServiceImpl implements CardService {
     }
 
     /*
-        카드 삭제
-    */
-    @Override
-    @Transactional
-    public void deleteCard(CardDeleteRequest request) {
-        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
-
-        // Bulk 작업
-        List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
-                .map(AttachmentCardTarget::getAttachment)
-                .filter(attachment -> !attachment.isDeleted())
-                .map(Attachment::getFileKey)
-                .collect(Collectors.toList());
-
-        if (!fileKeys.isEmpty()) {
-            attachmentService.deleteAllAttachments(fileKeys);
-        }
-
-        existingCard.setDeleted(true);
-    }
-
-    /*
         카드 생성 or 수정
      */
     @Override
@@ -208,6 +185,30 @@ public class CardServiceImpl implements CardService {
             }
         }
     }
+
+    /*
+        카드 삭제
+    */
+    @Override
+    @Transactional
+    public void deleteCard(CardDeleteRequest request) {
+        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.id())
+                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.id())));
+
+        // Bulk 작업
+        List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
+                .map(AttachmentCardTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted())
+                .map(Attachment::getFileKey)
+                .collect(Collectors.toList());
+
+        if (!fileKeys.isEmpty()) {
+            attachmentService.deleteAllAttachments(fileKeys);
+        }
+
+        existingCard.setDeleted(true);
+    }
+
 
     /*
         파일 처리 메서드
