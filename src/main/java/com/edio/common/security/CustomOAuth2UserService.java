@@ -11,7 +11,6 @@ import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -37,13 +36,10 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
     private final FolderRepository folderRepository;
 
-    // defaultOAuth2UserService 동적 할당
-    private final ObjectProvider<DefaultOAuth2UserService> defaultOAuth2UserServiceProvider;
-
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
-        DefaultOAuth2UserService defaultOAuth2UserService = defaultOAuth2UserServiceProvider.getIfAvailable();
+        DefaultOAuth2UserService defaultOAuth2UserService = new DefaultOAuth2UserService();
         OAuth2User oAuth2User = defaultOAuth2UserService.loadUser(userRequest);
 
         String email = oAuth2User.getAttribute("email");
