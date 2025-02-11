@@ -1,8 +1,6 @@
 package com.edio.studywithcard.card.controller;
 
-import com.edio.studywithcard.card.model.request.CardCreateRequest;
-import com.edio.studywithcard.card.model.request.CardDeleteRequest;
-import com.edio.studywithcard.card.model.request.CardUpdateRequest;
+import com.edio.studywithcard.card.model.request.*;
 import com.edio.studywithcard.card.model.response.CardResponse;
 import com.edio.studywithcard.card.service.CardService;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +22,17 @@ public class CardController implements CardApiDoc {
     public CardResponse createCard(@RequestPart CardCreateRequest request,
                                    @RequestPart(value = "file", required = false) MultipartFile[] files) {
         return cardService.createCard(request, files);
+    }
+
+    @PostMapping(value = "/cards", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Override
+    public String createCards(@ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper) {
+
+        for (CardBulkRequest bulkRequest : cardBulkRequestWrapper.getRequests()) {
+            log.info("[Test] bulkRequest : {}", bulkRequest);
+        }
+
+        return "Successes";
     }
 
     @PatchMapping(value = "/card", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
