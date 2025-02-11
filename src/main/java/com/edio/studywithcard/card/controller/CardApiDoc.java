@@ -1,6 +1,7 @@
 package com.edio.studywithcard.card.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
+import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.model.request.CardCreateRequest;
 import com.edio.studywithcard.card.model.request.CardDeleteRequest;
 import com.edio.studywithcard.card.model.request.CardUpdateRequest;
@@ -8,10 +9,8 @@ import com.edio.studywithcard.card.model.response.CardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Tag(name = "Card", description = "Card 관련 API")
 @SecurityRequirement(name = "bearerAuth")
@@ -39,8 +38,7 @@ public interface CardApiDoc {
     void deleteCard(CardDeleteRequest request);
 
     /**
-     * @param data
-     * @param fileMap
+     * @param cardBulkRequestWrapper (cardId, deckId, name, description, files) 등록 or 수정 객체
      */
-    List<CardResponse> createOrUpdateCard(String data, MultiValueMap<String, MultipartFile> fileMap);
+    void createOrUpdateCards(@ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper);
 }
