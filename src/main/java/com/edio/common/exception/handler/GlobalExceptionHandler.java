@@ -1,7 +1,5 @@
 package com.edio.common.exception.handler;
 
-import com.edio.common.exception.base.BaseException;
-import com.edio.common.exception.base.ErrorMessages;
 import com.edio.common.model.response.ErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -19,19 +17,6 @@ import java.util.NoSuchElementException;
 public class GlobalExceptionHandler {
 
     /**
-     * 공통 BaseException
-     *
-     * @param ex
-     * @return
-     */
-    @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(ex.isSuccess(), ex.getMessage());
-        return new ResponseEntity<>(response, ex.getStatus());
-    }
-
-    /**
      * BAD_REQUEST 동작(요청이 유효하지 않은 경우)
      *
      * @param ex
@@ -40,21 +25,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
     /**
      * NoSuchElementException
      *
      * @param ex
-     * @return
+     * @return 404
      */
     @ExceptionHandler(NoSuchElementException.class)
     public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ErrorMessages.DATA_NOT_FOUND.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -66,8 +49,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -79,8 +61,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ErrorMessages.CONFLICT.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.CONFLICT);
     }
 
     /**
@@ -92,8 +73,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
     public ResponseEntity<ErrorResponse> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     /**
@@ -113,9 +93,7 @@ public class GlobalExceptionHandler {
         } else if (ex.getMessage().contains("Conflict")) {
             status = HttpStatus.CONFLICT;
         }
-
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, status);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), status);
     }
 
     /**
@@ -127,7 +105,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
-        return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
