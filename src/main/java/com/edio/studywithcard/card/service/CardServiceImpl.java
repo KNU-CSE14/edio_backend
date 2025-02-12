@@ -45,7 +45,7 @@ public class CardServiceImpl implements CardService {
     public void createOrUpdateCards(CardBulkRequestWrapper cardBulkRequestWrapper) {
 
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
-            log.info("[Test] bulkRequest : {}", request);
+            log.info("bulkRequest : {}", request);
             if (request.getCardId() == null) { // 등록
                 try {
                     // Deck 조회
