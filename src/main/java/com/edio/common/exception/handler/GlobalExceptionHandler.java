@@ -1,6 +1,5 @@
 package com.edio.common.exception.handler;
 
-import com.edio.common.model.response.ErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -23,9 +22,9 @@ public class GlobalExceptionHandler {
      * @return 400
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException ex) {
+    public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     /**
@@ -35,9 +34,9 @@ public class GlobalExceptionHandler {
      * @return 404
      */
     @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<ErrorResponse> handleNoSuchElementException(NoSuchElementException ex) {
+    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -47,9 +46,9 @@ public class GlobalExceptionHandler {
      * @return 404
      */
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
+    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
     /**
@@ -59,9 +58,9 @@ public class GlobalExceptionHandler {
      * @return 409
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
+    public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.CONFLICT);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
     /**
@@ -71,9 +70,9 @@ public class GlobalExceptionHandler {
      * @return 415
      */
     @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
-    public ResponseEntity<ErrorResponse> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
+    public ResponseEntity<String> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
     /**
@@ -84,7 +83,7 @@ public class GlobalExceptionHandler {
      * @return 409, 415, 422, 500
      */
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException ex) {
+    public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
         log.error("Error occurred: {}", ex.getMessage());
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
@@ -93,7 +92,7 @@ public class GlobalExceptionHandler {
         } else if (ex.getMessage().contains("Conflict")) {
             status = HttpStatus.CONFLICT;
         }
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), status);
+        return new ResponseEntity<>(ex.getMessage(), status);
     }
 
     /**
@@ -103,8 +102,8 @@ public class GlobalExceptionHandler {
      * @return 500
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+    public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
         log.error("Error occurred: {}", ex.getMessage());
-        return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
