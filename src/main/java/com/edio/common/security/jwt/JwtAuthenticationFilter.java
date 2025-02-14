@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -42,22 +44,30 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
-        String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-        if (accessToken != null) {
-            boolean isValid = jwtTokenProvider.validateToken(accessToken);
-            if (isValid) {
-                setAuthentication(accessToken);
+        try{
+            String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
+            if (accessToken != null) {
+                boolean isValid = jwtTokenProvider.validateToken(accessToken);
+                if (isValid) {
+                    setAuthentication(accessToken);
+                } else { // 토큰 검증 실패
+                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                }
             } else {
-                throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                try { // JwtTokenProvider에서 넘어온 예외를 처리하기 위한 'try-catch'
+                    handleRefreshToken(httpRequest, httpResponse);
+                    if (httpResponse.isCommitted()) {
+                        return;
+                    }
+                } catch (InsufficientAuthenticationException e) {
+                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage(), e);
+                }
             }
-        } else {
-            handleRefreshToken(httpRequest, httpResponse);
-            if (httpResponse.isCommitted()) {
-                return;
-            }
+            chain.doFilter(request, response);
+        }catch(AuthenticationException e){
+            SecurityContextHolder.clearContext();
+            chain.doFilter(request, response); // ExceptionTranslationFilter로 전달하여 EntryPoint로 401 응답
         }
-
-        chain.doFilter(request, response);
     }
 
     // permitAll() 엔드포인트 처리
@@ -73,22 +83,26 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     // Refresh Token 처리 및 새로운 토큰 재생성
     private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
-        String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
+        try {
+            String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
-        if (refreshToken == null) {
-            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            if (refreshToken == null) {
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            }
+
+            boolean isValid = jwtTokenProvider.validateToken(refreshToken);
+            if (isValid) {
+                JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
+                setCookies(httpResponse, newTokens);
+                setAuthentication(newTokens.getAccessToken());
+                log.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
+            } else {
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            }
+        } catch (AuthenticationException e) {
+            SecurityContextHolder.clearContext();
+            throw e;
         }
-
-        boolean isValid = jwtTokenProvider.validateToken(refreshToken);
-        if (isValid) {
-            JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
-            setCookies(httpResponse, newTokens);
-            setAuthentication(newTokens.getAccessToken());
-            logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
-        } else {
-            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
-        }
-
     }
 
     // 쿠키 설정
