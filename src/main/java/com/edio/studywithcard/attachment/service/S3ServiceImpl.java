@@ -10,7 +10,6 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -31,7 +30,7 @@ public class S3ServiceImpl implements S3Service {
 
     private final String region = System.getProperty("AWS_REGION");
 
-    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
 
     /*
         S3 파일 업로드
@@ -76,7 +75,7 @@ public class S3ServiceImpl implements S3Service {
 
             DeleteObjectsRequest deleteObjectsRequest = DeleteObjectsRequest.builder()
                     .bucket(bucketName)
-                    .delete(Delete.builder().objects(objectIdentifiers).build())
+                    .delete(d -> d.objects(objectIdentifiers))
                     .build();
 
             // S3 API 호출로 다중 파일 삭제
