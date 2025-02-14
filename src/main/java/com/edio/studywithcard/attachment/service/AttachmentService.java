@@ -20,4 +20,7 @@ public interface AttachmentService {
 
     // 첨부 파일 삭제(Bulk)
     void deleteAllAttachments(List<String> fileKeys);
+
+    // 첨부 파일 삭제(단일)
+    void deleteAttachment(String fileKey);
 }
