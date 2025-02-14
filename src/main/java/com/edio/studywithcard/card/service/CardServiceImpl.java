@@ -15,6 +15,7 @@ import com.edio.studywithcard.deck.repository.DeckRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -41,47 +42,13 @@ public class CardServiceImpl implements CardService {
      */
     @Override
     @Transactional
-    public void createOrUpdateCards(CardBulkRequestWrapper cardBulkRequestWrapper) {
-
+    public void createOrUpdateCards(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
             log.info("bulkRequest : {}", request);
-            if (request.getCardId() == null) { // 등록
-                try {
-                    // Deck 조회
-                    Deck deck = deckRepository.findById(request.getDeckId())
-                            .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())));
-
-                    // 1. Card 생성 및 저장
-                    Card card = Card.builder()
-                            .deck(deck)
-                            .name(request.getName())
-                            .description(request.getDescription())
-                            .build();
-                    cardRepository.save(card);
-
-                    // 2. 첨부파일 처리 (이미지 & 오디오 개별 처리)
-                    processNewAttachment(request.getImage(), card);
-                    processNewAttachment(request.getAudio(), card);
-
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
-                }
-            } else { // 수정
-                Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
-                        .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())));
-
-                // 카드 이름 & 설명 업데이트
-                if (StringUtils.hasText(request.getName())) {
-                    existingCard.setName(request.getName());
-                }
-                if (StringUtils.hasText(request.getDescription())) {
-                    existingCard.setDescription(request.getDescription());
-                }
-
-                // 2. 첨부파일 처리 (이미지 & 오디오 개별 처리)
-                processUpdatedAttachment(request.getImage(), "image", existingCard);
-                processUpdatedAttachment(request.getAudio(), "audio", existingCard);
+            if (request.getCardId() == null) {
+                processCardCreation(accountId, request);
+            } else {
+                processCardUpdate(accountId, request);
             }
         }
     }
@@ -111,6 +78,58 @@ public class CardServiceImpl implements CardService {
         }
     }
 
+    // 카드 생성
+    private void processCardCreation(Long accountId, CardBulkRequest request) {
+        try {
+            Deck deck = deckRepository.findById(request.getDeckId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
+                    ));
+
+            validateOwnership(accountId, deck);
+
+            Card card = Card.builder()
+                    .deck(deck)
+                    .name(request.getName())
+                    .description(request.getDescription())
+                    .build();
+            cardRepository.save(card);
+
+            processNewAttachment(request.getImage(), card);
+            processNewAttachment(request.getAudio(), card);
+
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage());
+        }
+    }
+
+    // 카드 수정
+    private void processCardUpdate(Long accountId, CardBulkRequest request) {
+        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())
+                ));
+
+        validateOwnership(accountId, existingCard.getDeck());
+
+        if (StringUtils.hasText(request.getName())) {
+            existingCard.setName(request.getName());
+        }
+        if (StringUtils.hasText(request.getDescription())) {
+            existingCard.setDescription(request.getDescription());
+        }
+
+        processUpdatedAttachment(request.getImage(), "image", existingCard);
+        processUpdatedAttachment(request.getAudio(), "audio", existingCard);
+    }
+
+    // 수정 권한 검증
+    private void validateOwnership(Long accountId, Deck deck) {
+        if (!deck.getFolder().getAccountId().equals(accountId)) {
+            throw new AccessDeniedException(ErrorMessages.FORBIDDEN_NOT_OWNER.getMessage());
+        }
+    }
 
     /*
         파일 처리 메서드
