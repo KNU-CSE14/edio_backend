@@ -15,6 +15,7 @@ import com.edio.studywithcard.deck.repository.DeckRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -23,7 +24,6 @@ import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -42,69 +42,13 @@ public class CardServiceImpl implements CardService {
      */
     @Override
     @Transactional
-    public void createOrUpdateCards(CardBulkRequestWrapper cardBulkRequestWrapper) {
-
+    public void createOrUpdateCards(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
             log.info("bulkRequest : {}", request);
-            if (request.getCardId() == null) { // 등록
-                try {
-                    // Deck 조회
-                    Deck deck = deckRepository.findById(request.getDeckId())
-                            .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())));
-
-                    // 1. Card 생성 및 저장
-                    Card card = Card.builder()
-                            .deck(deck)
-                            .name(request.getName())
-                            .description(request.getDescription())
-                            .build();
-                    cardRepository.save(card);
-
-                    // 2. 첨부파일 처리
-                    for (MultipartFile file : Optional.ofNullable(request.getFiles()).orElse(new MultipartFile[0])) {
-                        if (file != null && !file.isEmpty()) {
-                            processAttachment(file, card);
-                        }
-                    }
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
-                }
-            } else { // 수정
-                Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
-                        .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())));
-
-                // 카드 이름
-                if (StringUtils.hasText(request.getName())) {
-                    existingCard.setName(request.getName());
-                }
-                // 카드 설명
-                if (StringUtils.hasText(request.getDescription())) {
-                    existingCard.setDescription(request.getDescription());
-                }
-
-                // 기존 첨부파일 삭제(Bulk 작업)
-                List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
-                        .map(AttachmentCardTarget::getAttachment)
-                        .filter(attachment -> !attachment.isDeleted())
-                        .map(Attachment::getFileKey)
-                        .collect(Collectors.toList());
-
-                if (!fileKeys.isEmpty()) {
-                    attachmentService.deleteAllAttachments(fileKeys);
-                }
-
-                // 업데이트 첨부파일 저장
-                for (MultipartFile file : Optional.ofNullable(request.getFiles()).orElse(new MultipartFile[0])) {
-                    if (file != null && !file.isEmpty()) {
-                        try {
-                            processAttachment(file, existingCard);
-                        } catch (IOException e) {
-                            log.error(e.getMessage());
-                            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
-                        }
-                    }
-                }
+            if (request.getCardId() == null) {
+                processCardCreation(accountId, request);
+            } else {
+                processCardUpdate(accountId, request);
             }
         }
     }
@@ -134,6 +78,58 @@ public class CardServiceImpl implements CardService {
         }
     }
 
+    // 카드 생성
+    private void processCardCreation(Long accountId, CardBulkRequest request) {
+        try {
+            Deck deck = deckRepository.findById(request.getDeckId())
+                    .orElseThrow(() -> new EntityNotFoundException(
+                            ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
+                    ));
+
+            validateOwnership(accountId, deck);
+
+            Card card = Card.builder()
+                    .deck(deck)
+                    .name(request.getName())
+                    .description(request.getDescription())
+                    .build();
+            cardRepository.save(card);
+
+            processNewAttachment(request.getImage(), card);
+            processNewAttachment(request.getAudio(), card);
+
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage());
+        }
+    }
+
+    // 카드 수정
+    private void processCardUpdate(Long accountId, CardBulkRequest request) {
+        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())
+                ));
+
+        validateOwnership(accountId, existingCard.getDeck());
+
+        if (StringUtils.hasText(request.getName())) {
+            existingCard.setName(request.getName());
+        }
+        if (StringUtils.hasText(request.getDescription())) {
+            existingCard.setDescription(request.getDescription());
+        }
+
+        processUpdatedAttachment(request.getImage(), "image", existingCard);
+        processUpdatedAttachment(request.getAudio(), "audio", existingCard);
+    }
+
+    // 수정 권한 검증
+    private void validateOwnership(Long accountId, Deck deck) {
+        if (!deck.getFolder().getAccountId().equals(accountId)) {
+            throw new AccessDeniedException(ErrorMessages.FORBIDDEN_NOT_OWNER.getMessage());
+        }
+    }
 
     /*
         파일 처리 메서드
@@ -156,6 +152,43 @@ public class CardServiceImpl implements CardService {
             attachmentService.saveAttachmentCardTarget(attachment, card);
         } else {
             throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
+        }
+    }
+
+    // 신규 첨부파일 저장 (등록 시)
+    private void processNewAttachment(MultipartFile file, Card card) throws IOException {
+        if (file != null && !file.isEmpty()) {
+            processAttachment(file, card);
+        }
+    }
+
+    // 기존 첨부파일 수정 처리 (수정 시)
+    private void processUpdatedAttachment(MultipartFile file, String fileType, Card card) {
+        if (file == null) return; // 요청에 필드 자체가 없으면 무시
+
+        String fileKey = card.getAttachmentCardTargets().stream()
+                .map(AttachmentCardTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted() && attachment.getFileType().contains(fileType))
+                .map(Attachment::getFileKey)
+                .findFirst()
+                .orElse(null);
+
+        if (file.isEmpty()) {
+            // 빈 파일이면 기존 파일 삭제
+            if (fileKey != null) {
+                attachmentService.deleteAttachment(fileKey);
+            }
+        } else {
+            // 새 파일이 들어오면 기존 파일 삭제 후 저장
+            if (fileKey != null) {
+                attachmentService.deleteAttachment(fileKey);
+            }
+            try {
+                processAttachment(file, card);
+            } catch (IOException e) {
+                log.error(e.getMessage());
+                throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
+            }
         }
     }
 }
