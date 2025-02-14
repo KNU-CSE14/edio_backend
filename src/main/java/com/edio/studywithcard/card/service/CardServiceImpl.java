@@ -23,7 +23,6 @@ import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -60,12 +59,10 @@ public class CardServiceImpl implements CardService {
                             .build();
                     cardRepository.save(card);
 
-                    // 2. 첨부파일 처리
-                    for (MultipartFile file : Optional.ofNullable(request.getFiles()).orElse(new MultipartFile[0])) {
-                        if (file != null && !file.isEmpty()) {
-                            processAttachment(file, card);
-                        }
-                    }
+                    // 2. 첨부파일 처리 (이미지 & 오디오 개별 처리)
+                    processNewAttachment(request.getImage(), card);
+                    processNewAttachment(request.getAudio(), card);
+
                 } catch (IOException e) {
                     log.error(e.getMessage());
                     throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
@@ -74,37 +71,17 @@ public class CardServiceImpl implements CardService {
                 Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
                         .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())));
 
-                // 카드 이름
+                // 카드 이름 & 설명 업데이트
                 if (StringUtils.hasText(request.getName())) {
                     existingCard.setName(request.getName());
                 }
-                // 카드 설명
                 if (StringUtils.hasText(request.getDescription())) {
                     existingCard.setDescription(request.getDescription());
                 }
 
-                // 기존 첨부파일 삭제(Bulk 작업)
-                List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
-                        .map(AttachmentCardTarget::getAttachment)
-                        .filter(attachment -> !attachment.isDeleted())
-                        .map(Attachment::getFileKey)
-                        .collect(Collectors.toList());
-
-                if (!fileKeys.isEmpty()) {
-                    attachmentService.deleteAllAttachments(fileKeys);
-                }
-
-                // 업데이트 첨부파일 저장
-                for (MultipartFile file : Optional.ofNullable(request.getFiles()).orElse(new MultipartFile[0])) {
-                    if (file != null && !file.isEmpty()) {
-                        try {
-                            processAttachment(file, existingCard);
-                        } catch (IOException e) {
-                            log.error(e.getMessage());
-                            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
-                        }
-                    }
-                }
+                // 2. 첨부파일 처리 (이미지 & 오디오 개별 처리)
+                processUpdatedAttachment(request.getImage(), "image", existingCard);
+                processUpdatedAttachment(request.getAudio(), "audio", existingCard);
             }
         }
     }
@@ -156,6 +133,43 @@ public class CardServiceImpl implements CardService {
             attachmentService.saveAttachmentCardTarget(attachment, card);
         } else {
             throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
+        }
+    }
+
+    // 신규 첨부파일 저장 (등록 시)
+    private void processNewAttachment(MultipartFile file, Card card) throws IOException {
+        if (file != null && !file.isEmpty()) {
+            processAttachment(file, card);
+        }
+    }
+
+    // 기존 첨부파일 수정 처리 (수정 시)
+    private void processUpdatedAttachment(MultipartFile file, String fileType, Card card) {
+        if (file == null) return; // 요청에 필드 자체가 없으면 무시
+
+        String fileKey = card.getAttachmentCardTargets().stream()
+                .map(AttachmentCardTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted() && attachment.getFileType().contains(fileType))
+                .map(Attachment::getFileKey)
+                .findFirst()
+                .orElse(null);
+
+        if (file.isEmpty()) {
+            // 빈 파일이면 기존 파일 삭제
+            if (fileKey != null) {
+                attachmentService.deleteAttachment(fileKey);
+            }
+        } else {
+            // 새 파일이 들어오면 기존 파일 삭제 후 저장
+            if (fileKey != null) {
+                attachmentService.deleteAttachment(fileKey);
+            }
+            try {
+                processAttachment(file, card);
+            } catch (IOException e) {
+                log.error(e.getMessage());
+                throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage()); // 422
+            }
         }
     }
 }
