@@ -7,6 +7,8 @@ import java.util.List;
 
 public interface S3Service {
     FileInfoResponse uploadFile(MultipartFile file, String folder);
-    
+
     void deleteFiles(List<String> fileKeys);
+
+    void deleteFile(String fileKey);
 }
