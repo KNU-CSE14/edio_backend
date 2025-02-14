@@ -13,6 +13,7 @@ public enum ErrorMessages {
     AUTHENTICATION_FAILED("E401-003", "Authentication Failed"), // AuthenticationException
 
     INVALID_CSRF_TOKEN("E403-001", "Invalid CSRF Token"), // AccessDeniedException
+    FORBIDDEN_NOT_OWNER("E403-002", "Not Resource Owner"), // AccessDeniedException
 
     DATA_NOT_FOUND("E404-001", "Data Not Found"), // NoSuchElementException
     NOT_FOUND_ENTITY("E404-002", "%s Not Found with ID: %s"), // EntityNotFoundException
