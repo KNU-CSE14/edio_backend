@@ -38,7 +38,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         // permitAll()로 설정된 엔드포인트에 대해서는 JWT 검증을 수행하지 않고 다음 필터로 요청을 전달
         if (isPermitAllEndpoint(requestURI)) {
-            handlePermitAllEndpoint(chain, request, response, requestURI);
+            handlePermitAllEndpoint(chain, request, response);
             return;
         }
 
@@ -61,7 +61,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     // permitAll() 엔드포인트 처리
-    private void handlePermitAllEndpoint(FilterChain chain, ServletRequest request, ServletResponse response, String requestURI) throws IOException, ServletException {
+    private void handlePermitAllEndpoint(FilterChain chain, ServletRequest request, ServletResponse response) throws IOException, ServletException {
         chain.doFilter(request, response);
     }
 

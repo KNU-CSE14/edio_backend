@@ -2,7 +2,6 @@ package com.edio.studywithcard.category.controller;
 
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.service.CategoryService;
-import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,7 +18,6 @@ public class CategoryController implements CategoryApiDoc {
 
     private final CategoryService categoryService;
 
-    @Operation(summary = "Category 조회", description = "Category를 조회합니다.")
     @GetMapping("/category")
     @Override
     public List<Category> getCategories() {
