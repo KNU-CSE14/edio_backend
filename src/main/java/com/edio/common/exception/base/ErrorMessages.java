@@ -8,8 +8,9 @@ import lombok.Getter;
 public enum ErrorMessages {
     BAD_REQUEST("E400-001", "Invalid Request"), // IllegalArgumentException
 
-    TOKEN_EXPIRED("E401-001", "Token Invalid or Expired"), // BadCredentialsException
-    AUTHENTICATION_FAILED("E401-002", "Authentication Failed"), // AuthenticationException
+    TOKEN_EXPIRED("E401-001", "Token Expired"), // BadCredentialsException
+    TOKEN_INVALID("E401-002", "Token Invalid"),
+    AUTHENTICATION_FAILED("E401-003", "Authentication Failed"), // AuthenticationException
 
     INVALID_CSRF_TOKEN("E403-001", "Invalid CSRF Token"), // AccessDeniedException
 

@@ -51,21 +51,17 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 if (isValid) {
                     setAuthentication(accessToken);
                 } else { // 토큰 검증 실패
-                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
                 }
             } else {
-                try { // JwtTokenProvider에서 넘어온 예외를 처리하기 위한 'try-catch'
-                    handleRefreshToken(httpRequest, httpResponse);
-                    if (httpResponse.isCommitted()) {
-                        return;
-                    }
-                } catch (InsufficientAuthenticationException e) {
-                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage(), e);
+                handleRefreshToken(httpRequest, httpResponse);
+                if (httpResponse.isCommitted()) {
+                    return;
                 }
             }
-            chain.doFilter(request, response);
         }catch(AuthenticationException e){
             SecurityContextHolder.clearContext();
+        }finally{
             chain.doFilter(request, response); // ExceptionTranslationFilter로 전달하여 EntryPoint로 401 응답
         }
     }
@@ -82,12 +78,12 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     // Refresh Token 처리 및 새로운 토큰 재생성
-    private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
+    private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse){
         try {
             String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
             if (refreshToken == null) {
-                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
             }
 
             boolean isValid = jwtTokenProvider.validateToken(refreshToken);
@@ -97,7 +93,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
                 setAuthentication(newTokens.getAccessToken());
                 log.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
             } else {
-                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
             }
         } catch (AuthenticationException e) {
             SecurityContextHolder.clearContext();
