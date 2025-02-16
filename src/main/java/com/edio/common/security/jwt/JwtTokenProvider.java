@@ -33,6 +33,9 @@ public class JwtTokenProvider {
     private final Key key;
 
     private static final String ACCOUNT_ID = "accountId";
+    private static final String CLAIM_AUTHORITY = "auth"; // 권한 정보를 저장하는 claim 키
+    private static final long ONE_HOUR_IN_MILLISECONDS = 3_600_000L; // 1시간
+    private static final long ONE_DAY_IN_MILLISECONDS = 86_400_000L; // 1일
 
     // application.properties에서 secret 값 가져와서 key에 저장
     public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
@@ -52,8 +55,8 @@ public class JwtTokenProvider {
         String loginId = customUserDetails.getUsername(); // 사용자 ID
         Long accountId = customUserDetails.getAccountId();
 
-        String accessToken = generateToken(loginId, authorities, accountId, 3600000); // 1시간
-        String refreshToken = generateToken(loginId, authorities, accountId, 86400000); // 1일
+        String accessToken = generateToken(loginId, authorities, accountId, ONE_HOUR_IN_MILLISECONDS);
+        String refreshToken = generateToken(loginId, authorities, accountId, ONE_DAY_IN_MILLISECONDS);
 
         // JWT 토큰 정보를 담은 JwtToken 객체 생성 및 반환
         return JwtToken.builder()
@@ -72,13 +75,13 @@ public class JwtTokenProvider {
             // UserDetails에서 CustomUserDetails 반환
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
 
-            Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get("auth").toString().split(","))
+            Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get(CLAIM_AUTHORITY).toString().split(","))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
             return new UsernamePasswordAuthenticationToken(userDetails, "", authorities);
         } catch (JwtException e) {
-            throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage(), e);
+            throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage(), e);
         }
     }
 
@@ -110,7 +113,7 @@ public class JwtTokenProvider {
     private String generateToken(String subject, String authorities, Long accountId, long expirationTime) {
         return Jwts.builder()
                 .setSubject(subject)
-                .claim("auth", authorities)
+                .claim(CLAIM_AUTHORITY, authorities)
                 .claim(ACCOUNT_ID, accountId)
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, SignatureAlgorithm.HS256)
@@ -121,7 +124,7 @@ public class JwtTokenProvider {
     public JwtToken refreshAccessAndRefreshTokens(String refreshToken) {
         try {
             if (!validateToken(refreshToken)) {
-                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
             }
 
             Claims claims = parseClaims(refreshToken); // 예외 발생 시 처리할 수 있도록 `try-catch` 내부에서 호출
@@ -134,11 +137,11 @@ public class JwtTokenProvider {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             String loginId = userDetails.getUsername();
             Long accountId = userDetails.getAccountId();
-            String authorities = claims.get("auth", String.class);
+            String authorities = claims.get(CLAIM_AUTHORITY, String.class);
 
             // Access Token & Refresh Token 생성
-            String newAccessToken = generateToken(loginId, authorities, accountId, 3600000); // 1시간
-            String newRefreshToken = generateToken(loginId, authorities, accountId, 86400000); // 1일
+            String newAccessToken = generateToken(loginId, authorities, accountId, ONE_HOUR_IN_MILLISECONDS); // 1시간
+            String newRefreshToken = generateToken(loginId, authorities, accountId, ONE_DAY_IN_MILLISECONDS); // 1일
 
             return JwtToken.builder()
                     .grantType("Bearer")
@@ -146,7 +149,7 @@ public class JwtTokenProvider {
                     .refreshToken(newRefreshToken)
                     .build();
         } catch (JwtException e) { // parseClaims()에서 발생하는 예외 처리
-            throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_EXPIRED.getMessage(), e);
+            throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage(), e);
         }
     }
 }
