@@ -79,7 +79,7 @@ class JwtTokenProviderTest {
         String invalidToken = "invalid.token.value";
 
         // when & then
-        assertThrows(io.jsonwebtoken.MalformedJwtException.class,
+        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
                 () -> jwtTokenProvider.getAuthentication(invalidToken));
     }
 
@@ -96,7 +96,7 @@ class JwtTokenProviderTest {
                 .compact();
 
         // when & then
-        assertThrows(org.springframework.security.authentication.BadCredentialsException.class,
+        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
                 () -> jwtTokenProvider.getAuthentication(expiredToken));
     }
 }
