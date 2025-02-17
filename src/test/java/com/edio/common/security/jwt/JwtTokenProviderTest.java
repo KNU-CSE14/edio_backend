@@ -37,21 +37,37 @@ class JwtTokenProviderTest {
         jwtTokenProvider = new JwtTokenProvider(userDetailsService, secretKey);
     }
 
+    /**
+     * 토큰 생성 헬퍼 메서드
+     *
+     * @param subject    토큰의 subject (예: 로그인 ID)
+     * @param auth       auth 값 (예: ROLE_USER), null인 경우 auth 클레임 없이 생성
+     * @param expiration 토큰 만료 시간, null인 경우 만료 시간 미설정
+     * @return 생성된 JWT 토큰 문자열
+     */
+    private String createToken(String subject, Object auth, Date expiration) {
+        Claims claims = Jwts.claims().setSubject(subject);
+        if (auth != null) {
+            claims.put("auth", auth);
+        }
+        if (expiration != null) {
+            claims.setExpiration(expiration);
+        }
+        return Jwts.builder()
+                .setClaims(claims)
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
+    }
+
     @Test
-    void testGetAuthentication() {
+    void 정상_토큰_인증정보_반환() {
         // given
         Long accountId = 1L;
         Long rootFolderId = 1L;
         String loginId = "629jyh7@gmail.com";
-        Claims claims = Jwts.claims().setSubject(loginId);
-        claims.put("auth", "ROLE_USER");
+        String token = createToken(loginId, "ROLE_USER", null);
 
-        String token = Jwts.builder()
-                .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
-
-        // Mock CustomUserDetails
+        // Mock 사용자 정보 생성
         CustomUserDetails userDetails = new CustomUserDetails(
                 accountId,
                 rootFolderId,
@@ -65,38 +81,48 @@ class JwtTokenProviderTest {
         Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
         // then
-        assertNotNull(authentication); // Authentication 객체가 null이 아닌지 확인
-        assertEquals(loginId, authentication.getName()); // 로그인 ID가 Claims에 설정된 값과 같은지 확인
-        assertEquals("ROLE_USER", authentication.getAuthorities().iterator().next().getAuthority()); // 권한 확인
+        assertNotNull(authentication, "Authentication 객체는 null이 아니어야 합니다.");
+        assertEquals(loginId, authentication.getName(), "로그인 ID가 일치해야 합니다.");
+        assertEquals("ROLE_USER", authentication.getAuthorities().iterator().next().getAuthority(), "권한은 ROLE_USER여야 합니다.");
 
-        // verify: UserDetailsService가 호출되었는지 확인
+        // verify: loadUserByUsername 메서드가 한 번 호출되었는지 검증
         verify(userDetailsService, times(1)).loadUserByUsername(loginId);
     }
 
     @Test
-    void testGetAuthenticationWithInvalidToken() {
+    void 잘못된_토큰_예외발생() {
         // given
         String invalidToken = "invalid.token.value";
 
         // when & then
         assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
-                () -> jwtTokenProvider.getAuthentication(invalidToken));
+                () -> jwtTokenProvider.getAuthentication(invalidToken),
+                "잘못된 토큰일 경우 InsufficientAuthenticationException 예외가 발생해야 합니다.");
     }
 
     @Test
-    void testGetAuthenticationWithExpiredToken() {
+    void 만료된_토큰_예외발생() {
         // given
-        Claims claims = Jwts.claims().setSubject("expired-user@gmail.com");
-        claims.put("auth", "ROLE_USER"); // 필요한 키 추가
-        claims.setExpiration(new Date(System.currentTimeMillis() - 60000)); // 만료된 토큰
-
-        String expiredToken = Jwts.builder()
-                .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
-                .compact();
+        String subject = "expired-user@gmail.com";
+        Date expiredDate = new Date(System.currentTimeMillis() - 60000); // 현재 시간보다 1분 이전
+        String expiredToken = createToken(subject, "ROLE_USER", expiredDate);
 
         // when & then
         assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
-                () -> jwtTokenProvider.getAuthentication(expiredToken));
+                () -> jwtTokenProvider.getAuthentication(expiredToken),
+                "만료된 토큰일 경우 InsufficientAuthenticationException 예외가 발생해야 합니다.");
+    }
+
+    @Test
+    void auth_클레임_없을때_예외발생() {
+        // given
+        String subject = "no-auth-user@gmail.com";
+        // auth 클레임 없이 토큰 생성
+        String tokenWithoutAuth = createToken(subject, null, null);
+
+        // when & then
+        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
+                () -> jwtTokenProvider.getAuthentication(tokenWithoutAuth),
+                "auth 클레임이 없으면 InsufficientAuthenticationException 예외가 발생해야 합니다.");
     }
 }
