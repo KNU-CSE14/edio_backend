@@ -3,11 +3,10 @@ package com.edio.studywithcard.card.controller;
 import com.edio.common.model.response.SwaggerCommonResponses;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
+import com.edio.studywithcard.card.model.request.CardsDeleteRequest;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
-import java.util.List;
 
 @Tag(name = "Card", description = "Card 관련 API")
 @SecurityRequirement(name = "bearerAuth")
@@ -20,8 +19,9 @@ public interface CardApiDoc {
     void createOrUpdateCards(CustomUserDetails userDetails, CardBulkRequestWrapper cardBulkRequestWrapper);
 
     /**
-     * @param request [] 삭제할 Card의 ID 리스트
+     * @param deckId  (deckId)
+     * @param cardIds (cardId List)
      */
-    @Operation(summary = "Cards 삭제", description = "Card를 삭제합니다.")
-    void deleteCards(List<Long> request);
+    @Operation(summary = "Card 삭제", description = "Card를 삭제합니다.")
+    void deleteCards(CustomUserDetails userDetails, CardsDeleteRequest request);
 }

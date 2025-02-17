@@ -7,5 +7,5 @@ import java.util.List;
 public interface CardService {
     void upsert(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper);
 
-    void deleteCards(List<Long> request);
+    void deleteCards(Long accountId, Long deckId, List<Long> cardIds);
 }

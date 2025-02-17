@@ -85,7 +85,11 @@ public class CardServiceImpl implements CardService {
    */
     @Override
     @Transactional
-    public void deleteCards(List<Long> cardIds) {
+    public void deleteCards(Long accountId, Long deckId, List<Long> cardIds) {
+        // 소유권 검증 수행
+        Deck deck = deckRepository.findById(deckId).orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), deckId)));
+        validateOwnership(accountId, deck);
+
         List<Card> existingCards = cardRepository.findAllById(cardIds).stream()
                 .filter(card -> !card.isDeleted())
                 .toList();
