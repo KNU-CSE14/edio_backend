@@ -16,6 +16,8 @@ import java.util.NoSuchElementException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    private static final String ERROR_OCCURRED = "Error occurred: {}";
+
     /**
      * BAD_REQUEST 동작(요청이 유효하지 않은 경우)
      *
@@ -24,7 +26,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
+        log.error(ERROR_OCCURRED, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
@@ -58,7 +60,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrityViolationException(DataIntegrityViolationException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
+        log.error(ERROR_OCCURRED, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
     }
 
@@ -70,7 +72,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
     public ResponseEntity<String> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
+        log.error(ERROR_OCCURRED, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
 
@@ -83,7 +85,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleIllegalStateException(IllegalStateException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
+        log.error(ERROR_OCCURRED, ex.getMessage());
 
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         if (ex.getMessage().contains("File")) {
@@ -102,7 +104,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<String> handleRuntimeException(RuntimeException ex) {
-        log.error("Error occurred: {}", ex.getMessage());
+        log.error(ERROR_OCCURRED, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
