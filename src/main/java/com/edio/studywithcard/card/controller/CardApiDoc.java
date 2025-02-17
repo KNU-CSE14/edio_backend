@@ -19,8 +19,7 @@ public interface CardApiDoc {
     void createOrUpdateCards(CustomUserDetails userDetails, CardBulkRequestWrapper cardBulkRequestWrapper);
 
     /**
-     * @param deckId  (deckId)
-     * @param cardIds (cardId List)
+     * @param request (deckId, cardIds) 덱 ID, 삭제할 카드 ID 리스트
      */
     @Operation(summary = "Card 삭제", description = "Card를 삭제합니다.")
     void deleteCards(CustomUserDetails userDetails, CardsDeleteRequest request);
