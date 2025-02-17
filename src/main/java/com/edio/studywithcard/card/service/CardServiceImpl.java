@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,14 +43,40 @@ public class CardServiceImpl implements CardService {
      */
     @Override
     @Transactional
-    public void createOrUpdateCards(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
+    public void upsert(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
+        List<Card> newCards = new ArrayList<>();
+
+        // 첫 요청에서 Deck ID를 가져옴
+        Long deckId = cardBulkRequestWrapper.getRequests().get(0).getDeckId();
+        Deck deck = deckRepository.findById(deckId).orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), deckId)));
+
+        // 소유권 검증 수행
+        validateOwnership(accountId, deck);
+
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
-            log.info("bulkRequest : {}", request);
+            log.info("bulkRequest : {}", request.toString());
             if (request.getCardId() == null) {
-                processCardCreation(accountId, request);
+                // 신규 카드: 객체만 생성하여 리스트에 추가
+                try {
+                    Card card = createCard(accountId, request);
+                    newCards.add(card);
+
+                    // 첨부파일은 개별 처리
+                    processNewAttachment(request.getImage(), card);
+                    processNewAttachment(request.getAudio(), card);
+                } catch (IOException e) {
+                    log.error(e.getMessage());
+                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage());
+                }
             } else {
+                // 기존 카드 업데이트는 Dirty Checking을 활용
                 processCardUpdate(accountId, request);
             }
+        }
+
+        // 신규 카드가 있다면 한 번에 배치 저장
+        if (!newCards.isEmpty()) {
+            cardRepository.saveAll(newCards);
         }
     }
 
@@ -58,50 +85,42 @@ public class CardServiceImpl implements CardService {
    */
     @Override
     @Transactional
-    public void deleteCards(List<Long> request) {
-        for (long cardId : request) {
-            Card existingCard = cardRepository.findByIdAndIsDeletedFalse(cardId)
-                    .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), cardId)));
+    public void deleteCards(List<Long> cardIds) {
+        List<Card> existingCards = cardRepository.findAllById(cardIds).stream()
+                .filter(card -> !card.isDeleted())
+                .toList();
 
-            // Bulk 작업
-            List<String> fileKeys = existingCard.getAttachmentCardTargets().stream()
-                    .map(AttachmentCardTarget::getAttachment)
-                    .filter(attachment -> !attachment.isDeleted())
-                    .map(Attachment::getFileKey)
-                    .collect(Collectors.toList());
-
-            if (!fileKeys.isEmpty()) {
-                attachmentService.deleteAllAttachments(fileKeys);
-            }
-
-            existingCard.setDeleted(true);
+        if (existingCards.isEmpty()) {
+            throw new EntityNotFoundException(Card.class.getSimpleName(), null);
         }
+
+        List<String> fileKeys = existingCards.stream()
+                .flatMap(card -> card.getAttachmentCardTargets().stream())
+                .map(AttachmentCardTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted())
+                .map(Attachment::getFileKey)
+                .collect(Collectors.toList());
+
+        if (!fileKeys.isEmpty()) {
+            attachmentService.deleteAllAttachments(fileKeys);
+        }
+
+        existingCards.forEach(card -> card.setDeleted(true));
     }
 
-    // 카드 생성
-    private void processCardCreation(Long accountId, CardBulkRequest request) {
-        try {
-            Deck deck = deckRepository.findById(request.getDeckId())
-                    .orElseThrow(() -> new EntityNotFoundException(
-                            ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
-                    ));
+    // 카드 객체 생성
+    private Card createCard(Long accountId, CardBulkRequest request) {
+        Deck deck = deckRepository.findById(request.getDeckId())
+                .orElseThrow(() -> new EntityNotFoundException(
+                        ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
+                ));
 
-            validateOwnership(accountId, deck);
-
-            Card card = Card.builder()
-                    .deck(deck)
-                    .name(request.getName())
-                    .description(request.getDescription())
-                    .build();
-            cardRepository.save(card);
-
-            processNewAttachment(request.getImage(), card);
-            processNewAttachment(request.getAudio(), card);
-
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage());
-        }
+        // Card 객체 생성 (아직 DB에 저장하지 않음)
+        return Card.builder()
+                .deck(deck)
+                .name(request.getName())
+                .description(request.getDescription())
+                .build();
     }
 
     // 카드 수정
@@ -110,8 +129,6 @@ public class CardServiceImpl implements CardService {
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())
                 ));
-
-        validateOwnership(accountId, existingCard.getDeck());
 
         if (StringUtils.hasText(request.getName())) {
             existingCard.setName(request.getName());

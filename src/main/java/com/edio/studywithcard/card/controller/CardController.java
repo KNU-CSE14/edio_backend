@@ -23,7 +23,7 @@ public class CardController implements CardApiDoc {
     @Override
     public void createOrUpdateCards(@AuthenticationPrincipal CustomUserDetails userDetails,
                                     @ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper) {
-        cardService.createOrUpdateCards(userDetails.getAccountId(), cardBulkRequestWrapper);
+        cardService.upsert(userDetails.getAccountId(), cardBulkRequestWrapper);
     }
 
     @DeleteMapping("/cards")
