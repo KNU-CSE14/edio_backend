@@ -194,16 +194,11 @@ public class CardServiceImpl implements CardService {
                 .findFirst()
                 .orElse(null);
 
-        if (file.isEmpty()) {
-            // 빈 파일이면 기존 파일 삭제
-            if (fileKey != null) {
-                attachmentService.deleteAttachment(fileKey);
-            }
-        } else {
-            // 새 파일이 들어오면 기존 파일 삭제 후 저장
-            if (fileKey != null) {
-                attachmentService.deleteAttachment(fileKey);
-            }
+        // 삭제 및 추가
+        if(fileKey != null) {
+            attachmentService.deleteAttachment(fileKey);
+        }
+        if(!file.isEmpty()) {
             try {
                 processAttachment(file, card);
             } catch (IOException e) {
