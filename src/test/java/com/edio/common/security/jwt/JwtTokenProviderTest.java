@@ -6,6 +6,8 @@ import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
+import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
@@ -53,9 +56,12 @@ class JwtTokenProviderTest {
         if (expiration != null) {
             claims.setExpiration(expiration);
         }
+
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        Key key = Keys.hmacShaKeyFor(keyBytes);
         return Jwts.builder()
                 .setClaims(claims)
-                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
