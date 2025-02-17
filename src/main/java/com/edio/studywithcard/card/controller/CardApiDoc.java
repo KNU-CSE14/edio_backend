@@ -6,8 +6,6 @@ import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.ModelAttribute;
 
 import java.util.List;
 
@@ -19,8 +17,7 @@ public interface CardApiDoc {
      * @param cardBulkRequestWrapper (cardId, deckId, name, description, files) 등록 or 수정 객체
      */
     @Operation(summary = "Card 등록|수정", description = "Card를 등록하거나 수정합니다.")
-    void createOrUpdateCards(@AuthenticationPrincipal CustomUserDetails userDetails,
-                             @ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper);
+    void createOrUpdateCards(CustomUserDetails userDetails, CardBulkRequestWrapper cardBulkRequestWrapper);
 
     /**
      * @param request [] 삭제할 Card의 ID 리스트

@@ -23,8 +23,8 @@ public class CardBulkRequest {
                 ", cardId=" + cardId +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", image=" + (image != null ? image.getOriginalFilename() : "null") +
-                ", audio=" + (audio != null ? audio.getOriginalFilename() : "null") +
+                ", image='" + image.getOriginalFilename() + '\'' +
+                ", audio='" + audio.getOriginalFilename() + '\'' +
                 '}';
     }
 }
