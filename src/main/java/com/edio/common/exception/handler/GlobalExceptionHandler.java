@@ -42,26 +42,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * NoSuchElementException
+     * NoSuchElementException, EntityNotFoundException
      *
      * @param ex
      * @return 404
      */
-    @ExceptionHandler(NoSuchElementException.class)
-    public ResponseEntity<String> handleNoSuchElementException(NoSuchElementException ex) {
-        log.error(ERROR_OCCURRED, ex.getMessage());
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-    }
-
-    /**
-     * EntityNotFoundException (명시적 호출)
-     *
-     * @param ex
-     * @return 404
-     */
-    @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
-        log.error(ERROR_OCCURRED, ex.getMessage());
+    @ExceptionHandler({NoSuchElementException.class, EntityNotFoundException.class})
+    public ResponseEntity<String> handleNotFoundExceptions(RuntimeException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
