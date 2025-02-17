@@ -3,16 +3,17 @@ package com.edio.common.security.jwt;
 import com.edio.common.exception.base.ErrorMessages;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -72,10 +73,16 @@ public class JwtTokenProvider {
             Claims claims = parseClaims(accessToken);
             String loginId = claims.getSubject();
 
+            // 필수 클레임이 존재하는지 확인
+            Object authClaim = claims.get(CLAIM_AUTHORITY);
+            if (authClaim == null) {
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
+            }
+
             // UserDetails에서 CustomUserDetails 반환
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
 
-            Collection<? extends GrantedAuthority> authorities = Arrays.stream(claims.get(CLAIM_AUTHORITY).toString().split(","))
+            Collection<? extends GrantedAuthority> authorities = Arrays.stream(authClaim.toString().split(","))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
