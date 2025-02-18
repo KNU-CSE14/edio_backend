@@ -74,15 +74,16 @@ public class JwtTokenProvider {
             String loginId = claims.getSubject();
 
             // 필수 클레임이 존재하는지 확인
-            Object authClaim = claims.get(CLAIM_AUTHORITY);
-            if (authClaim == null) {
+            String authClaim = claims.get(CLAIM_AUTHORITY, String.class);
+
+            if (authClaim == null || authClaim.trim().isEmpty()) {
                 throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
             }
 
             // UserDetails에서 CustomUserDetails 반환
             CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(loginId);
 
-            Collection<? extends GrantedAuthority> authorities = Arrays.stream(authClaim.toString().split(","))
+            Collection<? extends GrantedAuthority> authorities = Arrays.stream(authClaim.split(","))
                     .map(SimpleGrantedAuthority::new)
                     .collect(Collectors.toList());
 
