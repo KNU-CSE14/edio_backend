@@ -54,15 +54,13 @@ public class CardServiceTests {
     private CardServiceImpl cardService;
 
     private Deck dummyDeck;
-    private Folder dummyFolder;
 
     @BeforeEach
     void setUp() {
         dummyDeck = mock(Deck.class);
-        dummyFolder = mock(Folder.class);
 
-        when(dummyFolder.getAccountId()).thenReturn(accountId);
-        when(dummyDeck.getFolder()).thenReturn(dummyFolder);
+        // 소유권 검증
+        when(deckRepository.findAccountIdByDeckId(deckId)).thenReturn(accountId);
     }
 
     // ==================== 헬퍼 메서드 ====================
@@ -101,8 +99,7 @@ public class CardServiceTests {
         request.setAudio(audioFile);
         CardBulkRequestWrapper wrapper = createWrapper(request);
 
-        // 덱 조회 스텁 (요청에 사용된 deckId에 대해 dummyDeck 반환)
-        when(deckRepository.findById(eq(request.getDeckId()))).thenReturn(Optional.of(dummyDeck));
+        when(deckRepository.findById(deckId)).thenReturn(Optional.of(dummyDeck));
 
         // 첨부파일 저장 시 더미 Attachment 반환 설정
         // 이미지 저장 -> imageAttachment("imageKey")가 반환
@@ -131,6 +128,9 @@ public class CardServiceTests {
         assertEquals("Card with attachments", savedCard.getName());
         assertEquals("Description with attachments", savedCard.getDescription());
         assertEquals(dummyDeck, savedCard.getDeck());
+
+        // Deck의 소유자가 올바르게 설정되었는지 확인
+        verify(deckRepository, times(1)).findAccountIdByDeckId(deckId);
 
         // 첨부 파일이 올바르게 저장되었는지 검증
         verify(attachmentService, times(1)).saveAttachment(eq(imageFile), eq(AttachmentFolder.IMAGE.name()), eq(FileTarget.CARD.name()));
@@ -170,7 +170,6 @@ public class CardServiceTests {
 
         // repository 스텁 설정: cardId에 대해 기존 카드 반환
         when(cardRepository.findByIdAndIsDeletedFalse(cardId)).thenReturn(Optional.of(existingCard));
-        when(deckRepository.findById(eq(request.getDeckId()))).thenReturn(Optional.of(dummyDeck));
 
         // 새 이미지 저장 시 더미 Attachment 반환 설정
         Attachment newImageAttachment = Attachment.builder().fileKey("newImageKey").build();
@@ -183,6 +182,9 @@ public class CardServiceTests {
         // Then: 카드 정보 업데이트 검증
         assertEquals("Updated Name", existingCard.getName());
         assertEquals("Updated Description", existingCard.getDescription());
+
+        // Deck의 소유자가 올바르게 설정되었는지 확인
+        verify(deckRepository, times(1)).findAccountIdByDeckId(deckId);
 
         // 이미지: 기존 이미지 삭제 후 새 이미지 저장 및 연결 검증
         verify(attachmentService, times(1)).deleteAttachment("oldImageKey");
