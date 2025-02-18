@@ -13,7 +13,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 
@@ -42,22 +44,26 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             return;
         }
 
-        String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-        if (accessToken != null) {
-            boolean isValid = jwtTokenProvider.validateToken(accessToken);
-            if (isValid) {
-                setAuthentication(accessToken);
+        try{
+            String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
+            if (accessToken != null) {
+                boolean isValid = jwtTokenProvider.validateToken(accessToken);
+                if (isValid) {
+                    setAuthentication(accessToken);
+                } else { // 토큰 검증 실패
+                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
+                }
             } else {
-                throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+                handleRefreshToken(httpRequest, httpResponse);
+                if (httpResponse.isCommitted()) {
+                    return;
+                }
             }
-        } else {
-            handleRefreshToken(httpRequest, httpResponse);
-            if (httpResponse.isCommitted()) {
-                return;
-            }
+        }catch(AuthenticationException e){
+            SecurityContextHolder.clearContext();
+        }finally{
+            chain.doFilter(request, response); // ExceptionTranslationFilter로 전달하여 EntryPoint로 401 응답
         }
-
-        chain.doFilter(request, response);
     }
 
     // permitAll() 엔드포인트 처리
@@ -72,23 +78,27 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     }
 
     // Refresh Token 처리 및 새로운 토큰 재생성
-    private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse) throws IOException {
-        String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
+    private void handleRefreshToken(HttpServletRequest httpRequest, HttpServletResponse httpResponse){
+        try {
+            String refreshToken = resolveAccessAndRefreshToken(httpRequest, "refreshToken");
 
-        if (refreshToken == null) {
-            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
+            if (refreshToken == null) {
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
+            }
+
+            boolean isValid = jwtTokenProvider.validateToken(refreshToken);
+            if (isValid) {
+                JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
+                setCookies(httpResponse, newTokens);
+                setAuthentication(newTokens.getAccessToken());
+                log.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
+            } else {
+                throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
+            }
+        } catch (AuthenticationException e) {
+            SecurityContextHolder.clearContext();
+            throw e;
         }
-
-        boolean isValid = jwtTokenProvider.validateToken(refreshToken);
-        if (isValid) {
-            JwtToken newTokens = jwtTokenProvider.refreshAccessAndRefreshTokens(refreshToken);
-            setCookies(httpResponse, newTokens);
-            setAuthentication(newTokens.getAccessToken());
-            logger.info("Access Token 및 Refresh Token 재생성 완료 및 쿠키에 설정");
-        } else {
-            throw new BadCredentialsException(ErrorMessages.TOKEN_EXPIRED.getMessage());
-        }
-
     }
 
     // 쿠키 설정
