@@ -46,12 +46,11 @@ public class CardServiceImpl implements CardService {
     public void upsert(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
         List<Card> newCards = new ArrayList<>();
 
+        // 소유권 검증 수행(JQPL)
         // 첫 요청에서 Deck ID를 가져옴
         Long deckId = cardBulkRequestWrapper.getRequests().get(0).getDeckId();
-        Deck deck = deckRepository.findById(deckId).orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), deckId)));
-
-        // 소유권 검증 수행
-        validateOwnership(accountId, deck);
+        Long ownerId = deckRepository.findAccountIdByDeckId(deckId);
+        validateOwnership(accountId, ownerId);
 
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
             log.info("bulkRequest : {}", request.toString());
@@ -86,9 +85,9 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public void deleteCards(Long accountId, Long deckId, List<Long> cardIds) {
-        // 소유권 검증 수행
-        Deck deck = deckRepository.findById(deckId).orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), deckId)));
-        validateOwnership(accountId, deck);
+        // 소유권 검증 수행(JQPL)
+        Long ownerId = deckRepository.findAccountIdByDeckId(deckId);
+        validateOwnership(accountId, ownerId);
 
         List<Card> existingCards = cardRepository.findAllById(cardIds).stream()
                 .filter(card -> !card.isDeleted())
@@ -146,8 +145,8 @@ public class CardServiceImpl implements CardService {
     }
 
     // 수정 권한 검증
-    private void validateOwnership(Long accountId, Deck deck) {
-        if (!deck.getFolder().getAccountId().equals(accountId)) {
+    private void validateOwnership(Long accountId, Long ownerId) {
+        if (!accountId.equals(ownerId)) {
             throw new AccessDeniedException(ErrorMessages.FORBIDDEN_NOT_OWNER.getMessage());
         }
     }
