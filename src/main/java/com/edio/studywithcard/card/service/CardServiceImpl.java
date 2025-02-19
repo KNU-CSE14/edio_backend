@@ -7,6 +7,7 @@ import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
 import com.edio.studywithcard.attachment.domain.enums.FileTarget;
 import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.card.domain.Card;
+import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.card.model.request.CardBulkRequest;
 import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
@@ -38,13 +39,11 @@ public class CardServiceImpl implements CardService {
 
     private final AttachmentService attachmentService;
 
-    /*
-        카드 생성 or 수정
-     */
     @Override
     @Transactional
     public void upsert(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper) {
         List<Card> newCards = new ArrayList<>();
+        List<AttachmentBulkData> newAttachments = new ArrayList<>();
 
         // 소유권 검증 수행(JQPL)
         // 첫 요청에서 Deck ID를 가져옴
@@ -56,26 +55,39 @@ public class CardServiceImpl implements CardService {
             log.info("bulkRequest : {}", request.toString());
             if (request.getCardId() == null) {
                 // 신규 카드: 객체만 생성하여 리스트에 추가
-                try {
-                    Card card = createCard(accountId, request);
-                    newCards.add(card);
+                Card card = createCard(request);
+                newCards.add(card);
 
-                    // 첨부파일은 개별 처리
-                    processNewAttachment(request.getImage(), card);
-                    processNewAttachment(request.getAudio(), card);
-                } catch (IOException e) {
-                    log.error(e.getMessage());
-                    throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_ERROR.getMessage());
+                // 이미지 첨부파일이 존재하면 벌크 데이터에 추가
+                if (request.getImage() != null && !request.getImage().isEmpty()) {
+                    newAttachments.add(new AttachmentBulkData(
+                            request.getImage(), card,
+                            AttachmentFolder.IMAGE.name(),
+                            FileTarget.CARD.name()
+                    ));
+                }
+                // 오디오 첨부파일이 존재하면 벌크 데이터에 추가
+                if (request.getAudio() != null && !request.getAudio().isEmpty()) {
+                    newAttachments.add(new AttachmentBulkData(
+                            request.getAudio(), card,
+                            AttachmentFolder.AUDIO.name(),
+                            FileTarget.CARD.name()
+                    ));
                 }
             } else {
                 // 기존 카드 업데이트는 Dirty Checking을 활용
-                processCardUpdate(accountId, request);
+                processCardUpdate(request);
             }
         }
 
         // 신규 카드가 있다면 한 번에 배치 저장
         if (!newCards.isEmpty()) {
             cardRepository.saveAll(newCards);
+        }
+
+        // 첨부파일이 있다면 벌크 처리
+        if (!newAttachments.isEmpty()) {
+            attachmentService.saveAllAttachments(newAttachments);
         }
     }
 
@@ -112,7 +124,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 객체 생성
-    private Card createCard(Long accountId, CardBulkRequest request) {
+    private Card createCard(CardBulkRequest request) {
         Deck deck = deckRepository.findById(request.getDeckId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
@@ -127,7 +139,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 수정
-    private void processCardUpdate(Long accountId, CardBulkRequest request) {
+    private void processCardUpdate(CardBulkRequest request) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
                 .orElseThrow(() -> new EntityNotFoundException(
                         ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())
@@ -172,13 +184,6 @@ public class CardServiceImpl implements CardService {
             attachmentService.saveAttachmentCardTarget(attachment, card);
         } else {
             throw new IllegalStateException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
-        }
-    }
-
-    // 신규 첨부파일 저장 (등록 시)
-    private void processNewAttachment(MultipartFile file, Card card) throws IOException {
-        if (file != null && !file.isEmpty()) {
-            processAttachment(file, card);
         }
     }
 
