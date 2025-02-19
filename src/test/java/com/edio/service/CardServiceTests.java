@@ -6,6 +6,7 @@ import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
 import com.edio.studywithcard.attachment.domain.enums.FileTarget;
 import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.card.domain.Card;
+import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.card.model.request.CardBulkRequest;
 import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -101,42 +103,41 @@ public class CardServiceTests {
 
         when(deckRepository.findById(deckId)).thenReturn(Optional.of(dummyDeck));
 
-        // 첨부파일 저장 시 더미 Attachment 반환 설정
-        // 이미지 저장 -> imageAttachment("imageKey")가 반환
-        // 오디오 저장 -> audioAttachment("audioKey")가 반환
-        Attachment imageAttachment = Attachment.builder().fileKey("imageKey").build();
-        Attachment audioAttachment = Attachment.builder().fileKey("audioKey").build();
-        when(attachmentService.saveAttachment(eq(imageFile), eq(AttachmentFolder.IMAGE.name()), eq(FileTarget.CARD.name())))
-                .thenReturn(imageAttachment);
-        when(attachmentService.saveAttachment(eq(audioFile), eq(AttachmentFolder.AUDIO.name()), eq(FileTarget.CARD.name())))
-                .thenReturn(audioAttachment);
 
-        // When: 카드 생성 실행
+        // [when] 신규 카드 생성 실행
         cardService.upsert(accountId, wrapper);
 
-        // Then: 카드 저장 및 첨부파일 처리 검증
-
-        // cardRepository.saveAll()이 한 번 호출되었는지 검증
-        ArgumentCaptor<List<Card>> cardCaptor = ArgumentCaptor.forClass(List.class);
-        verify(cardRepository, times(1)).saveAll(cardCaptor.capture());
-
-        // 저장된 카드가 1개인지 검증
-        // 카드 정보가 올바르게 저장되었는지 확인
-        List<Card> savedCards = cardCaptor.getValue();
+        // [then] 카드 저장 및 첨부파일 처리 검증
+        ArgumentCaptor<List<Card>> captor = ArgumentCaptor.forClass(List.class);
+        verify(cardRepository, times(1)).saveAll(captor.capture());
+        List<Card> savedCards = captor.getValue();
         assertEquals(1, savedCards.size());
         Card savedCard = savedCards.get(0);
         assertEquals("Card with attachments", savedCard.getName());
         assertEquals("Description with attachments", savedCard.getDescription());
         assertEquals(dummyDeck, savedCard.getDeck());
 
-        // Deck의 소유자가 올바르게 설정되었는지 확인
-        verify(deckRepository, times(1)).findAccountIdByDeckId(deckId);
+        // [then] 첨부파일 벌크 처리 검증
+        ArgumentCaptor<List<AttachmentBulkData>> attachmentCaptor = ArgumentCaptor.forClass(List.class);
+        verify(attachmentService, times(1)).saveAllAttachments(attachmentCaptor.capture());
+        List<AttachmentBulkData> capturedAttachments = attachmentCaptor.getValue();
+        assertEquals(2, capturedAttachments.size());
 
-        // 첨부 파일이 올바르게 저장되었는지 검증
-        verify(attachmentService, times(1)).saveAttachment(eq(imageFile), eq(AttachmentFolder.IMAGE.name()), eq(FileTarget.CARD.name()));
-        verify(attachmentService, times(1)).saveAttachment(eq(audioFile), eq(AttachmentFolder.AUDIO.name()), eq(FileTarget.CARD.name()));
-        verify(attachmentService, times(1)).saveAttachmentCardTarget(imageAttachment, savedCard);
-        verify(attachmentService, times(1)).saveAttachmentCardTarget(audioAttachment, savedCard);
+        // 이미지 첨부파일 검증
+        boolean imageAttachmentExists = capturedAttachments.stream()
+                .anyMatch(abd -> abd.getFile() == imageFile &&
+                        abd.getFolder().equals(AttachmentFolder.IMAGE.name()) &&
+                        abd.getTarget().equals(FileTarget.CARD.name()) &&
+                        abd.getCard() == savedCard);
+        assertTrue(imageAttachmentExists, "Image attachment should exist");
+
+        // 오디오 첨부파일 검증
+        boolean audioAttachmentExists = capturedAttachments.stream()
+                .anyMatch(abd -> abd.getFile() == audioFile &&
+                        abd.getFolder().equals(AttachmentFolder.AUDIO.name()) &&
+                        abd.getTarget().equals(FileTarget.CARD.name()) &&
+                        abd.getCard() == savedCard);
+        assertTrue(audioAttachmentExists, "Audio attachment should exist");
     }
 
     @Test
