@@ -13,15 +13,12 @@ import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.card.service.CardServiceImpl;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
-import com.edio.studywithcard.folder.domain.Folder;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -84,7 +81,8 @@ public class CardServiceTests {
     }
 
     private CardBulkRequestWrapper createWrapper(CardBulkRequest request) {
-        CardBulkRequestWrapper wrapper = new CardBulkRequestWrapper() {};
+        CardBulkRequestWrapper wrapper = new CardBulkRequestWrapper() {
+        };
         wrapper.setRequests(Collections.singletonList(request));
         return wrapper;
     }
@@ -103,11 +101,10 @@ public class CardServiceTests {
 
         when(deckRepository.findById(deckId)).thenReturn(Optional.of(dummyDeck));
 
-
-        // [when] 신규 카드 생성 실행
+        // When: 신규 카드 생성 실행
         cardService.upsert(accountId, wrapper);
 
-        // [then] 카드 저장 및 첨부파일 처리 검증
+        // When: 카드 저장 및 첨부파일 처리 검증
         ArgumentCaptor<List<Card>> captor = ArgumentCaptor.forClass(List.class);
         verify(cardRepository, times(1)).saveAll(captor.capture());
         List<Card> savedCards = captor.getValue();
@@ -117,7 +114,7 @@ public class CardServiceTests {
         assertEquals("Description with attachments", savedCard.getDescription());
         assertEquals(dummyDeck, savedCard.getDeck());
 
-        // [then] 첨부파일 벌크 처리 검증
+        // Then: 첨부파일 벌크 처리 검증
         ArgumentCaptor<List<AttachmentBulkData>> attachmentCaptor = ArgumentCaptor.forClass(List.class);
         verify(attachmentService, times(1)).saveAllAttachments(attachmentCaptor.capture());
         List<AttachmentBulkData> capturedAttachments = attachmentCaptor.getValue();
@@ -144,7 +141,7 @@ public class CardServiceTests {
     void 기존_카드_수정_첨부파일_업데이트_테스트() throws Exception {
         // Given: 기존 카드 수정 요청
         Long cardId = 1L;
-        CardBulkRequest request = createCardRequest(cardId,  "Updated Name", "Updated Description");
+        CardBulkRequest request = createCardRequest(cardId, "Updated Name", "Updated Description");
 
         // 새로운 파일
         MultipartFile newImageFile = mockMultipartFile(false, IMAGE_MIME_JPEG);
@@ -163,9 +160,11 @@ public class CardServiceTests {
         Attachment oldAudioAttachment = Attachment.builder().fileKey("oldAudioKey").fileType(AUDIO_MIME_MPEG).build();
 
         // Entity에서는 Setter를 제공하지 않기 때문에 ReflectionTestUtils로 값 지정
-        AttachmentCardTarget imageTarget = new AttachmentCardTarget() {};
+        AttachmentCardTarget imageTarget = new AttachmentCardTarget() {
+        };
         ReflectionTestUtils.setField(imageTarget, "attachment", oldImageAttachment);
-        AttachmentCardTarget audioTarget = new AttachmentCardTarget() {};
+        AttachmentCardTarget audioTarget = new AttachmentCardTarget() {
+        };
         ReflectionTestUtils.setField(audioTarget, "attachment", oldAudioAttachment);
         ReflectionTestUtils.setField(existingCard, "attachmentCardTargets", List.of(imageTarget, audioTarget));
 
