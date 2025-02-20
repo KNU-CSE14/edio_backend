@@ -19,9 +19,6 @@ public interface AttachmentService {
     // Deck 중간 테이블 저장
     void saveAttachmentDeckTarget(Attachment attachment, Deck deck);
 
-    // Card 중간 테이블 저장
-    void saveAttachmentCardTarget(Attachment attachment, Card card);
-
     // 첨부 파일 삭제(Bulk)
     void deleteAllAttachments(List<String> fileKeys);
 
