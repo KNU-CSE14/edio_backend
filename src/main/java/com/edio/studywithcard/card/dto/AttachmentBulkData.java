@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class AttachmentBulkData {
     private MultipartFile file;
     private Card card;
-    private String folder;
-    private String target;
+    private String folder; // IMAGE, AUDIO
+    private String target; // CARD, DECK
+    private String oldFileKey;
 }

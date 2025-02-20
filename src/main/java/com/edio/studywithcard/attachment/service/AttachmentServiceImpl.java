@@ -74,11 +74,13 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         // DB에 벌크 저장 (saveAll 메서드를 사용)
         attachmentRepository.saveAll(attachments);
+
+        // AttachmentCardTarget 저장
         attachmentCardTargetRepository.saveAll(attachmentCardTargets);
     }
 
     /*
-        파일 업로드 및 Attachment 저장
+        파일 업로드 및 Attachment 저장 (Deck에서 사용)
      */
     @Override
     @Transactional
@@ -100,7 +102,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     }
 
     /*
-        AttachmentDeckTarget 저장
+        AttachmentDeckTarget 저장 (Deck에서 사용)
     */
     @Override
     @Transactional
@@ -110,19 +112,6 @@ public class AttachmentServiceImpl implements AttachmentService {
                 .deck(deck)
                 .build();
         attachmentDeckTargetRepository.save(attachmentDeckTarget);
-    }
-
-    /*
-        AttachmentCardTarget 저장
-    */
-    @Override
-    @Transactional
-    public void saveAttachmentCardTarget(Attachment attachment, Card card) {
-        AttachmentCardTarget attachmentCardTarget = AttachmentCardTarget.builder()
-                .attachment(attachment)
-                .card(card)
-                .build();
-        attachmentCardTargetRepository.save(attachmentCardTarget);
     }
 
     /*
