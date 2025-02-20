@@ -63,7 +63,7 @@ public class AttachmentServiceTests {
         fileKey = "image/test.jpg";
         fileSize = 1024L;
         fileType = "image/jpeg";
-        fileTarget = "DECK";
+        fileTarget = "CARD";
         s3FolderName = "image";
         String filePath = "image/test.jpg";
         String bucketName = "edio-file-bucket";
@@ -114,12 +114,13 @@ public class AttachmentServiceTests {
         List<Attachment> savedAttachments = attachmentsCaptor.getValue();
         assertEquals(1, savedAttachments.size());
         Attachment savedAttachment = savedAttachments.get(0);
-        assertEquals("test.jpg", savedAttachment.getFileName());
+
+        assertEquals(fileName, savedAttachment.getFileName());
         assertEquals(fileInfoResponse.fileKey(), savedAttachment.getFileKey());
         assertEquals(fileInfoResponse.filePath(), savedAttachment.getFilePath());
         assertEquals(mockFile.getSize(), savedAttachment.getFileSize());
         assertEquals(mockFile.getContentType(), savedAttachment.getFileType());
-        assertEquals("CARD", savedAttachment.getFileTarget());
+        assertEquals(bulkData.getTarget(), savedAttachment.getFileTarget());
 
         // AttachmentCardTargetRepository.saveAll 호출 검증: 각 Attachment와 Card 객체가 연결되어 저장되는지 확인
         ArgumentCaptor<List<AttachmentCardTarget>> targetCaptor = ArgumentCaptor.forClass(List.class);
@@ -127,6 +128,7 @@ public class AttachmentServiceTests {
         List<AttachmentCardTarget> savedTargets = targetCaptor.getValue();
         assertEquals(1, savedTargets.size());
         AttachmentCardTarget target = savedTargets.get(0);
+
         assertEquals(dummyCard, target.getCard());
         assertEquals(savedAttachment, target.getAttachment());
     }

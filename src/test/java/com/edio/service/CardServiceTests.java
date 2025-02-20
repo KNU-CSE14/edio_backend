@@ -185,6 +185,7 @@ public class CardServiceTests {
         ArgumentCaptor<List<String>> deleteCaptor = ArgumentCaptor.forClass(List.class);
         verify(attachmentService, times(1)).deleteAllAttachments(deleteCaptor.capture());
         List<String> deletedKeys = deleteCaptor.getValue();
+
         assertEquals(2, deletedKeys.size());
         assertTrue(deletedKeys.contains("oldImageKey"), "Old image key should be deleted");
         assertTrue(deletedKeys.contains("oldAudioKey"), "Old audio key should be deleted");
@@ -196,6 +197,7 @@ public class CardServiceTests {
         // 오직 새 이미지 파일에 대한 항목만 존재해야 함
         assertEquals(1, savedAttachments.size(), "Only one attachment (image) should be uploaded");
         AttachmentBulkData imageBulkData = savedAttachments.get(0);
+
         assertEquals(newImageFile, imageBulkData.getFile());
         assertEquals(AttachmentFolder.IMAGE.name(), imageBulkData.getFolder());
         assertEquals(FileTarget.CARD.name(), imageBulkData.getTarget());
