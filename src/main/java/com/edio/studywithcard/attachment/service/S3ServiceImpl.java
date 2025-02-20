@@ -10,9 +10,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
-import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -87,6 +85,30 @@ public class S3ServiceImpl implements S3Service {
             throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
+
+    /*
+        S3 단일 파일 삭제
+    */
+    @Override
+    @Transactional
+    public void deleteFile(String fileKey) {
+        try {
+            // S3 DeleteObjectRequest 생성
+            DeleteObjectRequest deleteObjectRequest = DeleteObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(fileKey)
+                    .build();
+
+            // S3 API 호출로 단일 파일 삭제
+            s3Client.deleteObject(deleteObjectRequest);
+
+            log.info("Successfully deleted file: {}", fileKey);
+        } catch (Exception e) {
+            log.error("알 수 없는 오류 발생 - 파일 삭제 실패: {}", fileKey, e);
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
+        }
+    }
+
 
     /*
         S3 업로드 파일명 생성

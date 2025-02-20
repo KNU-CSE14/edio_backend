@@ -5,7 +5,7 @@ import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import java.util.List;
 
 public interface CardService {
-    void createOrUpdateCards(CardBulkRequestWrapper cardBulkRequestWrapper);
+    void upsert(Long accountId, CardBulkRequestWrapper cardBulkRequestWrapper);
 
-    void deleteCards(List<Long> request);
+    void deleteCards(Long accountId, Long deckId, List<Long> cardIds);
 }
