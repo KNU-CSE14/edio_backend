@@ -116,7 +116,7 @@ public class CardServiceImpl implements CardService {
         newCards.add(card);
 
         // 이미지 첨부파일이 존재하면 벌크 데이터에 추가
-        if (request.getImage() != null && !request.getImage().isEmpty()) {
+        if (!request.getImage().isEmpty()) {
             newAttachments.add(new AttachmentBulkData(
                     request.getImage(), card,
                     AttachmentFolder.IMAGE.name(),
@@ -125,7 +125,7 @@ public class CardServiceImpl implements CardService {
             ));
         }
         // 오디오 첨부파일이 존재하면 벌크 데이터에 추가
-        if (request.getAudio() != null && !request.getAudio().isEmpty()) {
+        if (!request.getAudio().isEmpty()) {
             newAttachments.add(new AttachmentBulkData(
                     request.getAudio(), card,
                     AttachmentFolder.AUDIO.name(),
