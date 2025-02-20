@@ -50,55 +50,36 @@ public class CardServiceImpl implements CardService {
         List<AttachmentBulkData> newAttachments = new ArrayList<>();
         List<AttachmentBulkData> updateAttachments = new ArrayList<>();
 
-        // 소유권 검증 수행(JQPL)
-        // 첫 요청에서 Deck ID를 가져옴
+        // 소유권 검증
         Long deckId = cardBulkRequestWrapper.getRequests().get(0).getDeckId();
         Long ownerId = deckRepository.findAccountIdByDeckId(deckId);
         validateOwnership(accountId, ownerId);
 
+        // 각 요청에 대해 처리
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
-            log.info("bulkRequest : {}", request.toString());
+            log.info("bulkRequest : {}", request);
             if (request.getCardId() == null) {
                 processCardCreate(request, newCards, newAttachments);
             } else {
-                // 기존 카드 업데이트는 Dirty Checking을 활용
                 processCardUpdate(request, updateAttachments);
             }
         }
 
-        // 신규 카드가 있다면 한 번에 배치 저장
+        // 신규 카드 저장
         if (!newCards.isEmpty()) {
             cardRepository.saveAll(newCards);
         }
-
-        // 첨부파일이 있다면 벌크 처리
+        // 신규 첨부파일 저장
         if (!newAttachments.isEmpty()) {
             attachmentService.saveAllAttachments(newAttachments);
         }
-
-        if (!updateAttachments.isEmpty()) {
-            // 기존 파일 삭제 (파일이 null이어도 oldFileKey가 있으면 삭제 처리)
-            List<String> oldFileKeys = updateAttachments.stream()
-                    .map(AttachmentBulkData::getOldFileKey)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-            if (!oldFileKeys.isEmpty()) {
-                attachmentService.deleteAllAttachments(oldFileKeys);
-            }
-
-            // 새 파일 업로드: 파일이 존재하는 항목만 처리
-            List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
-                    .filter(data -> data.getFile() != null)
-                    .collect(Collectors.toList());
-            if (!attachmentsToUpload.isEmpty()) {
-                attachmentService.saveAllAttachments(attachmentsToUpload);
-            }
-        }
+        // 업데이트 첨부파일 처리: 기존 파일 및 신규 파일 처리
+        processUpdateAttachments(updateAttachments);
     }
 
     /*
        카드 삭제
-   */
+    */
     @Override
     @Transactional
     public void deleteCards(Long accountId, Long deckId, List<Long> cardIds) {
@@ -168,69 +149,9 @@ public class CardServiceImpl implements CardService {
             existingCard.setDescription(request.getDescription());
         }
 
-        // 이미지 업데이트 처리
-        if (request.getImage() != null) {
-            String oldImageKey = existingCard.getAttachmentCardTargets().stream()
-                    .map(AttachmentCardTarget::getAttachment)
-                    .filter(attachment -> !attachment.isDeleted() && attachment.getFileType().contains("image"))
-                    .map(Attachment::getFileKey)
-                    .findFirst()
-                    .orElse(null);
-
-            if (request.getImage().isEmpty()) {
-                // 빈 파일: 기존 파일이 있으면 삭제만 예약
-                if (oldImageKey != null) {
-                    updateAttachments.add(new AttachmentBulkData(
-                            null, // 파일 없음 → 삭제만 수행
-                            existingCard,
-                            AttachmentFolder.IMAGE.name(),
-                            FileTarget.CARD.name(),
-                            oldImageKey
-                    ));
-                }
-            } else {
-                // 파일이 들어있으면 기존 파일 삭제 후 새 파일 업로드 예약
-                updateAttachments.add(new AttachmentBulkData(
-                        request.getImage(),
-                        existingCard,
-                        AttachmentFolder.IMAGE.name(),
-                        FileTarget.CARD.name(),
-                        oldImageKey
-                ));
-            }
-        }
-
-        // 오디오 업데이트 처리
-        if (request.getAudio() != null) {
-            String oldAudioKey = existingCard.getAttachmentCardTargets().stream()
-                    .map(AttachmentCardTarget::getAttachment)
-                    .filter(attachment -> !attachment.isDeleted() && attachment.getFileType().contains("audio"))
-                    .map(Attachment::getFileKey)
-                    .findFirst()
-                    .orElse(null);
-
-            if (request.getAudio().isEmpty()) {
-                if (oldAudioKey != null) {
-                    updateAttachments.add(new AttachmentBulkData(
-                            null, // 파일 없음 → 삭제만 수행
-                            existingCard,
-                            AttachmentFolder.AUDIO.name(),
-                            FileTarget.CARD.name(),
-                            oldAudioKey
-                    ));
-                }
-            } else {
-                updateAttachments.add(new AttachmentBulkData(
-                        request.getAudio(),
-                        existingCard,
-                        AttachmentFolder.AUDIO.name(),
-                        FileTarget.CARD.name(),
-                        oldAudioKey
-                ));
-            }
-        }
-
-        
+        // 이미지 및 오디오 업데이트 처리 공통 로직 호출
+        processAttachmentUpdate(request.getImage(), existingCard, AttachmentFolder.IMAGE.name(), FileTarget.CARD.name(), updateAttachments);
+        processAttachmentUpdate(request.getAudio(), existingCard, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name(), updateAttachments);
     }
 
     // 카드 객체 생성
@@ -246,6 +167,49 @@ public class CardServiceImpl implements CardService {
                 .name(request.getName())
                 .description(request.getDescription())
                 .build();
+    }
+
+    // 첨부파일 업데이트 처리: 파일이 null이면 아무 작업도 안하고, 빈 파일이면 삭제 예약, 파일 있으면 삭제 후 업로드 예약
+    private void processAttachmentUpdate(MultipartFile file, Card card, String folder, String target, List<AttachmentBulkData> updateAttachments) {
+        if (file == null) return; // 필드 자체가 없으면 아무 작업도 하지 않음
+
+        String oldFileKey = card.getAttachmentCardTargets().stream()
+                .map(AttachmentCardTarget::getAttachment)
+                .filter(attachment -> !attachment.isDeleted() && attachment.getFileType().contains(folder.toLowerCase()))
+                .map(Attachment::getFileKey)
+                .findFirst()
+                .orElse(null);
+
+        if (file.isEmpty()) {
+            if (oldFileKey != null) {
+                // 파일은 없으나 기존 파일 삭제만 수행
+                updateAttachments.add(new AttachmentBulkData(null, card, folder, target, oldFileKey));
+            }
+        } else {
+            updateAttachments.add(new AttachmentBulkData(file, card, folder, target, oldFileKey));
+        }
+    }
+
+    // 업데이트 첨부파일 처리: 기존 파일 및 새 파일 처리
+    private void processUpdateAttachments(List<AttachmentBulkData> updateAttachments) {
+        if (updateAttachments.isEmpty()) return;
+
+        // 삭제 대상 파일 키 수집 (null이 아닌 경우)
+        List<String> oldFileKeys = updateAttachments.stream()
+                .map(AttachmentBulkData::getOldFileKey)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+        if (!oldFileKeys.isEmpty()) {
+            attachmentService.deleteAllAttachments(oldFileKeys);
+        }
+
+        // 파일이 존재하는 항목만 새 파일 업로드 대상으로 처리
+        List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
+                .filter(data -> data.getFile() != null)
+                .collect(Collectors.toList());
+        if (!attachmentsToUpload.isEmpty()) {
+            attachmentService.saveAllAttachments(attachmentsToUpload);
+        }
     }
 
     // 수정 권한 검증

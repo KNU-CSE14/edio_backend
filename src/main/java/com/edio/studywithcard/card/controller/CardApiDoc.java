@@ -16,7 +16,7 @@ public interface CardApiDoc {
      * @param cardBulkRequestWrapper (cardId, deckId, name, description, files) 등록 or 수정 객체
      */
     @Operation(summary = "Card 등록|수정", description = "Card를 등록하거나 수정합니다.")
-    void createOrUpdateCards(CustomUserDetails userDetails, CardBulkRequestWrapper cardBulkRequestWrapper);
+    void upsertCards(CustomUserDetails userDetails, CardBulkRequestWrapper cardBulkRequestWrapper);
 
     /**
      * @param request (deckId, cardIds) 덱 ID, 삭제할 카드 ID 리스트

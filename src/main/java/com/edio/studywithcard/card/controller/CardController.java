@@ -20,7 +20,7 @@ public class CardController implements CardApiDoc {
 
     @PostMapping(value = "/cards", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public void createOrUpdateCards(@AuthenticationPrincipal CustomUserDetails userDetails,
+    public void upsertCards(@AuthenticationPrincipal CustomUserDetails userDetails,
                                     @ModelAttribute CardBulkRequestWrapper cardBulkRequestWrapper) {
         cardService.upsert(userDetails.getAccountId(), cardBulkRequestWrapper);
     }
