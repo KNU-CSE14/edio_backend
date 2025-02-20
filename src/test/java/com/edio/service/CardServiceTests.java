@@ -171,11 +171,6 @@ public class CardServiceTests {
         // repository 스텁 설정: cardId에 대해 기존 카드 반환
         when(cardRepository.findByIdAndIsDeletedFalse(cardId)).thenReturn(Optional.of(existingCard));
 
-        // 새 이미지 저장 시 더미 Attachment 반환 설정
-        Attachment newImageAttachment = Attachment.builder().fileKey("newImageKey").build();
-        when(attachmentService.saveAttachment(eq(newImageFile), eq(AttachmentFolder.IMAGE.name()), eq(FileTarget.CARD.name())))
-                .thenReturn(newImageAttachment);
-
         // When: 기존 카드 업데이트 실행
         cardService.upsert(accountId, wrapper);
 
@@ -186,13 +181,25 @@ public class CardServiceTests {
         // Deck의 소유자가 올바르게 설정되었는지 확인
         verify(deckRepository, times(1)).findAccountIdByDeckId(deckId);
 
-        // 이미지: 기존 이미지 삭제 후 새 이미지 저장 및 연결 검증
-        verify(attachmentService, times(1)).deleteAttachment("oldImageKey");
-        verify(attachmentService, times(1)).saveAttachment(eq(newImageFile), eq(AttachmentFolder.IMAGE.name()), eq(FileTarget.CARD.name()));
-        verify(attachmentService, times(1)).saveAttachmentCardTarget(newImageAttachment, existingCard);
+        // Then: bulk 삭제 검증 - 두 요청 모두 기존 파일 키가 삭제 대상에 포함되어야 함
+        ArgumentCaptor<List<String>> deleteCaptor = ArgumentCaptor.forClass(List.class);
+        verify(attachmentService, times(1)).deleteAllAttachments(deleteCaptor.capture());
+        List<String> deletedKeys = deleteCaptor.getValue();
+        assertEquals(2, deletedKeys.size());
+        assertTrue(deletedKeys.contains("oldImageKey"), "Old image key should be deleted");
+        assertTrue(deletedKeys.contains("oldAudioKey"), "Old audio key should be deleted");
 
-        // 오디오: 빈 파일이면 기존 오디오 삭제만 검증
-        verify(attachmentService, times(1)).deleteAttachment("oldAudioKey");
-        verify(attachmentService, never()).saveAttachment(eq(emptyAudioFile), eq(AttachmentFolder.AUDIO.name()), eq(FileTarget.CARD.name()));
+        // Then: bulk 업로드 검증 - 파일이 존재하는 항목만 처리 (즉, 이미지 업데이트만 있음)
+        ArgumentCaptor<List<AttachmentBulkData>> saveCaptor = ArgumentCaptor.forClass(List.class);
+        verify(attachmentService, times(1)).saveAllAttachments(saveCaptor.capture());
+        List<AttachmentBulkData> savedAttachments = saveCaptor.getValue();
+        // 오직 새 이미지 파일에 대한 항목만 존재해야 함
+        assertEquals(1, savedAttachments.size(), "Only one attachment (image) should be uploaded");
+        AttachmentBulkData imageBulkData = savedAttachments.get(0);
+        assertEquals(newImageFile, imageBulkData.getFile());
+        assertEquals(AttachmentFolder.IMAGE.name(), imageBulkData.getFolder());
+        assertEquals(FileTarget.CARD.name(), imageBulkData.getTarget());
+        assertEquals(existingCard, imageBulkData.getCard());
+        assertEquals("oldImageKey", imageBulkData.getOldFileKey());
     }
 }
