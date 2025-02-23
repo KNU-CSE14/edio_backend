@@ -66,13 +66,11 @@ public class CardServiceImpl implements CardService {
         }
 
         // 신규 카드 저장
-        if (!newCards.isEmpty()) {
-            cardRepository.saveAll(newCards);
-        }
+        cardRepository.saveAll(newCards);
+
         // 신규 첨부파일 저장
-        if (!newAttachments.isEmpty()) {
-            attachmentService.saveAllAttachments(newAttachments);
-        }
+        attachmentService.saveAllAttachments(newAttachments);
+
         // 업데이트 첨부파일 처리: 기존 파일 및 신규 파일 처리
         processUpdateAttachments(updateAttachments);
     }
@@ -117,21 +115,11 @@ public class CardServiceImpl implements CardService {
 
         // 이미지 첨부파일이 존재하면 벌크 데이터에 추가
         if (!request.getImage().isEmpty()) {
-            newAttachments.add(new AttachmentBulkData(
-                    request.getImage(), card,
-                    AttachmentFolder.IMAGE.name(),
-                    FileTarget.CARD.name(),
-                    null
-            ));
+            newAttachments.add(new AttachmentBulkData(request.getImage(), card, AttachmentFolder.IMAGE.name(), FileTarget.CARD.name(), null));
         }
         // 오디오 첨부파일이 존재하면 벌크 데이터에 추가
         if (!request.getAudio().isEmpty()) {
-            newAttachments.add(new AttachmentBulkData(
-                    request.getAudio(), card,
-                    AttachmentFolder.AUDIO.name(),
-                    FileTarget.CARD.name(),
-                    null
-            ));
+            newAttachments.add(new AttachmentBulkData(request.getAudio(), card, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name(), null));
         }
     }
 
@@ -150,8 +138,8 @@ public class CardServiceImpl implements CardService {
         }
 
         // 이미지 및 오디오 업데이트 처리 공통 로직 호출
-        processAttachmentUpdate(request.getImage(), existingCard, AttachmentFolder.IMAGE.name(), FileTarget.CARD.name(), updateAttachments);
-        processAttachmentUpdate(request.getAudio(), existingCard, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name(), updateAttachments);
+        createAttachment(request.getImage(), existingCard, AttachmentFolder.IMAGE.name(), FileTarget.CARD.name(), updateAttachments);
+        createAttachment(request.getAudio(), existingCard, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name(), updateAttachments);
     }
 
     // 카드 객체 생성
@@ -169,8 +157,8 @@ public class CardServiceImpl implements CardService {
                 .build();
     }
 
-    // 첨부파일 업데이트 처리: 파일이 null이면 아무 작업도 안하고, 빈 파일이면 삭제 예약, 파일 있으면 삭제 후 업로드 예약
-    private void processAttachmentUpdate(MultipartFile file, Card card, String folder, String target, List<AttachmentBulkData> updateAttachments) {
+    // 첨부파일 업데이트 객체 생성: 파일이 null이면 아무 작업도 안하고, 빈 파일이면 삭제 예약, 파일 있으면 삭제 후 업로드 예약
+    private void createAttachment(MultipartFile file, Card card, String folder, String target, List<AttachmentBulkData> updateAttachments) {
         if (file == null) return; // 필드 자체가 없으면 아무 작업도 하지 않음
 
         String oldFileKey = card.getAttachmentCardTargets().stream()
@@ -199,17 +187,15 @@ public class CardServiceImpl implements CardService {
                 .map(AttachmentBulkData::getOldFileKey)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
-        if (!oldFileKeys.isEmpty()) {
-            attachmentService.deleteAllAttachments(oldFileKeys);
-        }
+
+        attachmentService.deleteAllAttachments(oldFileKeys);
 
         // 파일이 존재하는 항목만 새 파일 업로드 대상으로 처리
         List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
                 .filter(data -> data.getFile() != null)
                 .collect(Collectors.toList());
-        if (!attachmentsToUpload.isEmpty()) {
-            attachmentService.saveAllAttachments(attachmentsToUpload);
-        }
+
+        attachmentService.saveAllAttachments(attachmentsToUpload);
     }
 
     // 수정 권한 검증
