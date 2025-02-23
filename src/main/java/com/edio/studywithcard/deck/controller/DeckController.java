@@ -22,20 +22,20 @@ public class DeckController implements DeckApiDoc {
 
     @GetMapping("/deck")
     @Override
-    public DeckResponse getDeck(@RequestParam Long id) {
+    public DeckResponse getDeck(@RequestParam(value = "id") Long id) {
         return deckService.getDeck(id);
     }
 
     @PostMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public DeckResponse createDeck(@RequestPart DeckCreateRequest request,
+    public DeckResponse createDeck(@RequestPart(value = "request") DeckCreateRequest request,
                                    @RequestPart(value = "file", required = false) MultipartFile file) {
         return deckService.createDeck(request, file);
     }
 
     @PatchMapping(value = "/deck", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Override
-    public void updateDeck(@RequestPart DeckUpdateRequest request,
+    public void updateDeck(@RequestPart(value = "request") DeckUpdateRequest request,
                            @RequestPart(value = "file", required = false) MultipartFile file) {
         deckService.updateDeck(request, file);
     }
