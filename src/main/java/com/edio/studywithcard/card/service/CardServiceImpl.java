@@ -48,18 +48,13 @@ public class CardServiceImpl implements CardService {
         List<AttachmentBulkData> newAttachments = new ArrayList<>();
         List<AttachmentBulkData> updateAttachments = new ArrayList<>();
 
-        // 소유권 검증
-        Long deckId = cardBulkRequestWrapper.getRequests().get(0).getDeckId();
-        Long ownerId = deckRepository.findAccountIdByDeckId(deckId);
-        validateOwnership(accountId, ownerId);
-
         // 각 요청에 대해 처리
         for (CardBulkRequest request : cardBulkRequestWrapper.getRequests()) {
             log.info("bulkRequest : {}", request);
             if (request.getCardId() == null) {
-                processCardCreate(request, newCards, newAttachments);
+                processCardCreate(accountId, request, newCards, newAttachments);
             } else {
-                processCardUpdate(request, updateAttachments);
+                processCardUpdate(accountId, request, updateAttachments);
             }
         }
 
@@ -79,10 +74,6 @@ public class CardServiceImpl implements CardService {
     @Override
     @Transactional
     public void deleteCards(Long accountId, Long deckId, List<Long> cardIds) {
-        // 소유권 검증 수행(JQPL)
-        Long ownerId = deckRepository.findAccountIdByDeckId(deckId);
-        validateOwnership(accountId, ownerId);
-
         List<Card> existingCards = cardRepository.findAllById(cardIds).stream()
                 .filter(card -> !card.isDeleted())
                 .toList();
@@ -90,6 +81,9 @@ public class CardServiceImpl implements CardService {
         if (existingCards.isEmpty()) {
             throw new EntityNotFoundException(Card.class.getSimpleName(), null);
         }
+
+        // 소유권 검증 (현재 카드는 1개의 덱에 속해있기 때문에 첫 번째 deck의 accountId로 검증 가능)
+        validateOwnership(accountId, existingCards.get(0).getDeck().getFolder().getAccountId());
 
         List<String> fileKeys = existingCards.stream()
                 .flatMap(card -> card.getAttachmentCardTargets().stream())
@@ -106,9 +100,14 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 생성
-    private void processCardCreate(CardBulkRequest request, List<Card> newCards, List<AttachmentBulkData> newAttachments) {
+    private void processCardCreate(Long accountId, CardBulkRequest request, List<Card> newCards, List<AttachmentBulkData> newAttachments) {
+        Deck deck = deckRepository.findByIdAndIsDeletedFalse(request.getDeckId()).get();
+
+        // 소유권 검증
+        validateOwnership(accountId, deck.getFolder().getAccountId());
+
         // 신규 카드: 객체만 생성하여 리스트에 추가
-        Card card = createCard(request);
+        Card card = createCard(request, deck);
         newCards.add(card);
 
         // 이미지 첨부파일이 존재하면 벌크 데이터에 추가
@@ -122,8 +121,11 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 수정
-    private void processCardUpdate(CardBulkRequest request, List<AttachmentBulkData> updateAttachments) {
+    private void processCardUpdate(Long accountId, CardBulkRequest request, List<AttachmentBulkData> updateAttachments) {
         Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId()).get();
+
+        // 소유권 검증
+        validateOwnership(accountId, existingCard.getDeck().getFolder().getAccountId());
 
         if (StringUtils.hasText(request.getName())) {
             existingCard.setName(request.getName());
@@ -138,9 +140,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 객체 생성
-    private Card createCard(CardBulkRequest request) {
-        Deck deck = deckRepository.findById(request.getDeckId()).get();
-
+    private Card createCard(CardBulkRequest request, Deck deck) {
         // Card 객체 생성 (아직 DB에 저장하지 않음)
         return Card.builder()
                 .deck(deck)

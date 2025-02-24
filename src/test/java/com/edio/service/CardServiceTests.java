@@ -13,6 +13,7 @@ import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.card.service.CardServiceImpl;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
+import com.edio.studywithcard.folder.domain.Folder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +30,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -53,13 +53,15 @@ public class CardServiceTests {
     private CardServiceImpl cardService;
 
     private Deck dummyDeck;
+    private Folder dummyFolder;
 
     @BeforeEach
     void setUp() {
-        dummyDeck = mock(Deck.class);
+        dummyFolder = mock(Folder.class);
+        when(dummyFolder.getAccountId()).thenReturn(accountId);
 
-        // 소유권 검증
-        when(deckRepository.findAccountIdByDeckId(deckId)).thenReturn(accountId);
+        dummyDeck = mock(Deck.class);
+        when(dummyDeck.getFolder()).thenReturn(dummyFolder);
     }
 
     // ==================== 헬퍼 메서드 ====================
@@ -99,7 +101,7 @@ public class CardServiceTests {
         request.setAudio(audioFile);
         CardBulkRequestWrapper wrapper = createWrapper(request);
 
-        when(deckRepository.findById(deckId)).thenReturn(Optional.of(dummyDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(deckId)).thenReturn(Optional.of(dummyDeck));
 
         // When: 신규 카드 생성 실행
         cardService.upsert(accountId, wrapper);
@@ -154,6 +156,7 @@ public class CardServiceTests {
         Card existingCard = Card.builder()
                 .name("Old Name")
                 .description("Old Description")
+                .deck(dummyDeck)
                 .build();
         // 기존에 저장된 이미지, 오디오 첨부파일 설정
         Attachment oldImageAttachment = Attachment.builder().fileKey("oldImageKey").fileType(IMAGE_MIME_JPEG).build();
@@ -178,9 +181,6 @@ public class CardServiceTests {
         assertEquals("Updated Name", existingCard.getName());
         assertEquals("Updated Description", existingCard.getDescription());
 
-        // Deck의 소유자가 올바르게 설정되었는지 확인
-        verify(deckRepository, times(1)).findAccountIdByDeckId(deckId);
-
         // Then: bulk 삭제 검증 - 두 요청 모두 기존 파일 키가 삭제 대상에 포함되어야 함
         ArgumentCaptor<List<String>> deleteCaptor = ArgumentCaptor.forClass(List.class);
         verify(attachmentService, times(1)).deleteAllAttachments(deleteCaptor.capture());
@@ -190,13 +190,19 @@ public class CardServiceTests {
         assertTrue(deletedKeys.contains("oldImageKey"), "Old image key should be deleted");
         assertTrue(deletedKeys.contains("oldAudioKey"), "Old audio key should be deleted");
 
-        // Then: bulk 업로드 검증 - 파일이 존재하는 항목만 처리 (즉, 이미지 업데이트만 있음)
+        // 두 번 호출되도록 검증 (첫 번째: newAttachments, 두 번째: updateAttachments에서 파일이 존재하는 항목)
         ArgumentCaptor<List<AttachmentBulkData>> saveCaptor = ArgumentCaptor.forClass(List.class);
-        verify(attachmentService, times(1)).saveAllAttachments(saveCaptor.capture());
-        List<AttachmentBulkData> savedAttachments = saveCaptor.getValue();
-        // 오직 새 이미지 파일에 대한 항목만 존재해야 함
-        assertEquals(1, savedAttachments.size(), "Only one attachment (image) should be uploaded");
-        AttachmentBulkData imageBulkData = savedAttachments.get(0);
+        verify(attachmentService, times(2)).saveAllAttachments(saveCaptor.capture());
+        List<List<AttachmentBulkData>> allSaveCalls = saveCaptor.getAllValues();
+
+        // 첫 번째 호출은 newAttachments인데, 이 경우 빈 리스트여야 함
+        List<AttachmentBulkData> firstCallAttachments = allSaveCalls.get(0);
+        assertTrue(firstCallAttachments.isEmpty(), "첫 번째 호출은 빈 리스트여야 합니다.");
+
+        // 두 번째 호출은 processUpdateAttachments에서 호출되며, 새 이미지 파일만 포함된 리스트여야 함
+        List<AttachmentBulkData> secondCallAttachments = allSaveCalls.get(1);
+        assertEquals(1, secondCallAttachments.size(), "두 번째 호출에는 이미지 첨부파일 항목만 있어야 합니다.");
+        AttachmentBulkData imageBulkData = secondCallAttachments.get(0);
 
         assertEquals(newImageFile, imageBulkData.getFile());
         assertEquals(AttachmentFolder.IMAGE.name(), imageBulkData.getFolder());
