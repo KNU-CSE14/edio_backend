@@ -21,9 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.UnsupportedMediaTypeStatusException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -108,7 +106,7 @@ public class CardServiceImpl implements CardService {
     }
 
     // 카드 생성
-    private void processCardCreate(CardBulkRequest request, List<Card> newCards, List<AttachmentBulkData> newAttachments){
+    private void processCardCreate(CardBulkRequest request, List<Card> newCards, List<AttachmentBulkData> newAttachments) {
         // 신규 카드: 객체만 생성하여 리스트에 추가
         Card card = createCard(request);
         newCards.add(card);
@@ -125,10 +123,7 @@ public class CardServiceImpl implements CardService {
 
     // 카드 수정
     private void processCardUpdate(CardBulkRequest request, List<AttachmentBulkData> updateAttachments) {
-        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        ErrorMessages.NOT_FOUND_ENTITY.format(Card.class.getSimpleName(), request.getCardId())
-                ));
+        Card existingCard = cardRepository.findByIdAndIsDeletedFalse(request.getCardId()).get();
 
         if (StringUtils.hasText(request.getName())) {
             existingCard.setName(request.getName());
@@ -144,10 +139,7 @@ public class CardServiceImpl implements CardService {
 
     // 카드 객체 생성
     private Card createCard(CardBulkRequest request) {
-        Deck deck = deckRepository.findById(request.getDeckId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        ErrorMessages.NOT_FOUND_ENTITY.format(Deck.class.getSimpleName(), request.getDeckId())
-                ));
+        Deck deck = deckRepository.findById(request.getDeckId()).get();
 
         // Card 객체 생성 (아직 DB에 저장하지 않음)
         return Card.builder()
