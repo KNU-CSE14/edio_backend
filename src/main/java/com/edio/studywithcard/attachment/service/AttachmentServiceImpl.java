@@ -1,6 +1,5 @@
 package com.edio.studywithcard.attachment.service;
 
-import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
@@ -11,7 +10,6 @@ import com.edio.studywithcard.attachment.repository.AttachmentRepository;
 import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.deck.domain.Deck;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
@@ -126,21 +124,5 @@ public class AttachmentServiceImpl implements AttachmentService {
 
         // 2. S3에서 파일 삭제
         s3Service.deleteFiles(fileKeys);
-    }
-
-    /*
-        단일 파일 삭제
-    */
-    @Override
-    @Transactional
-    public void deleteAttachment(String fileKey) {
-        // 1. DB에서 해당 파일을 삭제 처리
-        Attachment attachment = attachmentRepository.findByFileKeyAndIsDeletedFalse(fileKey)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Attachment.class.getSimpleName(), fileKey)));
-
-        attachment.setDeleted(true);
-
-        // 2. S3에서 파일 삭제
-        s3Service.deleteFile(fileKey);
     }
 }

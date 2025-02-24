@@ -1,7 +1,6 @@
 package com.edio.studywithcard.attachment.service;
 
 import com.edio.studywithcard.attachment.domain.Attachment;
-import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.deck.domain.Deck;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,7 +20,4 @@ public interface AttachmentService {
 
     // 첨부 파일 삭제(Bulk)
     void deleteAllAttachments(List<String> fileKeys);
-
-    // 첨부 파일 삭제(단일)
-    void deleteAttachment(String fileKey);
 }
