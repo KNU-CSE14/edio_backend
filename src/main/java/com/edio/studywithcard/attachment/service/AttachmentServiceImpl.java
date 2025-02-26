@@ -123,6 +123,6 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachments.forEach(attachment -> attachment.setDeleted(true));
 
         // 2. S3에서 파일 삭제
-        s3Service.deleteFiles(fileKeys);
+        s3Service.deleteAllFiles(fileKeys);
     }
 }
