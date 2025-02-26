@@ -40,6 +40,10 @@ spring:
     url: ${spring.datasource.url}
   application:
     name: edio_backend
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 100MB
 logging:
   level:
     root: INFO

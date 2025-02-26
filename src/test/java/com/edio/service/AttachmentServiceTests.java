@@ -199,7 +199,7 @@ public class AttachmentServiceTests {
         // Then
         verify(mockAttachment, times(1)).setDeleted(true);
         verify(attachmentRepository, times(1)).findAllByFileKeyInAndIsDeletedFalse(fileKeys);
-        verify(s3Service, times(1)).deleteFiles(fileKeys);
+        verify(s3Service, times(1)).deleteAllFiles(fileKeys);
     }
 
     @Test
@@ -215,6 +215,6 @@ public class AttachmentServiceTests {
         verifyNoMoreInteractions(attachmentRepository);
 
         // S3 삭제는 호출됨
-        verify(s3Service, times(1)).deleteFiles(fileKeys);
+        verify(s3Service, times(1)).deleteAllFiles(fileKeys);
     }
 }
