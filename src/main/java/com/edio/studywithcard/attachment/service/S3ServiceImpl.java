@@ -4,6 +4,7 @@ import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -27,9 +28,11 @@ public class S3ServiceImpl implements S3Service {
 
     private final S3Client s3Client;
 
-    private final String bucketName = System.getProperty("AWS_BUCKET_NAME");
+    @Value("${AWS_BUCKET_NAME}")
+    private String bucketName;
 
-    private final String region = System.getProperty("AWS_REGION");
+    @Value("${AWS_REGION}")
+    private String region;
 
     private static final long MAX_FILE_SIZE = 10L * 1024 * 1024; // 10MB
 

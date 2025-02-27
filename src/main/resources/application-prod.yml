@@ -5,3 +5,7 @@ spring:
         registration:
           google:
             redirect-uri: https://ec2-3-38-251-128.ap-northeast-2.compute.amazonaws.com/login/oauth2/code/google
+  datasource:
+    url: ${spring.datasource.url}
+    username: ${spring.datasource.username}
+    password: ${spring.datasource.password}
