@@ -25,6 +25,7 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      # 현재 env파일을 직접 만들어서 변수를 주입하는데 이는 보안적인 문제가 있어서 바로 env변수에 secrets값이 적용되도록 수정 예정
       - name: Make environment and configuration files
         run: |
           mkdir -p ./src/main/resources

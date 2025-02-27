@@ -2,7 +2,26 @@ jwt:
   expiration-time: '3600000'
   refresh-expiration-time: '86400000'
   secret: ${jwt.secret}
+
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        temp.use_jdbc_metadata_defaults: false
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      idle-timeout: 300000
+      maximum-pool-size: 10
+      connection-timeout: 60000
+      initialization-fail-timeout: 30000
+      max-lifetime: 1800000
+      minimum-idle: 5
   security:
     oauth2:
       client:
@@ -17,27 +36,6 @@ spring:
             client-id: ${google.client-id}
             client-secret: ${google.client-secret}
             scope: profile,email
-  jpa:
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate:
-        temp:
-          use_jdbc_metadata_defaults: 'false'
-        dialect: org.hibernate.dialect.MySQL8Dialect
-    show-sql: 'true'
-  datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      idle-timeout: '300000'
-      maximum-pool-size: '10'
-      connection-timeout: '60000'
-      initialization-fail-timeout: '30000'
-      max-lifetime: '1800000'
-      minimum-idle: '5'
-    password: ${spring.datasource.password}
-    username: ${spring.datasource.username}
-    url: ${spring.datasource.url}
   application:
     name: edio_backend
   servlet:
