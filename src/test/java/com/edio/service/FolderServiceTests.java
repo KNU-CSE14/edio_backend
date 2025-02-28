@@ -124,7 +124,8 @@ public class FolderServiceTests {
     @Test
     public void deleteFolder_whenFolderDoesNotExist_throwsException() {
         // Mock 설정
-        mockFindFolder(null);
+        when(folderRepository.findByIdAndIsDeletedFalse(1L))
+                .thenThrow(new EntityNotFoundException("Not Found with ID: 1"));
 
         // when, then
         assertThatThrownBy(() -> folderService.deleteFolder(1L))
