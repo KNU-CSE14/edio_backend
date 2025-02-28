@@ -41,6 +41,14 @@ jobs:
       - name: Build and Test
         run: ./gradlew clean build
 
+      - name: Check Environment Variables
+        run: |
+          echo "SPRING_PROFILES_ACTIVE: $SPRING_PROFILES_ACTIVE"
+          echo "DB_USERNAME: $DB_USERNAME"
+          echo "DB_PASSWORD: [HIDDEN]"
+          echo "DB_URL: $DB_URL"
+        shell: bash
+
       - name: Make zip file
         run: zip -r $GITHUB_SHA.zip .
         shell: bash
