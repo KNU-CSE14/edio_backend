@@ -1,38 +1,48 @@
 package com.edio;
 
+import com.edio.common.properties.AwsProperties;
+import com.edio.common.properties.JwtProperties;
+import com.edio.common.properties.RedirectProperties;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @EnableJpaAuditing  // JPA Auditing 활성화
+@EnableConfigurationProperties({
+        RedirectProperties.class,
+        JwtProperties.class,
+        AwsProperties.class
+})
 @SpringBootApplication
 public class EdioBackendApplication {
     public static void main(String[] args) {
-        // .env 파일 로드
-        Dotenv dotenv = Dotenv.load();
+        // 운영환경에서는 시스템 환경변수를 우선 사용하고, 로컬인 경우에만 .env 파일 로드
+        String profile = System.getenv("SPRING_PROFILES_ACTIVE");
+        if(profile == null || profile.isEmpty()){
+            Dotenv dotenv = Dotenv.load();
+            profile = dotenv.get("SPRING_PROFILES_ACTIVE");
+        }
+        System.setProperty("spring.profiles.active", profile);
 
-        // 환경 변수 값으로 시스템 속성 설정
-        System.setProperty("spring.datasource.username", dotenv.get("DB_USERNAME"));
-        System.setProperty("spring.datasource.password", dotenv.get("DB_PASSWORD"));
-        System.setProperty("spring.datasource.url", dotenv.get("DB_URL"));
-
-        System.setProperty("google.client-id", dotenv.get("GOOGLE_CLIENT_ID"));
-        System.setProperty("google.client-secret", dotenv.get("GOOGLE_CLIENT_SECRET"));
-
-        System.setProperty("jwt.secret", dotenv.get("JWT_SECRET"));
-
-        System.setProperty("spring.profiles.active", dotenv.get("SPRING_PROFILES_ACTIVE"));
-
-        System.setProperty("redirect.url", dotenv.get("REDIRECT_URL"));
-
-        System.setProperty("AWS_REGION", dotenv.get("AWS_REGION"));
-        System.setProperty("AWS_ACCESS_KEY_ID", dotenv.get("AWS_ACCESS_KEY_ID"));
-        System.setProperty("AWS_SECRET_KEY_ID", dotenv.get("AWS_SECRET_KEY_ID"));
-        System.setProperty("AWS_BUCKET_NAME", dotenv.get("AWS_BUCKET_NAME"));
-
-        SpringApplication.run(EdioBackendApplication.class, args);
+        SpringApplication app = new SpringApplication(EdioBackendApplication.class);
+        // local 프로파일일 때만 .env 파일의 변수들을 Spring Environment에 추가
+        if("local".equals(profile)){
+            app.addInitializers(context -> {
+                ConfigurableEnvironment env = context.getEnvironment();
+                Map<String, Object> envVars = new HashMap<>();
+                Dotenv dotenv = Dotenv.load();
+                dotenv.entries().forEach(entry -> envVars.put(entry.getKey(), entry.getValue()));
+                env.getPropertySources().addFirst(new org.springframework.core.env.MapPropertySource("dotenvProperties", envVars));
+            });
+        }
+        app.run(args);
     }
 }

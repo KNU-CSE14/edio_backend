@@ -1,6 +1,7 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.exception.base.ErrorMessages;
+import com.edio.common.properties.JwtProperties;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
 import io.jsonwebtoken.Claims;
@@ -33,15 +34,18 @@ public class JwtTokenProvider {
 
     private final Key key;
 
+    private final JwtProperties jwtProperties;
+
     private static final String ACCOUNT_ID = "accountId";
     private static final String CLAIM_AUTHORITY = "auth"; // 권한 정보를 저장하는 claim 키
     private static final long ONE_HOUR_IN_MILLISECONDS = 3_600_000L; // 1시간
     private static final long ONE_DAY_IN_MILLISECONDS = 86_400_000L; // 1일
 
     // application.properties에서 secret 값 가져와서 key에 저장
-    public JwtTokenProvider(CustomUserDetailsService userDetailsService, @Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(CustomUserDetailsService userDetailsService, JwtProperties jwtProperties) {
         this.userDetailsService = userDetailsService;
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        this.jwtProperties = jwtProperties;
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecret());
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 

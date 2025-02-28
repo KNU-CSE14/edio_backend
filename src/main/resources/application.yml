@@ -1,8 +1,3 @@
-jwt:
-  expiration-time: '3600000'
-  refresh-expiration-time: '86400000'
-  secret: ${jwt.secret}
-
 spring:
   jpa:
     hibernate:
@@ -33,8 +28,8 @@ spring:
             user-name-attribute: sub
         registration:
           google:
-            client-id: ${google.client-id}
-            client-secret: ${google.client-secret}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: profile,email
   application:
     name: edio_backend
@@ -42,6 +37,21 @@ spring:
     multipart:
       max-file-size: 15MB
       max-request-size: 100MB
+
 logging:
   level:
     root: INFO
+
+jwt:
+  expiration-time: '3600000'
+  refresh-expiration-time: '86400000'
+  secret: ${JWT_SECRET}
+
+aws:
+  region: ${AWS_REGION}
+  access-key: ${AWS_ACCESS_KEY_ID}
+  secret-key: ${AWS_SECRET_KEY_ID}
+  bucket-name: ${AWS_BUCKET_NAME}
+
+redirect:
+  url: ${REDIRECT_URL}
