@@ -8,7 +8,9 @@ public abstract class BaseTest {
     @BeforeAll
     public static void setUp() throws InterruptedException {
         // .env 파일 로드
-        Dotenv dotenv = Dotenv.configure().load();
+        Dotenv dotenv = Dotenv.configure()
+                .ignoreIfMissing()
+                .load();
 
         // 환경 변수 값으로 시스템 속성 설정
         System.setProperty("spring.datasource.username", dotenv.get("DB_USERNAME"));
