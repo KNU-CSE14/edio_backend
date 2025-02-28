@@ -1,5 +1,6 @@
 package com.edio.service;
 
+import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -78,7 +79,8 @@ public class DeckServiceTests {
 
     @Test
     void testGetDeck_NotFound() {
-        when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.empty());
+        when(deckRepository.findByIdAndIsDeletedFalse(1L))
+                .thenThrow(new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format("Deck", 1L)));
 
         assertThrows(EntityNotFoundException.class, () -> deckService.getDeck(1L));
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);

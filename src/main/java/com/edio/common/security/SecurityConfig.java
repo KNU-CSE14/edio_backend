@@ -1,5 +1,6 @@
 package com.edio.common.security;
 
+import com.edio.common.properties.RedirectProperties;
 import com.edio.common.security.jwt.JwtAuthenticationFilter;
 import com.edio.common.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,8 +43,7 @@ public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-    @Value("${redirect.url}")
-    private String redirectUrl;
+    private final RedirectProperties redirectProperties;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -103,7 +103,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(redirectUrl));
+        configuration.setAllowedOrigins(Arrays.asList(redirectProperties.getUrl()));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true); // 쿠키를 포함한 요청 허용

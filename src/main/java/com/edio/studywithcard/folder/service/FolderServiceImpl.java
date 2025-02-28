@@ -24,8 +24,6 @@ public class FolderServiceImpl implements FolderService {
 
     private final FolderRepository folderRepository;
 
-    private final AccountRepository accountRepository;
-
     /*
         Folder 조회 (1depth)
      */
