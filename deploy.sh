@@ -31,4 +31,17 @@ echo ">>> DEPLOY_JAR 배포" >> /home/ubuntu/deploy.log
 echo ">>> $DEPLOY_JAR의 $JAR_NAME를 실행합니다" >> /home/ubuntu/deploy.log
 
 cd /home/ubuntu/app
+
+# GitHub Actions에서 전달된 환경 변수를 사용하여 export
+export SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+export DB_USERNAME=${DB_USERNAME}
+export DB_PASSWORD=${DB_PASSWORD}
+export DB_URL=${DB_URL}
+export GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+export GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+export JWT_SECRET=${JWT_SECRET}
+export REDIRECT_URL=${REDIRECT_URL}
+
+env | grep SPRING_PROFILES_ACTIVE >> /home/ubuntu/deploy.log
+
 nohup java -jar $DEPLOY_JAR >> /home/ubuntu/deploy.log 2>> /home/ubuntu/deploy_err.log &
