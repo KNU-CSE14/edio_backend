@@ -10,7 +10,6 @@ import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.repository.AccountRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,8 +24,6 @@ public class FolderServiceImpl implements FolderService {
 
     private final FolderRepository folderRepository;
 
-    private final AccountRepository accountRepository;
-
     /*
         Folder 조회 (1depth)
      */
@@ -35,8 +32,7 @@ public class FolderServiceImpl implements FolderService {
     public FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId) {
         Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
 
-        Folder folder = folderRepository.findById(targetFolderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), targetFolderId)));
+        Folder folder = folderRepository.findById(targetFolderId).get();
 
         return FolderWithDeckResponse.from(folder);
     }
@@ -49,8 +45,7 @@ public class FolderServiceImpl implements FolderService {
     public FolderAllResponse getAllFolders(Long rootFolderId, Long folderId) {
         Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
 
-        Folder folder = folderRepository.findById(targetFolderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), targetFolderId)));
+        Folder folder = folderRepository.findById(targetFolderId).get();
 
         return FolderAllResponse.from(folder);
     }
@@ -97,8 +92,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void updateFolder(Long folderId, FolderUpdateRequest folderUpdateRequest) {
         // 폴더명 업데이트
-        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class, folderId)));
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
         existingFolder.setName(folderUpdateRequest.name());
     }
@@ -110,8 +104,7 @@ public class FolderServiceImpl implements FolderService {
     @Transactional
     public void moveFolder(Long folderId, Long newParentId) {
         // 이동할 폴더 조회
-        Folder folder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+        Folder folder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
         // 새로운 부모 폴더 조회
         Folder newParentFolder = null;
@@ -144,8 +137,7 @@ public class FolderServiceImpl implements FolderService {
     @Override
     @Transactional
     public void deleteFolder(Long folderId) {
-        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId)
-                .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Folder.class.getSimpleName(), folderId)));
+        Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
         existingFolder.setDeleted(true);
     }

@@ -1,8 +1,10 @@
 package com.edio.common.security.jwt;
 
 import com.edio.common.BaseTest;
+import com.edio.common.properties.JwtProperties;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
+import io.github.cdimascio.dotenv.Dotenv;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -24,20 +26,29 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Mockito 확장 활성화
-class JwtTokenProviderTest {
+class JwtTokenProviderTest{
 
     @Mock
     private CustomUserDetailsService userDetailsService;
 
     private JwtTokenProvider jwtTokenProvider;
 
+    private JwtProperties jwtProperties;
+
     private String secretKey;
 
     @BeforeEach
     public void setUp() throws InterruptedException {
-        BaseTest.setUp();
-        secretKey = System.getProperty("jwt.secret");
-        jwtTokenProvider = new JwtTokenProvider(userDetailsService, secretKey);
+        // 시스템 환경변수 우선 조회
+        secretKey = System.getenv("JWT_SECRET");
+        // 없을 경우에만 .env 파일에서 로드
+        if(secretKey == null || secretKey.isEmpty()){
+            Dotenv dotenv = Dotenv.load();
+            secretKey = dotenv.get("JWT_SECRET");
+        }
+        jwtProperties = new JwtProperties();
+        jwtProperties.setSecret(secretKey);
+        jwtTokenProvider = new JwtTokenProvider(userDetailsService, jwtProperties);
     }
 
     /**
