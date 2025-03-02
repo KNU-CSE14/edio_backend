@@ -1,24 +1,17 @@
 package com.edio;
 
-import com.edio.common.properties.AwsProperties;
-import com.edio.common.properties.JwtProperties;
-import com.edio.common.properties.RedirectProperties;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.core.env.ConfigurableEnvironment;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-@EnableConfigurationProperties({
-        RedirectProperties.class,
-        JwtProperties.class,
-        AwsProperties.class
-})
+@ConfigurationPropertiesScan
 @SpringBootApplication
 public class EdioBackendApplication {
     public static void main(String[] args) {
