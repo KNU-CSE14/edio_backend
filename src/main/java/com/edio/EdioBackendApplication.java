@@ -4,10 +4,8 @@ import io.github.cdimascio.dotenv.Dotenv;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @Slf4j
-@EnableJpaAuditing  // JPA Auditing 활성화
 @SpringBootApplication
 public class EdioBackendApplication {
     public static void main(String[] args) {
