@@ -5,9 +5,7 @@ import com.edio.common.properties.AwsProperties;
 import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -47,7 +45,7 @@ public class S3ServiceImpl implements S3Service {
             // 업로드
             s3Client.putObject(
                     PutObjectRequest.builder()
-                            .bucket(awsProperties.getBucketName())
+                            .bucket(awsProperties.bucketName())
                             .key(fileName)
                             .contentType(file.getContentType())
                             .build(),
@@ -58,7 +56,7 @@ public class S3ServiceImpl implements S3Service {
             throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
 
-        return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", awsProperties.getBucketName(), awsProperties.getRegion(), fileName), fileName);
+        return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", awsProperties.bucketName(), awsProperties.region(), fileName), fileName);
     }
 
     /*
@@ -73,7 +71,7 @@ public class S3ServiceImpl implements S3Service {
                     .collect(Collectors.toList());
 
             DeleteObjectsRequest deleteObjectsRequest = DeleteObjectsRequest.builder()
-                    .bucket(awsProperties.getBucketName())
+                    .bucket(awsProperties.bucketName())
                     .delete(d -> d.objects(objectIdentifiers))
                     .build();
 

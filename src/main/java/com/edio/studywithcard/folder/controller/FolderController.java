@@ -26,7 +26,7 @@ public class FolderController implements FolderApiDoc {
     @Override
     public FolderAllResponse getAllFolders(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) Long folderId
+            @RequestParam(value = "folderId", required = false) Long folderId
     ) {
         return folderService.getAllFolders(userDetails.getRootFolderId(), folderId);
     }
@@ -35,7 +35,7 @@ public class FolderController implements FolderApiDoc {
     @Override
     public FolderWithDeckResponse getFolderWithDeck(
             @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(required = false) Long folderId
+            @RequestParam(value = "folderId", required = false) Long folderId
     ) {
         return folderService.getFolderWithDeck(userDetails.getRootFolderId(), folderId);
     }
