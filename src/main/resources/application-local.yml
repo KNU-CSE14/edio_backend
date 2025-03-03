@@ -6,10 +6,6 @@ spring:
     hibernate:
       ddl-auto: create
     defer-datasource-initialization: true
-  datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
   security:
     oauth2:
       client:
