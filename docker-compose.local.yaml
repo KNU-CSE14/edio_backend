@@ -29,6 +29,8 @@ services:
       SPRING_DEVTOOLS_LIVERELOAD_ENABLED: "true"
       SPRING_DEVTOOLS_RESTART_ADDITIONAL_PATHS: src/main/java
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    env_file:
+      - .env
     depends_on:
       mysql:
         condition: service_healthy
