@@ -64,6 +64,8 @@ public class S3ServiceImpl implements S3Service {
      */
     @Override
     public void deleteAllFiles(List<String> fileKeys) {
+        if (fileKeys.isEmpty()) return;
+        
         try {
             // S3 DeleteObjectsRequest 생성
             List<ObjectIdentifier> objectIdentifiers = fileKeys.stream()
