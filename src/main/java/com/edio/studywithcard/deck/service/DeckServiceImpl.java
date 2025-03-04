@@ -1,6 +1,5 @@
 package com.edio.studywithcard.deck.service;
 
-import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -57,35 +55,30 @@ public class DeckServiceImpl implements DeckService {
     @Override
     @Transactional
     public DeckResponse createDeck(DeckCreateRequest request, MultipartFile file) {
-        try {
-            // Folder와 Category를 조회
-            Folder folder = folderRepository.findById(request.folderId()).get();
-            Category category = categoryRepository.findById(request.categoryId()).get();
+        // Folder와 Category를 조회
+        Folder folder = folderRepository.findById(request.folderId()).get();
+        Category category = categoryRepository.findById(request.categoryId()).get();
 
-            // 1. Deck 생성 및 저장
-            Deck deck = Deck.builder()
-                    .folder(folder)
-                    .category(category)
-                    .name(request.name())
-                    .description(request.description())
-                    .isShared(request.isShared())
-                    .build();
-            Deck savedDeck = deckRepository.save(deck);
+        // 1. Deck 생성 및 저장
+        Deck deck = Deck.builder()
+                .folder(folder)
+                .category(category)
+                .name(request.name())
+                .description(request.description())
+                .isShared(request.isShared())
+                .build();
+        Deck savedDeck = deckRepository.save(deck);
 
-            // 2. 첨부파일 처리
-            if (file != null && !file.isEmpty()) {
-                // Attachment 저장
-                Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
+        // 2. 첨부파일 처리
+        if (file != null && !file.isEmpty()) {
+            // Attachment 저장
+            Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
 
-                // AttachmentDeckTarget 저장
-                attachmentService.saveAttachmentDeckTarget(attachment, savedDeck);
-            }
-
-            return DeckResponse.from(savedDeck);
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
+            // AttachmentDeckTarget 저장
+            attachmentService.saveAttachmentDeckTarget(attachment, savedDeck);
         }
+
+        return DeckResponse.from(savedDeck);
     }
 
     /*
@@ -113,28 +106,30 @@ public class DeckServiceImpl implements DeckService {
         if (request.isFavorite() != null) {
             existingDeck.setFavorite(request.isFavorite());
         }
+        // 부모 폴더
+        if (request.parentId() != null) {
+            Folder newFolder = null;
+            newFolder = folderRepository.getReferenceById(request.parentId());
+            existingDeck.setFolder(newFolder);
+        }
 
         // 첨부파일 수정
-        if (file != null && !file.isEmpty()) {
-            try {
-                // 기존 첨부파일 삭제(Bulk)
-                List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()
-                        .map(AttachmentDeckTarget::getAttachment)
-                        .filter(attachment -> !attachment.isDeleted())
-                        .map(Attachment::getFileKey)
-                        .collect(Collectors.toList());
+        if (file != null) {
+            // 기존 첨부파일 삭제 (Bulk)
+            List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()
+                    .map(AttachmentDeckTarget::getAttachment)
+                    .filter(attachment -> !attachment.isDeleted())
+                    .map(Attachment::getFileKey)
+                    .collect(Collectors.toList());
 
-                if (!fileKeys.isEmpty()) {
-                    attachmentService.deleteAllAttachments(fileKeys);
-                }
+            if (!fileKeys.isEmpty()) {
+                attachmentService.deleteAllAttachments(fileKeys);
+            }
 
-                // 새 첨부파일 저장
+            // 새 첨부파일 저장
+            if (!file.isEmpty()) {
                 Attachment attachment = attachmentService.saveAttachment(file, AttachmentFolder.IMAGE.name(), FileTarget.DECK.name());
-
                 attachmentService.saveAttachmentDeckTarget(attachment, existingDeck);
-            } catch (IOException e) {
-                log.error(e.getMessage());
-                throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
             }
         }
     }
