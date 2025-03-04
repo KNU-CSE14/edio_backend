@@ -122,9 +122,7 @@ public class DeckServiceImpl implements DeckService {
                     .map(Attachment::getFileKey)
                     .collect(Collectors.toList());
 
-            if (!fileKeys.isEmpty()) {
-                attachmentService.deleteAllAttachments(fileKeys);
-            }
+            attachmentService.deleteAllAttachments(fileKeys);
 
             // 새 첨부파일 저장
             if (!file.isEmpty()) {
@@ -168,9 +166,7 @@ public class DeckServiceImpl implements DeckService {
                 .map(Attachment::getFileKey)
                 .collect(Collectors.toList());
 
-        if (!fileKeys.isEmpty()) {
-            attachmentService.deleteAllAttachments(fileKeys);
-        }
+        attachmentService.deleteAllAttachments(fileKeys);
 
         existingDeck.setDeleted(true);
     }
