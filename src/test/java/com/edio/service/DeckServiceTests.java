@@ -62,7 +62,7 @@ public class DeckServiceTests {
                 .isDeleted(false)
                 .build();
         deckCreateRequest = new DeckCreateRequest(1L, 1L, "New Deck", "New Description", false);
-        deckUpdateRequest = new DeckUpdateRequest(1L, 1L, "Updated Deck", "Updated Description", true);
+        deckUpdateRequest = new DeckUpdateRequest(1L, 1L, null, "Updated Deck", "Updated Description", true);
         deckDeleteRequest = new DeckDeleteRequest(1L);
     }
 

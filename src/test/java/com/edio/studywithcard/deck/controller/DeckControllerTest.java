@@ -124,7 +124,7 @@ class DeckControllerTest {
     @WithMockUser
     @Test
     void test_updateDeck() throws Exception {
-        DeckUpdateRequest request = new DeckUpdateRequest(1L, 1L, "Test Deck", "Test desc", false);
+        DeckUpdateRequest request = new DeckUpdateRequest(1L, 1L, null, "Test Deck", "Test desc", false);
         MockMultipartFile file = new MockMultipartFile("file", new byte[0]);
 
         willDoNothing().given(deckService).updateDeck(eq(request), eq(file));
@@ -143,7 +143,7 @@ class DeckControllerTest {
     @WithMockUser
     @Test
     void test_updateDeck_notFoundEntity() throws Exception {
-        DeckUpdateRequest request = new DeckUpdateRequest(1L, 1L, "Test Deck", "Test desc", false);
+        DeckUpdateRequest request = new DeckUpdateRequest(1L, 1L, null, "Test Deck", "Test desc", false);
         MockMultipartFile file = new MockMultipartFile("file", new byte[0]);
 
         willThrow(EntityNotFoundException.class).given(deckService).updateDeck(eq(request), eq(file));

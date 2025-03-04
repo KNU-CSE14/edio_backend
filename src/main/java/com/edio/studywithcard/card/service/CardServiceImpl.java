@@ -180,7 +180,9 @@ public class CardServiceImpl implements CardService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        attachmentService.deleteAllAttachments(oldFileKeys);
+        if (!oldFileKeys.isEmpty()) {
+            attachmentService.deleteAllAttachments(oldFileKeys);
+        }
 
         // 파일이 존재하는 항목만 새 파일 업로드 대상으로 처리
         List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
