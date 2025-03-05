@@ -78,6 +78,9 @@ public class CardServiceImpl implements CardService {
                 .filter(card -> !card.isDeleted())
                 .toList();
 
+        log.info("🟢 삭제할 카드 목록: {}", existingCards);
+        log.info("🟢 삭제할 카드 ID 리스트: {}", cardIds);
+
         if (existingCards.isEmpty()) {
             throw new EntityNotFoundException(Card.class.getSimpleName(), null);
         }
@@ -96,7 +99,9 @@ public class CardServiceImpl implements CardService {
             attachmentService.deleteAllAttachments(fileKeys);
         }
 
-        existingCards.forEach(card -> cardRepository.deleteById(card.getId()));
+        log.info("🔴 카드 삭제 실행: {}", existingCards);
+        cardRepository.deleteAll(existingCards);
+        log.info("🔴 카드 삭제 완료");
     }
 
     // 카드 생성

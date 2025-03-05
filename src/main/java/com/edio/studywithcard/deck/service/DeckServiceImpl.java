@@ -177,6 +177,6 @@ public class DeckServiceImpl implements DeckService {
             attachmentService.deleteAllAttachments(fileKeys);
         }
 
-        deckRepository.deleteById(existingDeck.getId());
+        deckRepository.delete(existingDeck);
     }
 }
