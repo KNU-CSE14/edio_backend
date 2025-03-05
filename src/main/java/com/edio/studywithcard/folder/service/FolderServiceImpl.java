@@ -9,7 +9,6 @@ import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import com.edio.user.repository.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -139,6 +138,6 @@ public class FolderServiceImpl implements FolderService {
     public void deleteFolder(Long folderId) {
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
-        existingFolder.setDeleted(true);
+        folderRepository.deleteById(existingFolder.getId());
     }
 }

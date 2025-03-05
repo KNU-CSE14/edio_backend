@@ -52,7 +52,7 @@ public class AccountServiceTests {
         mockAccount = Account.builder()
                 .loginId("testUser@gmail.com")
                 .member(mockMember)
-                .isDeleted(false)
+//                .isDeleted(false)
                 .loginType(AccountLoginType.GOOGLE)
                 .roles(AccountRole.ROLE_USER)
                 .build();
