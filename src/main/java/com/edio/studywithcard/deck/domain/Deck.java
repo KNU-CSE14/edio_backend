@@ -10,7 +10,9 @@ import lombok.*;
 import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "deck")
@@ -33,11 +35,11 @@ public class Deck extends BaseEntity {
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
+    private Set<AttachmentDeckTarget> attachmentDeckTargets = new HashSet<>();
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private List<Card> cards = new ArrayList<>();
+    private Set<Card> cards = new HashSet<>();
 
     @Column(nullable = false)
     @Setter
