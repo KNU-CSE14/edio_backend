@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         {
           "id": 1,
           "categoryId": 1,
-          "parentId": 1,
+          "folderId": 1,
           "name": "Deck Update Name",
           "description": "Deck Update Description",
           "isFavorite" : false
@@ -15,7 +15,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record DeckUpdateRequest(
         Long id,
         Long categoryId,
-        Long parentId,
+        Long folderId,
         String name,
         String description,
         Boolean isFavorite

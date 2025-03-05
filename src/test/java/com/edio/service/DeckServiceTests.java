@@ -1,6 +1,7 @@
 package com.edio.service;
 
 import com.edio.common.exception.base.ErrorMessages;
+import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -37,6 +38,9 @@ public class DeckServiceTests {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private AttachmentService attachmentService;
 
     @InjectMocks
     private DeckServiceImpl deckService;
@@ -88,28 +92,28 @@ public class DeckServiceTests {
 
     @Test
     void testCreateDeck() {
-        when(folderRepository.findById(1L)).thenReturn(Optional.of(folder));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(folderRepository.getReferenceById(1L)).thenReturn(folder);
+        when(categoryRepository.getReferenceById(1L)).thenReturn(category);
         when(deckRepository.save(any(Deck.class))).thenReturn(existingDeck);
 
         DeckResponse response = deckService.createDeck(deckCreateRequest, null);
 
         assertNotNull(response);
         assertEquals(existingDeck.getName(), response.name());
-        verify(folderRepository, times(1)).findById(1L);
-        verify(categoryRepository, times(1)).findById(1L);
+        verify(folderRepository, times(1)).getReferenceById(1L);
+        verify(categoryRepository, times(1)).getReferenceById(1L);
         verify(deckRepository, times(1)).save(any(Deck.class));
     }
 
     @Test
     void testCreateDeck_Conflict() {
-        when(folderRepository.findById(1L)).thenReturn(Optional.of(folder));
-        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(folderRepository.getReferenceById(1L)).thenReturn(folder);
+        when(categoryRepository.getReferenceById(1L)).thenReturn(category);
         when(deckRepository.save(any(Deck.class))).thenThrow(DataIntegrityViolationException.class);
 
         assertThrows(RuntimeException.class, () -> deckService.createDeck(deckCreateRequest, null));
-        verify(folderRepository, times(1)).findById(1L);
-        verify(categoryRepository, times(1)).findById(1L);
+        verify(folderRepository, times(1)).getReferenceById(1L);
+        verify(categoryRepository, times(1)).getReferenceById(1L);
         verify(deckRepository, times(1)).save(any(Deck.class));
     }
 

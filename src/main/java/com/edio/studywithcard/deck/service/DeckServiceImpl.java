@@ -56,8 +56,8 @@ public class DeckServiceImpl implements DeckService {
     @Transactional
     public DeckResponse createDeck(DeckCreateRequest request, MultipartFile file) {
         // Folder와 Category를 조회
-        Folder folder = folderRepository.findById(request.folderId()).get();
-        Category category = categoryRepository.findById(request.categoryId()).get();
+        Folder folder = folderRepository.getReferenceById(request.folderId());
+        Category category = categoryRepository.getReferenceById(request.categoryId());
 
         // 1. Deck 생성 및 저장
         Deck deck = Deck.builder()
@@ -106,10 +106,10 @@ public class DeckServiceImpl implements DeckService {
         if (request.isFavorite() != null) {
             existingDeck.setFavorite(request.isFavorite());
         }
-        // 부모 폴더
-        if (request.parentId() != null) {
+        // 폴더
+        if (request.folderId() != null) {
             Folder newFolder = null;
-            newFolder = folderRepository.getReferenceById(request.parentId());
+            newFolder = folderRepository.getReferenceById(request.folderId());
             existingDeck.setFolder(newFolder);
         }
 
