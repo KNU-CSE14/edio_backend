@@ -120,7 +120,7 @@ public class AttachmentServiceImpl implements AttachmentService {
     public void deleteAllAttachments(List<String> fileKeys) {
         // 1. DB 삭제 처리
         List<Attachment> attachments = attachmentRepository.findAllByFileKeyInAndIsDeletedFalse(fileKeys);
-        attachments.forEach(attachment -> attachment.setDeleted(true));
+        attachments.forEach(attachment -> attachmentRepository.deleteById(attachment.getId()));
 
         // 2. S3에서 파일 삭제
         s3Service.deleteAllFiles(fileKeys);

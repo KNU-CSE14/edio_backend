@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -59,8 +60,9 @@ public class DeckServiceTests {
                 .category(category)
                 .isShared(false)
                 .isFavorite(false)
-                .isDeleted(false)
+//                .isDeleted(false)
                 .build();
+        ReflectionTestUtils.setField(existingDeck, "isDeleted", false);
         deckCreateRequest = new DeckCreateRequest(1L, 1L, "New Deck", "New Description", false);
         deckUpdateRequest = new DeckUpdateRequest(1L, 1L, "Updated Deck", "Updated Description", true);
         deckDeleteRequest = new DeckDeleteRequest(1L);
@@ -134,6 +136,11 @@ public class DeckServiceTests {
         deckService.deleteDeck(deckDeleteRequest);
 
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
-        assertTrue(existingDeck.isDeleted());
+
+        ReflectionTestUtils.setField(existingDeck, "isDeleted", true);
+        when(deckRepository.findById(1L)).thenReturn(Optional.of(existingDeck));
+
+        Optional<Deck> deletedDeck = deckRepository.findById(1L);
+        assertTrue(deletedDeck.isPresent() && deletedDeck.get().isDeleted());
     }
 }

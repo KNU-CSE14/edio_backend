@@ -7,6 +7,7 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.folder.domain.Folder;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
+@SQLDelete(sql = "UPDATE deck SET is_deleted = true WHERE id = ?")
 public class Deck extends BaseEntity {
 
     @ManyToOne
@@ -48,11 +50,6 @@ public class Deck extends BaseEntity {
     @Builder.Default
     @Setter
     private boolean isFavorite = false;
-
-    @Column(nullable = false)
-    @Builder.Default
-    @Setter
-    private boolean isDeleted = false;
 
     @Column(nullable = false)
     @Builder.Default

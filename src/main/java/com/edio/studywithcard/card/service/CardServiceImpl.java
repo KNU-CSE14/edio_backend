@@ -96,7 +96,7 @@ public class CardServiceImpl implements CardService {
             attachmentService.deleteAllAttachments(fileKeys);
         }
 
-        existingCards.forEach(card -> card.setDeleted(true));
+        existingCards.forEach(card -> cardRepository.deleteById(card.getId()));
     }
 
     // 카드 생성
