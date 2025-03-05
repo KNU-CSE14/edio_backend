@@ -13,7 +13,9 @@ import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -78,9 +80,6 @@ public class CardServiceImpl implements CardService {
                 .filter(card -> !card.isDeleted())
                 .toList();
 
-        log.info("🟢 삭제할 카드 목록: {}", existingCards);
-        log.info("🟢 삭제할 카드 ID 리스트: {}", cardIds);
-
         if (existingCards.isEmpty()) {
             throw new EntityNotFoundException(Card.class.getSimpleName(), null);
         }
@@ -97,9 +96,7 @@ public class CardServiceImpl implements CardService {
 
         attachmentService.deleteAllAttachments(fileKeys);
 
-        log.info("🔴 카드 삭제 실행: {}", existingCards);
         cardRepository.deleteAll(existingCards);
-        log.info("🔴 카드 삭제 완료");
     }
 
     // 카드 생성
