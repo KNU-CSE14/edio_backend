@@ -138,6 +138,6 @@ public class FolderServiceImpl implements FolderService {
     public void deleteFolder(Long folderId) {
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
-        folderRepository.deleteById(existingFolder.getId());
+        folderRepository.delete(existingFolder);
     }
 }

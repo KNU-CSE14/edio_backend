@@ -140,11 +140,6 @@ public class DeckServiceTests {
         deckService.deleteDeck(deckDeleteRequest);
 
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
-
-        ReflectionTestUtils.setField(existingDeck, "isDeleted", true);
-        when(deckRepository.findById(1L)).thenReturn(Optional.of(existingDeck));
-
-        Optional<Deck> deletedDeck = deckRepository.findById(1L);
-        assertTrue(deletedDeck.isPresent() && deletedDeck.get().isDeleted());
+        verify(deckRepository, times(1)).delete(existingDeck);
     }
 }

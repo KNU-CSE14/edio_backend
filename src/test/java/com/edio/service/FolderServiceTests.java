@@ -19,9 +19,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class FolderServiceTests {
@@ -118,12 +117,9 @@ public class FolderServiceTests {
 
         // when
         folderService.deleteFolder(1L);
-        
-        ReflectionTestUtils.setField(existingFolder, "isDeleted", true);
-        when(folderRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.of(existingFolder));
 
-        Optional<Folder> deletedFolder = folderRepository.findByIdAndIsDeletedFalse(1L);
-        assertTrue(deletedFolder.isPresent() && deletedFolder.get().isDeleted());
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(1L);
+        verify(folderRepository, times(1)).delete(existingFolder);
     }
 
     @Test
