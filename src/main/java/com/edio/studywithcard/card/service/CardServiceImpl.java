@@ -92,9 +92,7 @@ public class CardServiceImpl implements CardService {
                 .map(Attachment::getFileKey)
                 .collect(Collectors.toList());
 
-        if (!fileKeys.isEmpty()) {
-            attachmentService.deleteAllAttachments(fileKeys);
-        }
+        attachmentService.deleteAllAttachments(fileKeys);
 
         existingCards.forEach(card -> card.setDeleted(true));
     }
@@ -181,7 +179,7 @@ public class CardServiceImpl implements CardService {
                 .collect(Collectors.toList());
 
         attachmentService.deleteAllAttachments(oldFileKeys);
-
+        
         // 파일이 존재하는 항목만 새 파일 업로드 대상으로 처리
         List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
                 .filter(data -> data.getFile() != null)
