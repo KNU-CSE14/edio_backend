@@ -13,5 +13,6 @@ public interface CardRepository extends JpaRepository<Card, Long> {
      * @param id
      * @return
      */
+    @EntityGraph(attributePaths = {"attachmentCardTargets.attachment"})
     Optional<Card> findByIdAndIsDeletedFalse(Long id);
 }

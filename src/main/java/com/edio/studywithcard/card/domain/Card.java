@@ -32,7 +32,7 @@ public class Card extends BaseEntity {
     @Setter
     private String description;
 
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<AttachmentCardTarget> attachmentCardTargets = new ArrayList<>();
 }

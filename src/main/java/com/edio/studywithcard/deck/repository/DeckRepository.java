@@ -14,5 +14,6 @@ public interface DeckRepository extends JpaRepository<Deck, Long> {
      * @param id
      * @return
      */
+    @EntityGraph(attributePaths = {"attachmentDeckTargets", "cards"})
     Optional<Deck> findByIdAndIsDeletedFalse(Long id);
 }
