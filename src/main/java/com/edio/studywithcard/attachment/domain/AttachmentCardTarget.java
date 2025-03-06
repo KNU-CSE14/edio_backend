@@ -20,7 +20,7 @@ public class AttachmentCardTarget {
     @JoinColumn(name = "card_id")
     private Card card;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "attachment_id")
     private Attachment attachment;
 }
