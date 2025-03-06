@@ -17,7 +17,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@SQLDelete(sql = "UPDATE card SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE card SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Card extends BaseEntity {
 
     @ManyToOne

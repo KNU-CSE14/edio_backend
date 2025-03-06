@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@SQLDelete(sql = "UPDATE folder SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE folder SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Folder extends BaseEntity {
 
     @Column(nullable = false)

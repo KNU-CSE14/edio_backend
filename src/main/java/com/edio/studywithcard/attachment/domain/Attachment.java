@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
-@SQLDelete(sql = "UPDATE attachment SET is_deleted = true WHERE id = ?")
+@SQLDelete(sql = "UPDATE attachment SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 @BatchSize(size = 10)
 public class Attachment extends BaseEntity {
 
