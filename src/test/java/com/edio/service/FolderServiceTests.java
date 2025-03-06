@@ -52,7 +52,6 @@ public class FolderServiceTests {
                 .accountId(1L)
                 .name(name)
                 .parentFolder(null)
-//                .isDeleted(false)
                 .build();
         ReflectionTestUtils.setField(folder, "id", id);
         ReflectionTestUtils.setField(folder, "isDeleted", false);
