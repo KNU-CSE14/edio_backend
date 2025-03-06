@@ -7,12 +7,11 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.folder.domain.Folder;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Entity
 @Table(name = "deck")
@@ -35,11 +34,12 @@ public class Deck extends BaseEntity {
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<AttachmentDeckTarget> attachmentDeckTargets = new HashSet<>();
+    private List<AttachmentDeckTarget> attachmentDeckTargets = new ArrayList<>();
 
     @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
-    private Set<Card> cards = new HashSet<>();
+    @BatchSize(size = 10)
+    private List<Card> cards = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter
