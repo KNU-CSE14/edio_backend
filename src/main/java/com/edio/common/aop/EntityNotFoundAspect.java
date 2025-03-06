@@ -18,7 +18,7 @@ import java.util.Optional;
 public class EntityNotFoundAspect {
 
     @Around("execution(* org.springframework.data.jpa.repository.JpaRepository+.*(..)) && " +
-            "execution(* *.findById*(..)) || execution(* *.getReferenceById*(..)))")
+            "execution(* *.findById*(..))")
     public Object handleFindById(ProceedingJoinPoint joinPoint) throws Throwable {
         Object result = joinPoint.proceed(); // findById.. 실행
 
