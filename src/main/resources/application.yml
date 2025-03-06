@@ -8,6 +8,8 @@ spring:
         format_sql: true
         temp.use_jdbc_metadata_defaults: false
         dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc.time_zone: Asia/Seoul
+  timezone: Asia/Seoul
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: ${DB_URL}
