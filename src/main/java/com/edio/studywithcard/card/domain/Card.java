@@ -5,6 +5,7 @@ import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class Card extends BaseEntity {
     private String description;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
     @Builder.Default
     private List<AttachmentCardTarget> attachmentCardTargets = new ArrayList<>();
 }

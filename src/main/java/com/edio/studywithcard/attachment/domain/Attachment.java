@@ -3,6 +3,7 @@ package com.edio.studywithcard.attachment.domain;
 import com.edio.common.domain.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @SQLDelete(sql = "UPDATE attachment SET is_deleted = true WHERE id = ?")
+@BatchSize(size = 10)
 public class Attachment extends BaseEntity {
 
     @Column(nullable = false)
