@@ -20,7 +20,7 @@ import java.util.List;
 @SQLDelete(sql = "UPDATE card SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Card extends BaseEntity {
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "deck_id", nullable = false)
     @Setter
     private Deck deck;

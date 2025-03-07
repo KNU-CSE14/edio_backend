@@ -39,7 +39,7 @@ public class Deck extends BaseEntity {
         TODO: 현재, Deck 1개에 대한 Card 조회(FROM card WHERE deckId = ?)가 이루어져서 Batch Size가 불필요
          추후에 여러 Deck을 한 번에  조회할 상황(사용자 기준 모든 덱 조회)이 생기면 Batch Size 적용 여부 검토
      */
-    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "deck", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Card> cards = new ArrayList<>();
 
