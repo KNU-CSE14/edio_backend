@@ -54,7 +54,6 @@ public class FolderServiceTests {
                 .parentFolder(null)
                 .build();
         ReflectionTestUtils.setField(folder, "id", id);
-        ReflectionTestUtils.setField(folder, "isDeleted", false);
         return folder;
     }
 
