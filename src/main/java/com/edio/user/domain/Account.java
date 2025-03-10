@@ -18,17 +18,13 @@ public class Account extends BaseEntity {
     private String loginId;
 
     private String password;
-    
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
 
     @Setter
     private Long rootFolderId;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean isDeleted = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

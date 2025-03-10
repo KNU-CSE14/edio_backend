@@ -5,6 +5,8 @@ import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
+@SQLDelete(sql = "UPDATE card SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Card extends BaseEntity {
 
     @ManyToOne
@@ -30,12 +33,8 @@ public class Card extends BaseEntity {
     @Setter
     private String description;
 
-    @Column(nullable = false)
-    @Builder.Default
-    @Setter
-    private boolean isDeleted = false;
-
-    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 10)
     @Builder.Default
     private List<AttachmentCardTarget> attachmentCardTargets = new ArrayList<>();
 }

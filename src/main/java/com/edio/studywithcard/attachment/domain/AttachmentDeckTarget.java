@@ -20,7 +20,7 @@ public class AttachmentDeckTarget {
     @JoinColumn(name = "deck_id")
     private Deck deck;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "attachment_id")
     private Attachment attachment;
 }

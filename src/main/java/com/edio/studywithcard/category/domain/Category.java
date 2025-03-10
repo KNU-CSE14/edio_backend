@@ -16,8 +16,5 @@ public class Category extends BaseEntity {
 
     @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private boolean isDeleted = false;
+    
 }

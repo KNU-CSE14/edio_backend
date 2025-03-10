@@ -13,7 +13,9 @@ import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -94,7 +96,7 @@ public class CardServiceImpl implements CardService {
 
         attachmentService.deleteAllAttachments(fileKeys);
 
-        existingCards.forEach(card -> card.setDeleted(true));
+        cardRepository.deleteAll(existingCards);
     }
 
     // 카드 생성
