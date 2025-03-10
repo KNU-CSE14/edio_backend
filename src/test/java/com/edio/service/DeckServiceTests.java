@@ -61,7 +61,6 @@ public class DeckServiceTests {
                 .isShared(false)
                 .isFavorite(false)
                 .build();
-        ReflectionTestUtils.setField(existingDeck, "isDeleted", false);
         deckCreateRequest = new DeckCreateRequest(1L, 1L, "New Deck", "New Description", false);
         deckUpdateRequest = new DeckUpdateRequest(1L, 1L, "Updated Deck", "Updated Description", true);
         deckDeleteRequest = new DeckDeleteRequest(1L);
