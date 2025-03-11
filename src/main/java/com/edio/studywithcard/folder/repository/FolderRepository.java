@@ -23,7 +23,6 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
      * @param folderId
      * @return
      */
-    @EntityGraph(attributePaths = {"childrenFolders", "decks"})
     Optional<Folder> findById(Long folderId);
 
     /**
