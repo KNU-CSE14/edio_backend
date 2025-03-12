@@ -79,7 +79,7 @@ public class CardRepositoryTest {
     }
 
     /**
-     * 1. 카드 저장 & 조회
+     * 카드 저장 & 조회
      */
     @Test
     @DisplayName("Save And FindCard -> (성공)")
@@ -96,7 +96,23 @@ public class CardRepositoryTest {
     }
 
     /**
-     * 2. Soft Delete 후 데이터 유지 여부
+     * 존재하지 않는 카드 조회 -> (실패)
+     */
+    @Test
+    @DisplayName("FindCard by Non-existent Id -> (실패)")
+    void findCardByNonExistentId() {
+        // Given
+        Long nonExistentId = 999L;
+
+        // When
+        Optional<Card> findCard = cardRepository.findByIdAndIsDeletedFalse(nonExistentId);
+
+        // Then
+        assertThat(findCard).isEmpty();
+    }
+
+    /**
+     * Soft Delete 후 데이터 유지 여부
      */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
@@ -127,7 +143,7 @@ public class CardRepositoryTest {
     */
 
     /**
-     * 3. 카드 멀티 저장 & 조회
+     * 카드 멀티 저장 & 조회
      */
     @Test
     @DisplayName("Multiple Save And FindCards -> (성공)")
@@ -142,5 +158,21 @@ public class CardRepositoryTest {
 
         // Then
         assertThat(cards).hasSize(2);
+    }
+
+    /**
+     * 존재하지 않는 카드 목록 조회 -> (실패)
+     */
+    @Test
+    @DisplayName("FindCards by Non-existent Ids -> (실패)")
+    void findCardsByNonExistentIds() {
+        // Given
+        List<Long> nonExistentIds = List.of(999L, 1000L);
+
+        // When
+        List<Card> cards = cardRepository.findAllById(nonExistentIds);
+
+        // Then
+        assertThat(cards).isEmpty();
     }
 }
