@@ -56,7 +56,7 @@ public class AccountRepositoryTest {
     }
 
     /**
-     * 1. 사용자 저장 & 조회 (findByLoginId)
+     * 사용자 저장 & 조회 (findByLoginId)
      */
     @Test
     @DisplayName("Save And FindByLoginId -> (성공)")
@@ -76,7 +76,23 @@ public class AccountRepositoryTest {
     }
 
     /**
-     * 2. 사용자 저장 & 조회 (findById)
+     * 존재하지 않는 로그인 ID로 계정 조회 -> (실패)
+     */
+    @Test
+    @DisplayName("FindAccount by Non-existent LoginId -> (실패)")
+    void findAccountByNonExistentLoginId() {
+        // Given
+        String nonExistentLoginId = "nonexistent@gmail.com";
+
+        // When
+        Optional<Account> findAccount = accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId);
+
+        // Then
+        assertThat(findAccount).isEmpty();
+    }
+
+    /**
+     * 사용자 저장 & 조회 (findById)
      */
     @Test
     @DisplayName("Save And FindById -> (성공)")
@@ -96,7 +112,23 @@ public class AccountRepositoryTest {
     }
 
     /**
-     * 3. Soft Delete 후 데이터 유지 여부
+     * 존재하지 않는 ID로 계정 조회 -> (실패)
+     */
+    @Test
+    @DisplayName("FindAccount by Non-existent Id -> (실패)")
+    void findAccountByNonExistentId() {
+        // Given
+        Long nonExistentId = 999L;
+
+        // When
+        Optional<Account> findAccount = accountRepository.findByIdAndIsDeletedFalse(nonExistentId);
+
+        // Then
+        assertThat(findAccount).isEmpty();
+    }
+
+    /**
+     * Soft Delete 후 데이터 유지 여부
      */
      /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정 (계정 삭제 API 추가 필요)

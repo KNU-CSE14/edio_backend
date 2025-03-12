@@ -60,7 +60,7 @@ public class DeckRepositoryTest {
     }
 
     /**
-     * 1. 덱 저장 & 조회
+     * 덱 저장 & 조회
      */
     @Test
     @DisplayName("Save And FindDeck -> (성공)")
@@ -79,9 +79,25 @@ public class DeckRepositoryTest {
         assertThat(findDeck.get().getCategory().getName()).isEqualTo("testCategory");
     }
 
+    /**
+     * 존재하지 않는 덱 조회 -> (실패)
+     */
+    @Test
+    @DisplayName("FindDeck by Non-existent Id -> (실패)")
+    void findDeckByNonExistentId() {
+        // Given
+        Long nonExistentId = 999L;
+
+        // When
+        Optional<Deck> findDeck = deckRepository.findByIdAndIsDeletedFalse(nonExistentId);
+
+        // Then
+        assertThat(findDeck).isEmpty();
+    }
+
 
     /**
-     * 2. Soft Delete 후 데이터 유지 여부
+     * Soft Delete 후 데이터 유지 여부
      */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
