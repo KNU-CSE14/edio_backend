@@ -20,12 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(JpaConfig.class)
 public class FolderRepositoryTest {
 
-    /**
-     * 1. 폴더 저장 & 조회
-     * 2. Soft Delete 후 데이터 유지 여부
-     * 3. 사용자 ID로 폴더 목록 조회
-     */
-
     @Autowired
     private FolderRepository folderRepository;
 
@@ -34,24 +28,28 @@ public class FolderRepositoryTest {
     private Folder testFolder3;
 
     @BeforeEach
-    void setUp(){
-        testFolder = folderRepository.save(Folder.builder()
+    void setUp() {
+        // Given
+        testFolder = Folder.builder()
                 .accountId(1L)
                 .name("testFolder")
-                .build());
-        testFolder2 = folderRepository.save(Folder.builder()
+                .build();
+        testFolder2 = Folder.builder()
                 .accountId(1L)
                 .name("testFolder2")
-                .build());
-        testFolder3 = folderRepository.save(Folder.builder()
+                .build();
+        testFolder3 = Folder.builder()
                 .accountId(2L)
                 .name("testFolder3")
-                .build());
+                .build();
     }
 
+    /**
+     * 1. 폴더 저장 & 조회
+     */
     @Test
     @DisplayName("Save And FindFolder -> (성공)")
-    void saveAndFindFolder(){
+    void saveAndFindFolder() {
         // Given
         folderRepository.save(testFolder);
 
@@ -64,6 +62,9 @@ public class FolderRepositoryTest {
         assertThat(findFolder.get().getAccountId()).isEqualTo(1L);
     }
 
+    /**
+     * 2. Soft Delete 후 데이터 유지 여부
+     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
@@ -92,13 +93,14 @@ public class FolderRepositoryTest {
     }
     */
 
+    /**
+     * 3. 사용자 ID로 폴더 목록 조회
+     */
     @Test
     @DisplayName("Find By AccountId -> (성공)")
     void findByAccountId() {
         // Given
-        folderRepository.save(testFolder);
-        folderRepository.save(testFolder2);
-        folderRepository.save(testFolder3);
+        folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
 
         // When
         List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(1L);

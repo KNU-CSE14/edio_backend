@@ -25,10 +25,6 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTests {
 
-    /*
-        FIXME: 현재 AccountService에 findOneAccount만 테스트 하고 있기 때문에, Respository 테스트도 추가 필요 
-     */
-
     @Mock
     private AccountRepository accountRepository;
 
@@ -63,7 +59,7 @@ public class AccountServiceTests {
         assertThat(mockAccount.getMember()).isNotNull();
 
         // given
-        when(accountRepository.findByIdAndIsDeleted(1L, false))
+        when(accountRepository.findByIdAndIsDeletedFalse(1L))
                 .thenReturn(Optional.of(mockAccount));
 
         // when
@@ -77,7 +73,7 @@ public class AccountServiceTests {
     @Test
     public void findOneAccount_whenAccountDoesNotExist_throwsEntityNotFoundException() {
         // given
-        when(accountRepository.findByIdAndIsDeleted(1L, false))
+        when(accountRepository.findByIdAndIsDeletedFalse(1L))
                 .thenReturn(Optional.empty());
 
         // when & then

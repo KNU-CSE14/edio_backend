@@ -25,11 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(JpaConfig.class)
 public class DeckRepositoryTest {
 
-    /**
-     * 1. 덱 저장 & 조회
-     * 2. Soft Delete 후 데이터 유지 여부
-     */
-
     @Autowired
     private DeckRepository deckRepository;
 
@@ -47,7 +42,7 @@ public class DeckRepositoryTest {
     private Category testCategory;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         testFolder = folderRepository.save(Folder.builder()
                 .accountId(1L)
                 .name("testFolder")
@@ -56,16 +51,20 @@ public class DeckRepositoryTest {
                 .name("testCategory")
                 .build());
 
-        testDeck = deckRepository.save(Deck.builder()
+        testDeck = Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
                 .name("testDeck")
-                .description("testDescription").build());
+                .description("testDescription")
+                .build();
     }
 
+    /**
+     * 1. 덱 저장 & 조회
+     */
     @Test
     @DisplayName("Save And FindDeck -> (성공)")
-    void saveAndFindDeck(){
+    void saveAndFindDeck() {
         // Given
         deckRepository.save(testDeck);
 
@@ -80,6 +79,10 @@ public class DeckRepositoryTest {
         assertThat(findDeck.get().getCategory().getName()).isEqualTo("testCategory");
     }
 
+
+    /**
+     * 2. Soft Delete 후 데이터 유지 여부
+     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test

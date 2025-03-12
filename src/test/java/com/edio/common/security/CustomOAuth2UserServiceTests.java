@@ -13,9 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -110,26 +108,26 @@ public class CustomOAuth2UserServiceTests {
     @Test
     public void 기존계정이_존재할_때_loadUser_정상동작_테스트() {
         // 기존 계정이 존재한다고 가정하고, accountRepository.findByLoginIdAndIsDeleted()가 testAccount를 반환하도록 설정
-        when(accountRepository.findByLoginIdAndIsDeleted(eq("test@example.com"), eq(false)))
+        when(accountRepository.findByLoginIdAndIsDeletedFalse(eq("test@example.com")))
                 .thenReturn(Optional.of(mockAccount));
 
-            when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
+        when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
 
-            // CustomOAuth2UserService의 loadUser 호출
-            OAuth2User result = customOAuth2UserService.loadUser(userRequest);
+        // CustomOAuth2UserService의 loadUser 호출
+        OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
-            // 검증: 기존 계정이 이미 존재하므로 신규 등록(save 관련 메서드 호출)이 발생하지 않아야 함
-            verify(accountRepository, times(1))
-                    .findByLoginIdAndIsDeleted("test@example.com", false);
-            verify(memberRepository, never()).save(any(Member.class));
-            verify(accountRepository, never()).save(any(Account.class));
-            verify(folderRepository, never()).save(any(Folder.class));
+        // 검증: 기존 계정이 이미 존재하므로 신규 등록(save 관련 메서드 호출)이 발생하지 않아야 함
+        verify(accountRepository, times(1))
+                .findByLoginIdAndIsDeletedFalse("test@example.com");
+        verify(memberRepository, never()).save(any(Member.class));
+        verify(accountRepository, never()).save(any(Account.class));
+        verify(folderRepository, never()).save(any(Folder.class));
 
-            // 반환된 OAuth2User가 CustomUserDetails 타입인지, 그리고 내부에 저장된 계정 정보가 mockAccount와 일치하는지 확인
-            assertInstanceOf(CustomUserDetails.class, result);
-            CustomUserDetails userDetails = (CustomUserDetails) result;
-            assertEquals(mockAccount.getId(), userDetails.getAccountId());
-            assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
+        // 반환된 OAuth2User가 CustomUserDetails 타입인지, 그리고 내부에 저장된 계정 정보가 mockAccount와 일치하는지 확인
+        assertInstanceOf(CustomUserDetails.class, result);
+        CustomUserDetails userDetails = (CustomUserDetails) result;
+        assertEquals(mockAccount.getId(), userDetails.getAccountId());
+        assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
 //        }
     }
 
@@ -139,7 +137,7 @@ public class CustomOAuth2UserServiceTests {
     @Test
     public void 신규계정일_때_loadUser_정상동작_테스트() {
         // 신규 계정이므로 findBy...는 빈 Optional 반환
-        when(accountRepository.findByLoginIdAndIsDeleted(eq("test@example.com"), eq(false)))
+        when(accountRepository.findByLoginIdAndIsDeletedFalse(eq("test@example.com")))
                 .thenReturn(Optional.empty());
 
         // 내부 save 메서드들이 호출되었을 때, 더미 객체들을 반환하도록 stub
@@ -154,7 +152,7 @@ public class CustomOAuth2UserServiceTests {
 
         // then: 신규 계정 생성과 관련한 repository의 save 메서드들이 호출되었는지 검증
         verify(accountRepository, times(1))
-                .findByLoginIdAndIsDeleted("test@example.com", false);
+                .findByLoginIdAndIsDeletedFalse("test@example.com");
         verify(memberRepository, times(1)).save(any(Member.class));
         verify(accountRepository, times(1)).save(any(Account.class));
         verify(folderRepository, times(1)).save(any(Folder.class));
