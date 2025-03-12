@@ -23,7 +23,7 @@ public class AccountServiceImpl implements AccountService {
     @Transactional(readOnly = true)
     @Override
     public AccountResponse findOneAccount(Long accountId) {
-        Account account = accountRepository.findByIdAndIsDeleted(accountId, false)
+        Account account = accountRepository.findByIdAndIsDeletedFalse(accountId)
                 .orElseThrow(() -> new EntityNotFoundException(ErrorMessages.NOT_FOUND_ENTITY.format(Account.class.getSimpleName(), accountId)));
         return AccountResponse.from(account);
     }

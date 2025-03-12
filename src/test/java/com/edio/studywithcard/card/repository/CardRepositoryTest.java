@@ -28,15 +28,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import(JpaConfig.class)
 public class CardRepositoryTest {
 
-    /**
-     * 1. 카드 저장 & 조회
-     * 2. Soft Delete 후 데이터 유지 여부
-     * 3. 카드 멀티 저장 & 조회
-     */
-
     @Autowired
     private CardRepository cardRepository;
-    
+
     @Autowired
     private DeckRepository deckRepository;
 
@@ -57,7 +51,8 @@ public class CardRepositoryTest {
     private Category testCategory;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
+        // Given
         testFolder = folderRepository.save(Folder.builder()
                 .accountId(1L)
                 .name("testFolder")
@@ -71,21 +66,24 @@ public class CardRepositoryTest {
                 .name("testDeck")
                 .description("testDescription")
                 .build());
-        testCard = cardRepository.save(Card.builder()
+        testCard = Card.builder()
                 .deck(testDeck)
                 .name("testCard")
                 .description("testDescription")
-                .build());
-        testCard2 = cardRepository.save(Card.builder()
+                .build();
+        testCard2 = Card.builder()
                 .deck(testDeck)
                 .name("testCard2")
                 .description("testDescription2")
-                .build());
+                .build();
     }
 
+    /**
+     * 1. 카드 저장 & 조회
+     */
     @Test
     @DisplayName("Save And FindCard -> (성공)")
-    void saveAndFindCard(){
+    void saveAndFindCard() {
         // Given
         cardRepository.save(testCard);
 
@@ -97,6 +95,9 @@ public class CardRepositoryTest {
         assertThat(findCard.get().getName()).isEqualTo("testCard");
     }
 
+    /**
+     * 2. Soft Delete 후 데이터 유지 여부
+     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
@@ -125,6 +126,9 @@ public class CardRepositoryTest {
     }
     */
 
+    /**
+     * 3. 카드 멀티 저장 & 조회
+     */
     @Test
     @DisplayName("Multiple Save And FindCards -> (성공)")
     void saveAllAndFindAll() {

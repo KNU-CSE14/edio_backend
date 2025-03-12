@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<Account, Long> {
-    Optional<Account> findByLoginIdAndIsDeleted(String loginId, boolean isDeleted);
+    Optional<Account> findByLoginIdAndIsDeletedFalse(String loginId);
 
-    Optional<Account> findByIdAndIsDeleted(Long accountId, boolean isDeleted);
+    Optional<Account> findByIdAndIsDeletedFalse(Long accountId);
 }
