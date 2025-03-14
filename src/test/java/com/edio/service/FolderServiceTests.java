@@ -49,11 +49,11 @@ public class FolderServiceTests {
     // 헬퍼 메서드: Folder 생성
     private Folder createFolder(Long id, String name) {
         Folder folder = Folder.builder()
+                .id(id)
                 .accountId(1L)
                 .name(name)
                 .parentFolder(null)
                 .build();
-        ReflectionTestUtils.setField(folder, "id", id);
         return folder;
     }
 
