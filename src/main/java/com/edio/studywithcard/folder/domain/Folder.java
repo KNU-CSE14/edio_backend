@@ -4,6 +4,7 @@ import com.edio.common.domain.BaseEntity;
 import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@SuperBuilder
 @SQLDelete(sql = "UPDATE folder SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Folder extends BaseEntity {
 
