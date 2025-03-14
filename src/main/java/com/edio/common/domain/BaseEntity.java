@@ -1,10 +1,7 @@
 package com.edio.common.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -32,6 +29,7 @@ public abstract class BaseEntity {
 
     @Column(nullable = false)
     @Setter
+    @Builder.Default
     private boolean isDeleted = false;
 
 }
