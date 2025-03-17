@@ -1,6 +1,7 @@
 package com.edio.studywithcard.folder.repository;
 
 import com.edio.common.config.JpaConfig;
+import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.folder.domain.Folder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,9 +15,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @Import(JpaConfig.class)
 public class FolderRepositoryTest {
 
@@ -30,18 +31,18 @@ public class FolderRepositoryTest {
     @BeforeEach
     void setUp() {
         // Given
-        testFolder = Folder.builder()
+        testFolder = folderRepository.save(Folder.builder()
                 .accountId(1L)
                 .name("testFolder")
-                .build();
-        testFolder2 = Folder.builder()
+                .build());
+        testFolder2 = folderRepository.save(Folder.builder()
                 .accountId(1L)
                 .name("testFolder2")
-                .build();
-        testFolder3 = Folder.builder()
+                .build());
+        testFolder3 = folderRepository.save(Folder.builder()
                 .accountId(2L)
                 .name("testFolder3")
-                .build();
+                .build());
     }
 
     /**
@@ -50,16 +51,13 @@ public class FolderRepositoryTest {
     @Test
     @DisplayName("Save And FindFolder -> (성공)")
     void saveAndFindFolder() {
-        // Given
-        folderRepository.save(testFolder);
-
         // When
-        Optional<Folder> findFolder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId());
+        Folder folder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId())
+                .orElseThrow(() -> new AssertionError("Folder not found"));
 
         // Then
-        assertThat(findFolder).isPresent();
-        assertThat(findFolder.get().getName()).isEqualTo("testFolder");
-        assertThat(findFolder.get().getAccountId()).isEqualTo(1L);
+        assertThat(folder.getName()).isEqualTo("testFolder");
+        assertThat(folder.getAccountId()).isEqualTo(1L);
     }
 
     /**
@@ -71,11 +69,11 @@ public class FolderRepositoryTest {
         // Given
         Long nonExistentId = 999L;
 
-        // When
-        Optional<Folder> findFolder = folderRepository.findByIdAndIsDeletedFalse(nonExistentId);
-
-        // Then
-        assertThat(findFolder).isEmpty();
+        // When & Then
+        assertThrows(AssertionError.class, () -> {
+            folderRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                    .orElseThrow(() -> new AssertionError("Folder not found"));
+        });
     }
 
     /**

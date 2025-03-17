@@ -8,6 +8,7 @@ import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import com.edio.user.domain.Account;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,9 +23,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @Import(JpaConfig.class)
 public class CardRepositoryTest {
 
@@ -39,9 +40,6 @@ public class CardRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private Card testCard;
     private Card testCard2;
@@ -66,16 +64,16 @@ public class CardRepositoryTest {
                 .name("testDeck")
                 .description("testDescription")
                 .build());
-        testCard = Card.builder()
+        testCard = cardRepository.save(Card.builder()
                 .deck(testDeck)
                 .name("testCard")
                 .description("testDescription")
-                .build();
-        testCard2 = Card.builder()
+                .build());
+        testCard2 = cardRepository.save(Card.builder()
                 .deck(testDeck)
                 .name("testCard2")
                 .description("testDescription2")
-                .build();
+                .build());
     }
 
     /**
@@ -84,15 +82,12 @@ public class CardRepositoryTest {
     @Test
     @DisplayName("Save And FindCard -> (성공)")
     void saveAndFindCard() {
-        // Given
-        cardRepository.save(testCard);
-
         // When
-        Optional<Card> findCard = cardRepository.findByIdAndIsDeletedFalse(testCard.getId());
+        Card card = cardRepository.findByIdAndIsDeletedFalse(testCard.getId())
+                .orElseThrow(() -> new AssertionError("Card not found"));
 
         // Then
-        assertThat(findCard).isPresent();
-        assertThat(findCard.get().getName()).isEqualTo("testCard");
+        assertThat(card.getName()).isEqualTo("testCard");
     }
 
     /**
@@ -104,11 +99,11 @@ public class CardRepositoryTest {
         // Given
         Long nonExistentId = 999L;
 
-        // When
-        Optional<Card> findCard = cardRepository.findByIdAndIsDeletedFalse(nonExistentId);
-
-        // Then
-        assertThat(findCard).isEmpty();
+        // When & Then
+        assertThrows(AssertionError.class, () -> {
+            cardRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                    .orElseThrow(() -> new AssertionError("Card not found"));
+        });
     }
 
     /**
