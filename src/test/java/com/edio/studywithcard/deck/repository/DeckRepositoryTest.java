@@ -1,6 +1,7 @@
 package com.edio.studywithcard.deck.repository;
 
 import com.edio.common.config.JpaConfig;
+import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -19,9 +20,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @Import(JpaConfig.class)
 public class DeckRepositoryTest {
 
@@ -33,9 +34,6 @@ public class DeckRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private Deck testDeck;
     private Folder testFolder;
@@ -51,12 +49,12 @@ public class DeckRepositoryTest {
                 .name("testCategory")
                 .build());
 
-        testDeck = Deck.builder()
+        testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
                 .name("testDeck")
                 .description("testDescription")
-                .build();
+                .build());
     }
 
     /**
@@ -65,18 +63,15 @@ public class DeckRepositoryTest {
     @Test
     @DisplayName("Save And FindDeck -> (성공)")
     void saveAndFindDeck() {
-        // Given
-        deckRepository.save(testDeck);
-
         // When
-        Optional<Deck> findDeck = deckRepository.findByIdAndIsDeletedFalse(testDeck.getId());
+        Deck deck = deckRepository.findByIdAndIsDeletedFalse(testDeck.getId())
+                .orElseThrow(() -> new AssertionError("Deck not found"));
 
         // Then
-        assertThat(findDeck).isPresent();
-        assertThat(findDeck.get().getName()).isEqualTo("testDeck");
-        assertThat(findDeck.get().getDescription()).isEqualTo("testDescription");
-        assertThat(findDeck.get().getFolder().getName()).isEqualTo("testFolder");
-        assertThat(findDeck.get().getCategory().getName()).isEqualTo("testCategory");
+        assertThat(deck.getName()).isEqualTo("testDeck");
+        assertThat(deck.getDescription()).isEqualTo("testDescription");
+        assertThat(deck.getFolder().getName()).isEqualTo("testFolder");
+        assertThat(deck.getCategory().getName()).isEqualTo("testCategory");
     }
 
     /**
@@ -88,11 +83,11 @@ public class DeckRepositoryTest {
         // Given
         Long nonExistentId = 999L;
 
-        // When
-        Optional<Deck> findDeck = deckRepository.findByIdAndIsDeletedFalse(nonExistentId);
-
-        // Then
-        assertThat(findDeck).isEmpty();
+        // When & Then
+        assertThrows(AssertionError.class, () -> {
+            deckRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                    .orElseThrow(() -> new AssertionError("Deck not found"));
+        });
     }
 
 

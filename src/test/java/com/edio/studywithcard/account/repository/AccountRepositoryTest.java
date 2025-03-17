@@ -20,9 +20,9 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @DataJpaTest
-@ActiveProfiles("test")
 @Import(JpaConfig.class)
 public class AccountRepositoryTest {
 
@@ -31,9 +31,6 @@ public class AccountRepositoryTest {
 
     @Autowired
     private MemberRepository memberRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private Member testMember;
     private Account testAccount;
@@ -47,12 +44,12 @@ public class AccountRepositoryTest {
                 .familyName("Hong")
                 .profileUrl("http://example.com/profile.jpg")
                 .build());
-        testAccount = Account.builder()
+        testAccount = accountRepository.save(Account.builder()
                 .loginId("testUser@gmail.com")
                 .member(testMember)
                 .loginType(AccountLoginType.GOOGLE)
                 .roles(AccountRole.ROLE_USER)
-                .build();
+                .build());
     }
 
     /**
@@ -61,18 +58,15 @@ public class AccountRepositoryTest {
     @Test
     @DisplayName("Save And FindByLoginId -> (성공)")
     void saveAndFindByLoginId() {
-        // Given
-        accountRepository.save(testAccount);
-
         // When
-        Optional<Account> findAccount = accountRepository.findByLoginIdAndIsDeletedFalse(testAccount.getLoginId());
+        Account account = accountRepository.findByLoginIdAndIsDeletedFalse(testAccount.getLoginId())
+                .orElseThrow(() -> new AssertionError("Account not found"));
 
         // Then
-        assertThat(findAccount).isPresent();
-        assertThat(findAccount.get().getLoginId()).isEqualTo("testUser@gmail.com");
-        assertThat(findAccount.get().isDeleted()).isFalse();
-        assertThat(findAccount.get().getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
-        assertThat(findAccount.get().getRoles()).isEqualTo(AccountRole.ROLE_USER);
+        assertThat(account.getLoginId()).isEqualTo("testUser@gmail.com");
+        assertThat(account.isDeleted()).isFalse();
+        assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
+        assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
     }
 
     /**
@@ -84,11 +78,11 @@ public class AccountRepositoryTest {
         // Given
         String nonExistentLoginId = "nonexistent@gmail.com";
 
-        // When
-        Optional<Account> findAccount = accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId);
-
-        // Then
-        assertThat(findAccount).isEmpty();
+        // When & Then
+        assertThrows(AssertionError.class, () -> {
+            accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId)
+                    .orElseThrow(() -> new AssertionError("Account not found"));
+        });
     }
 
     /**
@@ -97,18 +91,15 @@ public class AccountRepositoryTest {
     @Test
     @DisplayName("Save And FindById -> (성공)")
     void saveAndFindById() {
-        // Given
-        accountRepository.save(testAccount);
-
         // When
-        Optional<Account> findAccount = accountRepository.findByIdAndIsDeletedFalse(testAccount.getId());
+        Account account = accountRepository.findByIdAndIsDeletedFalse(testAccount.getId())
+                .orElseThrow(() -> new AssertionError("Account not found"));
 
         // Then
-        assertThat(findAccount).isPresent();
-        assertThat(findAccount.get().getLoginId()).isEqualTo("testUser@gmail.com");
-        assertThat(findAccount.get().isDeleted()).isFalse();
-        assertThat(findAccount.get().getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
-        assertThat(findAccount.get().getRoles()).isEqualTo(AccountRole.ROLE_USER);
+        assertThat(account.getLoginId()).isEqualTo("testUser@gmail.com");
+        assertThat(account.isDeleted()).isFalse();
+        assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
+        assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
     }
 
     /**
@@ -120,11 +111,11 @@ public class AccountRepositoryTest {
         // Given
         Long nonExistentId = 999L;
 
-        // When
-        Optional<Account> findAccount = accountRepository.findByIdAndIsDeletedFalse(nonExistentId);
-
-        // Then
-        assertThat(findAccount).isEmpty();
+        // When & Then
+        assertThrows(AssertionError.class, () -> {
+            accountRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                    .orElseThrow(() -> new AssertionError("Account not found"));
+        });
     }
 
     /**
