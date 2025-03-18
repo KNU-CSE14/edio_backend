@@ -1,4 +1,4 @@
-package com.edio.service;
+package com.edio.studywithcard.account.service;
 
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class AccountServiceTests {
+public class AccountServiceTest {
 
     @Mock
     private AccountRepository accountRepository;

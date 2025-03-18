@@ -1,4 +1,4 @@
-package com.edio.service;
+package com.edio.studywithcard.attachment;
 
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AttachmentServiceTests {
+public class AttachmentServiceTest {
 
     @Mock
     private S3Service s3Service;

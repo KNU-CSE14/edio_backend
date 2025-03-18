@@ -1,4 +1,4 @@
-package com.edio.service;
+package com.edio.studywithcard.deck.service;
 
 import com.edio.common.exception.base.ErrorMessages;
 import com.edio.studywithcard.attachment.service.AttachmentService;
@@ -10,7 +10,6 @@ import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
-import com.edio.studywithcard.deck.service.DeckServiceImpl;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -28,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class DeckServiceTests {
+public class DeckServiceTest {
 
     @Mock
     private DeckRepository deckRepository;

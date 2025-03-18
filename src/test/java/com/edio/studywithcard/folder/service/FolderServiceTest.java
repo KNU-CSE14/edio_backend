@@ -1,11 +1,10 @@
-package com.edio.service;
+package com.edio.studywithcard.folder.service;
 
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import com.edio.studywithcard.folder.service.FolderServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class FolderServiceTests {
+public class FolderServiceTest {
 
     @Mock
     private FolderRepository folderRepository;
