@@ -13,14 +13,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@TestPropertySource(properties = "spring.profiles.active=h2")
+@ActiveProfiles("h2")
 public class AccountRepositoryTest {
 
     @Autowired
@@ -36,7 +38,6 @@ public class AccountRepositoryTest {
     private static final String profileUrl = "http://example.com/profile.jpg";
     private static final String nonExistentLoginId = "nonexistent@gmail.com";
     private static final Long nonExistentId = 999L;
-    private static final String notFoundMessage = "Account not found";
 
     private Member testMember;
     private Account testAccount;
@@ -58,15 +59,12 @@ public class AccountRepositoryTest {
                 .build());
     }
 
-    /**
-     * 사용자 저장 & 조회 (findByLoginId)
-     */
     @Test
-    @DisplayName("Save And FindByLoginId -> (성공)")
+    @DisplayName("로그인 ID로 조회 -> (성공)")
     void saveAndFindByLoginId() {
         // When
         Account account = accountRepository.findByLoginIdAndIsDeletedFalse(testAccount.getLoginId())
-                .orElseThrow(() -> new AssertionError(notFoundMessage));
+                .orElseThrow();
 
         // Then
         assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
@@ -75,28 +73,22 @@ public class AccountRepositoryTest {
         assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
     }
 
-    /**
-     * 존재하지 않는 로그인 ID로 계정 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindAccount by Non-existent LoginId -> (실패)")
+    @DisplayName("존재하지 않는 로그인 ID로 계정 조회 -> (실패)")
     void findAccountByNonExistentLoginId() {
         // When & Then
-        assertThrows(AssertionError.class, () -> {
-            accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId)
-                    .orElseThrow(() -> new AssertionError(notFoundMessage));
-        });
+        assertThatThrownBy(() ->
+                accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId)
+                        .orElseThrow()
+        ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /**
-     * 사용자 저장 & 조회 (findById)
-     */
     @Test
-    @DisplayName("Save And FindById -> (성공)")
+    @DisplayName("ID로 조회 -> (성공)")
     void saveAndFindById() {
         // When
         Account account = accountRepository.findByIdAndIsDeletedFalse(testAccount.getId())
-                .orElseThrow(() -> new AssertionError(notFoundMessage));
+                .orElseThrow();
 
         // Then
         assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
@@ -105,22 +97,16 @@ public class AccountRepositoryTest {
         assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
     }
 
-    /**
-     * 존재하지 않는 ID로 계정 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindAccount by Non-existent Id -> (실패)")
+    @DisplayName("존재하지 않는 ID로 계정 조회 -> (실패)")
     void findAccountByNonExistentId() {
         // When & Then
-        assertThrows(AssertionError.class, () -> {
-            accountRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError(notFoundMessage));
-        });
+        assertThatThrownBy(() ->
+                accountRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                        .orElseThrow()
+        ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /**
-     * Soft Delete 후 데이터 유지 여부
-     */
      /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정 (계정 삭제 API 추가 필요)
     @Test

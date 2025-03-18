@@ -14,16 +14,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@TestPropertySource(properties = "spring.profiles.active=h2")
+@ActiveProfiles("h2")
 public class CardRepositoryTest {
 
     @Autowired
@@ -46,7 +47,6 @@ public class CardRepositoryTest {
     private static final List<String> cardNames = List.of("testCard", "testCard2");
     private static final List<String> cardDescription = List.of("cardDescription", "cardDescription2");
     private static final List<Long> nonExistentIds = List.of(999L, 1000L);
-    private static final String notFoundMessage = "Card not found";
 
     private Card testCard;
     private Card testCard2;
@@ -83,36 +83,27 @@ public class CardRepositoryTest {
                 .build());
     }
 
-    /**
-     * 카드 저장 & 조회
-     */
     @Test
-    @DisplayName("Save And FindCard -> (성공)")
+    @DisplayName("카드 ID로 조회 -> (성공)")
     void saveAndFindCard() {
         // When
         Card card = cardRepository.findByIdAndIsDeletedFalse(testCard.getId())
-                .orElseThrow(() -> new AssertionError(notFoundMessage));
+                .orElseThrow();
 
         // Then
         assertThat(card.getName()).isEqualTo(testCard.getName());
     }
 
-    /**
-     * 존재하지 않는 카드 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindCard by Non-existent Id -> (실패)")
+    @DisplayName("존재하지 않는 카드 ID로 조회 -> (실패)")
     void findCardByNonExistentId() {
         // When & Then
-        assertThrows(AssertionError.class, () -> {
-            cardRepository.findByIdAndIsDeletedFalse(nonExistentIds.get(0))
-                    .orElseThrow(() -> new AssertionError(notFoundMessage));
-        });
+        assertThatThrownBy(() ->
+                cardRepository.findByIdAndIsDeletedFalse(nonExistentIds.get(0))
+                        .orElseThrow()
+        ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /**
-     * Soft Delete 후 데이터 유지 여부
-     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
@@ -141,11 +132,8 @@ public class CardRepositoryTest {
     }
     */
 
-    /**
-     * 카드 멀티 저장 & 조회
-     */
     @Test
-    @DisplayName("Multiple Save And FindCards -> (성공)")
+    @DisplayName("여러 카드 리스트 저장 후 조회 -> (성공)")
     void saveAllAndFindAll() {
         // Given
         cardRepository.saveAll(List.of(testCard, testCard2));
@@ -159,11 +147,8 @@ public class CardRepositoryTest {
         assertThat(cards).hasSize(2);
     }
 
-    /**
-     * 존재하지 않는 카드 목록 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindCards by Non-existent Ids -> (실패)")
+    @DisplayName("존재하지 않는 ID 리스트로 카드 조회 -> (실패)")
     void findCardsByNonExistentIds() {
         // When
         List<Card> cards = cardRepository.findAllById(nonExistentIds);

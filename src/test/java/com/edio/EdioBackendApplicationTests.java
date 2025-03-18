@@ -2,10 +2,10 @@ package com.edio;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
-@TestPropertySource(properties = "spring.profiles.active=mysql")
+@ActiveProfiles("mysql")
 class EdioBackendApplicationTests extends BaseTest {
     @Test
     void contextLoads() {
