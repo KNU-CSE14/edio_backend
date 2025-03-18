@@ -1,4 +1,4 @@
-package com.edio.common;
+package com.edio;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.junit.jupiter.api.BeforeAll;

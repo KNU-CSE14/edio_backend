@@ -1,4 +1,4 @@
-package com.edio.service;
+package com.edio.studywithcard.card.service;
 
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
@@ -10,7 +10,6 @@ import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.card.model.request.CardBulkRequest;
 import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
-import com.edio.studywithcard.card.service.CardServiceImpl;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
@@ -33,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class CardServiceTests {
+public class CardServiceTest {
 
     private static final String IMAGE_MIME_JPEG = "image/jpeg";
     private static final String AUDIO_MIME_MPEG = "audio/mpeg";
