@@ -19,7 +19,7 @@ import java.util.Optional;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class FolderServiceTest {
@@ -48,12 +48,11 @@ public class FolderServiceTest {
     // 헬퍼 메서드: Folder 생성
     private Folder createFolder(Long id, String name) {
         Folder folder = Folder.builder()
+                .id(id)
                 .accountId(1L)
                 .name(name)
                 .parentFolder(null)
-                .isDeleted(false)
                 .build();
-        ReflectionTestUtils.setField(folder, "id", id);
         return folder;
     }
 
@@ -116,8 +115,8 @@ public class FolderServiceTest {
         // when
         folderService.deleteFolder(1L);
 
-        // then
-        assertThat(existingFolder.isDeleted()).isTrue();
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(1L);
+        verify(folderRepository, times(1)).delete(existingFolder);
     }
 
     @Test

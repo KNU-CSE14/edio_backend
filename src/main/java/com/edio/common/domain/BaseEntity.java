@@ -2,6 +2,7 @@ package com.edio.common.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -12,6 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @EntityListeners(AuditingEntityListener.class)  // Auditing 기능 활성화
+@SuperBuilder
 public abstract class BaseEntity {
 
     @Id
@@ -24,5 +26,10 @@ public abstract class BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    @Setter
+    @Builder.Default
+    private boolean isDeleted = false;
 
 }

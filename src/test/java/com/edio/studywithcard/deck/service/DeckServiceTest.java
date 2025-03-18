@@ -20,6 +20,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Optional;
 
@@ -62,7 +63,6 @@ public class DeckServiceTest {
                 .category(category)
                 .isShared(false)
                 .isFavorite(false)
-                .isDeleted(false)
                 .build();
         deckCreateRequest = new DeckCreateRequest(1L, 1L, "New Deck", "New Description", false);
         deckUpdateRequest = new DeckUpdateRequest(1L, 1L, null, "Updated Deck", "Updated Description", true);
@@ -137,6 +137,6 @@ public class DeckServiceTest {
         deckService.deleteDeck(deckDeleteRequest);
 
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
-        assertTrue(existingDeck.isDeleted());
+        verify(deckRepository, times(1)).delete(existingDeck);
     }
 }

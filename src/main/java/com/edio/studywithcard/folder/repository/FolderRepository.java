@@ -18,11 +18,11 @@ public interface FolderRepository extends JpaRepository<Folder, Long> {
 
     /**
      * Folder 조회(전체)
+     * TODO: OneToMany 관계는 EntityGraph 제거하고 필요에 따라서 Batch Size 적용 여부 확인 필요
      *
      * @param folderId
      * @return
      */
-    @EntityGraph(attributePaths = {"childrenFolders", "decks"})
     Optional<Folder> findById(Long folderId);
 
     /**

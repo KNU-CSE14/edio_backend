@@ -4,6 +4,9 @@ import com.edio.common.domain.BaseEntity;
 import com.edio.studywithcard.deck.domain.Deck;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
+import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SQLDelete;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +16,8 @@ import java.util.List;
 @Getter
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@SuperBuilder
+@SQLDelete(sql = "UPDATE folder SET is_deleted = true, updated_at = CURRENT_TIMESTAMP(6) WHERE id = ?")
 public class Folder extends BaseEntity {
 
     @Column(nullable = false)
@@ -25,20 +29,17 @@ public class Folder extends BaseEntity {
 
     @OneToMany(mappedBy = "parentFolder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @BatchSize(size = 10)
     private List<Folder> childrenFolders = new ArrayList<>();
 
     @OneToMany(mappedBy = "folder", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @BatchSize(size = 10)
     private List<Deck> decks = new ArrayList<>();
 
     @Column(nullable = false)
     @Setter
     private String name;
-
-    @Column(nullable = false)
-    @Setter
-    @Builder.Default
-    private boolean isDeleted = false;
 
     public void setParentFolder(Folder parentFolder) {
         // 새로운 부모 폴더 설정
