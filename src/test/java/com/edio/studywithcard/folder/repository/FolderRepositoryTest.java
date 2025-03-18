@@ -1,7 +1,6 @@
 package com.edio.studywithcard.folder.repository;
 
 import com.edio.common.config.JpaConfig;
-import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.folder.domain.Folder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -9,10 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -24,6 +21,11 @@ public class FolderRepositoryTest {
     @Autowired
     private FolderRepository folderRepository;
 
+    private static final List<Long> accountIds = List.of(1L, 2L);
+    private static final List<String> folderNames = List.of("testFolder", "testFolder2", "testFolder3");
+    private static final Long nonExistentId = 999L;
+    private static final String notFoundMessage = "Folder not found";
+
     private Folder testFolder;
     private Folder testFolder2;
     private Folder testFolder3;
@@ -32,16 +34,16 @@ public class FolderRepositoryTest {
     void setUp() {
         // Given
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(1L)
-                .name("testFolder")
+                .accountId(accountIds.get(0)) // 1L
+                .name(folderNames.get(0))
                 .build());
         testFolder2 = folderRepository.save(Folder.builder()
-                .accountId(1L)
-                .name("testFolder2")
+                .accountId(accountIds.get(0)) // 1L
+                .name(folderNames.get(1))
                 .build());
         testFolder3 = folderRepository.save(Folder.builder()
-                .accountId(2L)
-                .name("testFolder3")
+                .accountId(accountIds.get(1)) // 2L
+                .name(folderNames.get(2))
                 .build());
     }
 
@@ -53,11 +55,11 @@ public class FolderRepositoryTest {
     void saveAndFindFolder() {
         // When
         Folder folder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId())
-                .orElseThrow(() -> new AssertionError("Folder not found"));
+                .orElseThrow(() -> new AssertionError(notFoundMessage));
 
         // Then
-        assertThat(folder.getName()).isEqualTo("testFolder");
-        assertThat(folder.getAccountId()).isEqualTo(1L);
+        assertThat(folder.getName()).isEqualTo(testFolder.getName());
+        assertThat(folder.getAccountId()).isEqualTo(testFolder.getAccountId());
     }
 
     /**
@@ -66,13 +68,10 @@ public class FolderRepositoryTest {
     @Test
     @DisplayName("FindFolder by Non-existent Id -> (실패)")
     void findFolderByNonExistentId() {
-        // Given
-        Long nonExistentId = 999L;
-
         // When & Then
         assertThrows(AssertionError.class, () -> {
             folderRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError("Folder not found"));
+                    .orElseThrow(() -> new AssertionError(notFoundMessage));
         });
     }
 
@@ -117,11 +116,11 @@ public class FolderRepositoryTest {
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
 
         // When
-        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(1L);
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(accountIds.get(0));
 
         // Then
         assertThat(folders).hasSize(2);
-        assertThat(folders).extracting(Folder::getName).containsExactlyInAnyOrder("testFolder", "testFolder2");
+        assertThat(folders).extracting(Folder::getName).containsExactlyInAnyOrder(testFolder.getName(), testFolder2.getName());
     }
 
     /**
@@ -134,7 +133,7 @@ public class FolderRepositoryTest {
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
 
         // When
-        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(999L);
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(nonExistentId);
 
         // Then
         assertThat(folders).isEmpty();
