@@ -7,17 +7,12 @@ import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
-
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,20 +27,29 @@ public class AccountRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
+    private static final String email = "testUser@gmail.com";
+    private static final String name = "Hong Gildong";
+    private static final String givenName = "gildong";
+    private static final String familyName = "Hong";
+    private static final String profileUrl = "http://example.com/profile.jpg";
+    private static final String nonExistentLoginId = "nonexistent@gmail.com";
+    private static final Long nonExistentId = 999L;
+    private static final String notFoundMessage = "Account not found";
+
     private Member testMember;
     private Account testAccount;
 
     @BeforeEach
     void setUp() {
         testMember = memberRepository.save(Member.builder()
-                .email("testUser@gmail.com")
-                .name("Hong Gildong")
-                .givenName("gildong")
-                .familyName("Hong")
-                .profileUrl("http://example.com/profile.jpg")
+                .email(email)
+                .name(name)
+                .givenName(givenName)
+                .familyName(familyName)
+                .profileUrl(profileUrl)
                 .build());
         testAccount = accountRepository.save(Account.builder()
-                .loginId("testUser@gmail.com")
+                .loginId(email)
                 .member(testMember)
                 .loginType(AccountLoginType.GOOGLE)
                 .roles(AccountRole.ROLE_USER)
@@ -60,10 +64,10 @@ public class AccountRepositoryTest {
     void saveAndFindByLoginId() {
         // When
         Account account = accountRepository.findByLoginIdAndIsDeletedFalse(testAccount.getLoginId())
-                .orElseThrow(() -> new AssertionError("Account not found"));
+                .orElseThrow(() -> new AssertionError(notFoundMessage));
 
         // Then
-        assertThat(account.getLoginId()).isEqualTo("testUser@gmail.com");
+        assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
         assertThat(account.isDeleted()).isFalse();
         assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
         assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
@@ -75,13 +79,10 @@ public class AccountRepositoryTest {
     @Test
     @DisplayName("FindAccount by Non-existent LoginId -> (실패)")
     void findAccountByNonExistentLoginId() {
-        // Given
-        String nonExistentLoginId = "nonexistent@gmail.com";
-
         // When & Then
         assertThrows(AssertionError.class, () -> {
             accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId)
-                    .orElseThrow(() -> new AssertionError("Account not found"));
+                    .orElseThrow(() -> new AssertionError(notFoundMessage));
         });
     }
 
@@ -93,10 +94,10 @@ public class AccountRepositoryTest {
     void saveAndFindById() {
         // When
         Account account = accountRepository.findByIdAndIsDeletedFalse(testAccount.getId())
-                .orElseThrow(() -> new AssertionError("Account not found"));
+                .orElseThrow(() -> new AssertionError(notFoundMessage));
 
         // Then
-        assertThat(account.getLoginId()).isEqualTo("testUser@gmail.com");
+        assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
         assertThat(account.isDeleted()).isFalse();
         assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
         assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
@@ -108,13 +109,10 @@ public class AccountRepositoryTest {
     @Test
     @DisplayName("FindAccount by Non-existent Id -> (실패)")
     void findAccountByNonExistentId() {
-        // Given
-        Long nonExistentId = 999L;
-
         // When & Then
         assertThrows(AssertionError.class, () -> {
             accountRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError("Account not found"));
+                    .orElseThrow(() -> new AssertionError(notFoundMessage));
         });
     }
 

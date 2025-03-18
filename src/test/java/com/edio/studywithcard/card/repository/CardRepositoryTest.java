@@ -8,19 +8,14 @@ import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import com.edio.user.domain.Account;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,6 +36,16 @@ public class CardRepositoryTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    private static final Long accountId = 1L;
+    private static final String folderName = "testFolder";
+    private static final String categoryName = "testCategory";
+    private static final String deckName = "testDeck";
+    private static final String deckDescription = "deckDescription";
+    private static final List<String> cardNames = List.of("testCard", "testCard2");
+    private static final List<String> cardDescription = List.of("cardDescription", "cardDescription2");
+    private static final List<Long> nonExistentIds = List.of(999L, 1000L);
+    private static final String notFoundMessage = "Card not found";
+
     private Card testCard;
     private Card testCard2;
 
@@ -52,27 +57,27 @@ public class CardRepositoryTest {
     void setUp() {
         // Given
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(1L)
-                .name("testFolder")
+                .accountId(accountId)
+                .name(folderName)
                 .build());
         testCategory = categoryRepository.save(Category.builder()
-                .name("testCategory")
+                .name(categoryName)
                 .build());
         testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
-                .name("testDeck")
-                .description("testDescription")
+                .name(deckName)
+                .description(deckDescription)
                 .build());
         testCard = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name("testCard")
-                .description("testDescription")
+                .name(cardNames.get(0))
+                .description(cardDescription.get(0))
                 .build());
         testCard2 = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name("testCard2")
-                .description("testDescription2")
+                .name(cardNames.get(1))
+                .description(cardDescription.get(1))
                 .build());
     }
 
@@ -84,10 +89,10 @@ public class CardRepositoryTest {
     void saveAndFindCard() {
         // When
         Card card = cardRepository.findByIdAndIsDeletedFalse(testCard.getId())
-                .orElseThrow(() -> new AssertionError("Card not found"));
+                .orElseThrow(() -> new AssertionError(notFoundMessage));
 
         // Then
-        assertThat(card.getName()).isEqualTo("testCard");
+        assertThat(card.getName()).isEqualTo(testCard.getName());
     }
 
     /**
@@ -96,13 +101,10 @@ public class CardRepositoryTest {
     @Test
     @DisplayName("FindCard by Non-existent Id -> (실패)")
     void findCardByNonExistentId() {
-        // Given
-        Long nonExistentId = 999L;
-
         // When & Then
         assertThrows(AssertionError.class, () -> {
-            cardRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError("Card not found"));
+            cardRepository.findByIdAndIsDeletedFalse(nonExistentIds.get(0))
+                    .orElseThrow(() -> new AssertionError(notFoundMessage));
         });
     }
 
@@ -161,9 +163,6 @@ public class CardRepositoryTest {
     @Test
     @DisplayName("FindCards by Non-existent Ids -> (실패)")
     void findCardsByNonExistentIds() {
-        // Given
-        List<Long> nonExistentIds = List.of(999L, 1000L);
-
         // When
         List<Card> cards = cardRepository.findAllById(nonExistentIds);
 
