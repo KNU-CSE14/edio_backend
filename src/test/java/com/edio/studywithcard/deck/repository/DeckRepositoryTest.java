@@ -12,14 +12,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
+
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@TestPropertySource(properties = "spring.profiles.active=h2")
+@ActiveProfiles("h2")
 public class DeckRepositoryTest {
 
     @Autowired
@@ -37,7 +39,6 @@ public class DeckRepositoryTest {
     private static final String deckName = "testDeck";
     private static final String deckDescription = "deckDescription";
     private static final Long nonExistentId = 999L;
-    private static final String notFoundMessage = "Deck not found";
 
     private Deck testDeck;
     private Folder testFolder;
@@ -61,15 +62,12 @@ public class DeckRepositoryTest {
                 .build());
     }
 
-    /**
-     * 덱 저장 & 조회
-     */
     @Test
-    @DisplayName("Save And FindDeck -> (성공)")
+    @DisplayName("덱 ID로 조회 -> (성공)")
     void saveAndFindDeck() {
         // When
         Deck deck = deckRepository.findByIdAndIsDeletedFalse(testDeck.getId())
-                .orElseThrow(() -> new AssertionError(notFoundMessage));
+                .orElseThrow();
 
         // Then
         assertThat(deck.getName()).isEqualTo(testDeck.getName());
@@ -78,23 +76,16 @@ public class DeckRepositoryTest {
         assertThat(deck.getCategory().getName()).isEqualTo(testDeck.getCategory().getName());
     }
 
-    /**
-     * 존재하지 않는 덱 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindDeck by Non-existent Id -> (실패)")
+    @DisplayName("존재하지 않는 덱 ID로 조회 -> (실패)")
     void findDeckByNonExistentId() {
         // When & Then
-        assertThrows(AssertionError.class, () -> {
-            deckRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError(notFoundMessage));
-        });
+        assertThatThrownBy(() ->
+                deckRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                        .orElseThrow()
+        ).isInstanceOf(NoSuchElementException.class);
     }
 
-
-    /**
-     * Soft Delete 후 데이터 유지 여부
-     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test

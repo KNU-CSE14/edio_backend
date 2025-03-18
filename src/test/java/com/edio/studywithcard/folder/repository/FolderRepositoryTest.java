@@ -8,16 +8,17 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@TestPropertySource(properties = "spring.profiles.active=h2")
+@ActiveProfiles("h2")
 public class FolderRepositoryTest {
 
     @Autowired
@@ -26,7 +27,6 @@ public class FolderRepositoryTest {
     private static final List<Long> accountIds = List.of(1L, 2L);
     private static final List<String> folderNames = List.of("testFolder", "testFolder2", "testFolder3");
     private static final Long nonExistentId = 999L;
-    private static final String notFoundMessage = "Folder not found";
 
     private Folder testFolder;
     private Folder testFolder2;
@@ -49,37 +49,28 @@ public class FolderRepositoryTest {
                 .build());
     }
 
-    /**
-     * 폴더 저장 & 조회
-     */
     @Test
-    @DisplayName("Save And FindFolder -> (성공)")
+    @DisplayName("폴더 ID로 조회 -> (성공)")
     void saveAndFindFolder() {
         // When
         Folder folder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId())
-                .orElseThrow(() -> new AssertionError(notFoundMessage));
+                .orElseThrow();
 
         // Then
         assertThat(folder.getName()).isEqualTo(testFolder.getName());
         assertThat(folder.getAccountId()).isEqualTo(testFolder.getAccountId());
     }
 
-    /**
-     * 존재하지 않는 폴더 조회 -> (실패)
-     */
     @Test
-    @DisplayName("FindFolder by Non-existent Id -> (실패)")
+    @DisplayName("존재하지 않는 덱 ID로 조회 -> (실패)")
     void findFolderByNonExistentId() {
         // When & Then
-        assertThrows(AssertionError.class, () -> {
-            folderRepository.findByIdAndIsDeletedFalse(nonExistentId)
-                    .orElseThrow(() -> new AssertionError(notFoundMessage));
-        });
+        assertThatThrownBy(() ->
+                folderRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                        .orElseThrow()
+        ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /**
-     * Soft Delete 후 데이터 유지 여부
-     */
     /*
         TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
@@ -108,11 +99,8 @@ public class FolderRepositoryTest {
     }
     */
 
-    /**
-     * 사용자 ID로 폴더 목록 조회
-     */
     @Test
-    @DisplayName("Find By AccountId -> (성공)")
+    @DisplayName("사용자 ID로 조회 -> (성공)")
     void findByAccountId() {
         // Given
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
@@ -125,11 +113,8 @@ public class FolderRepositoryTest {
         assertThat(folders).extracting(Folder::getName).containsExactlyInAnyOrder(testFolder.getName(), testFolder2.getName());
     }
 
-    /**
-     * 존재하지 않는 AccountId로 폴더 목록 조회 -> (실패)
-     */
     @Test
-    @DisplayName("Find Folders by Non-existent AccountId -> (실패)")
+    @DisplayName("존재하지 않는 사용자 ID로 조회 -> (실패)")
     void findFoldersByNonExistentAccountId() {
         // Given
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
