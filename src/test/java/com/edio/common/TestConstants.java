@@ -9,7 +9,7 @@ public final class TestConstants {
     private TestConstants() {
     }
 
-    /**
+    /*
      * 공통적으로 많이 쓰이는 기본 값
      */
     public static final Long DEFAULT_ID = 1L;
@@ -25,7 +25,7 @@ public final class TestConstants {
     public static final AccountRole DEFAULT_ROLE = AccountRole.ROLE_USER;
     public static final AccountLoginType DEFAULT_LOGIN_TYPE = AccountLoginType.GOOGLE;
 
-    /**
+    /*
      * 계정 관련 상수
      */
     public static class Account {
@@ -45,7 +45,7 @@ public final class TestConstants {
         public static final List<Long> ACCOUNT_IDS = List.of(1L, 2L);
     }
 
-    /**
+    /*
      * 파일 관련 상수
      */
     public static class File {
