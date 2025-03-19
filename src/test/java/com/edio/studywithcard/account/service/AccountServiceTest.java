@@ -1,5 +1,6 @@
 package com.edio.studywithcard.account.service;
 
+import com.edio.common.TestConstants;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 import com.edio.user.domain.enums.AccountLoginType;
@@ -7,20 +8,20 @@ import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.model.response.AccountResponse;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.service.AccountServiceImpl;
-import jakarta.persistence.EntityNotFoundException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AccountServiceTest {
@@ -31,54 +32,61 @@ public class AccountServiceTest {
     @InjectMocks
     private AccountServiceImpl accountService;
 
+    private static final Long memberId = 1L;
+    private static final Long accountId = 1L;
+    private static final String email = "testUser@gmail.com";
+    private static final String name = "Hong Gildong";
+    private static final String givenName = "Gildong";
+    private static final String familyName = "Hong";
+    private static final String profileUrl = "http://example.com/profile.jpg";
+    private static final AccountLoginType loginType = AccountLoginType.GOOGLE;
+    private static final AccountRole role = AccountRole.ROLE_USER;
+
     private Account mockAccount;
     private Member mockMember;
 
     @BeforeEach
     public void setUp() {
         mockMember = Member.builder()
-                .email("testUser@gmail.com")
-                .name("Hong Gildong")
-                .givenName("gildong")
-                .familyName("Hong")
-                .profileUrl("http://example.com/profile.jpg")
+                .id(TestConstants.Account.MEMBER_ID)
+                .email(TestConstants.Account.EMAIL)
+                .name(TestConstants.Account.NAME)
+                .givenName(TestConstants.Account.GIVEN_NAME)
+                .familyName(TestConstants.Account.FAMILY_NAME)
+                .profileUrl(TestConstants.Account.PROFILE_URL)
                 .build();
-        ReflectionTestUtils.setField(mockMember, "id", 1L);
 
         mockAccount = Account.builder()
-                .loginId("testUser@gmail.com")
+                .id(TestConstants.Account.ACCOUNT_ID)
+                .loginId(TestConstants.Account.EMAIL)
                 .member(mockMember)
-                .loginType(AccountLoginType.GOOGLE)
-                .roles(AccountRole.ROLE_USER)
+                .loginType(TestConstants.Account.LOGIN_TYPE)
+                .roles(TestConstants.Account.ROLE)
                 .build();
-        ReflectionTestUtils.setField(mockAccount, "id", 1L);
     }
 
     @Test
-    public void findOneAccount_whenAccountExists_returnsAccountResponse() {
+    @DisplayName("계정 ID로 계정 조회 -> (성공)")
+    public void 계정_ID_계정_조회() {
+        // Given
         assertThat(mockAccount.getMember()).isNotNull();
+        when(accountRepository.findByIdAndIsDeletedFalse(TestConstants.Account.ACCOUNT_ID)).thenReturn(Optional.of(mockAccount));
 
-        // given
-        when(accountRepository.findByIdAndIsDeletedFalse(1L))
-                .thenReturn(Optional.of(mockAccount));
+        // When
+        AccountResponse response = accountService.findOneAccount(TestConstants.Account.ACCOUNT_ID);
 
-        // when
-        AccountResponse response = accountService.findOneAccount(1L);
-
-        // then
+        // Then
+        verify(accountRepository, times(1)).findByIdAndIsDeletedFalse(TestConstants.Account.ACCOUNT_ID);
         assertThat(response).isNotNull();
         assertThat(response.loginId()).isEqualTo(mockAccount.getLoginId());
     }
 
     @Test
-    public void findOneAccount_whenAccountDoesNotExist_throwsEntityNotFoundException() {
-        // given
-        when(accountRepository.findByIdAndIsDeletedFalse(1L))
-                .thenReturn(Optional.empty());
-
-        // when & then
-        assertThatThrownBy(() -> accountService.findOneAccount(1L))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Account");
+    @DisplayName("존재하지 않는 ID로 계정 조회 -> (실패)")
+    public void 존재하지_않는_ID_계정_조회() {
+        // When & Then
+        Assertions.assertThatThrownBy(() ->
+                accountService.findOneAccount(TestConstants.Account.ACCOUNT_ID)
+        ).isInstanceOf(NoSuchElementException.class);
     }
 }

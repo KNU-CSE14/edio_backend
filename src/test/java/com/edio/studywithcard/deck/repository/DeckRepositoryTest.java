@@ -1,5 +1,6 @@
 package com.edio.studywithcard.deck.repository;
 
+import com.edio.common.TestConstants;
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.NoSuchElementException;
 
@@ -21,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@ActiveProfiles("h2")
 public class DeckRepositoryTest {
 
     @Autowired
@@ -33,13 +32,6 @@ public class DeckRepositoryTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    private static final Long accountId = 1L;
-    private static final String folderName = "testFolder";
-    private static final String categoryName = "testCategory";
-    private static final String deckName = "testDeck";
-    private static final String deckDescription = "deckDescription";
-    private static final Long nonExistentId = 999L;
-
     private Deck testDeck;
     private Folder testFolder;
     private Category testCategory;
@@ -47,18 +39,18 @@ public class DeckRepositoryTest {
     @BeforeEach
     void setUp() {
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(accountId)
-                .name(folderName)
+                .accountId(TestConstants.Account.ACCOUNT_ID)
+                .name(TestConstants.Folder.FOLDER_NAME)
                 .build());
         testCategory = categoryRepository.save(Category.builder()
-                .name(categoryName)
+                .name(TestConstants.Category.CATEGORY_NAME)
                 .build());
 
         testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
-                .name(deckName)
-                .description(deckDescription)
+                .name(TestConstants.Deck.DECK_NAME)
+                .description(TestConstants.Deck.DECK_DESCRIPTION)
                 .build());
     }
 
@@ -81,7 +73,7 @@ public class DeckRepositoryTest {
     void findDeckByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                deckRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                deckRepository.findByIdAndIsDeletedFalse(TestConstants.NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
