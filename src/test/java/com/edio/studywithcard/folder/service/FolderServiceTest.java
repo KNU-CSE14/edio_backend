@@ -1,19 +1,21 @@
 package com.edio.studywithcard.folder.service;
 
+import com.edio.common.TestConstants;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import jakarta.persistence.EntityNotFoundException;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -30,104 +32,93 @@ public class FolderServiceTest {
     @InjectMocks
     private FolderServiceImpl folderService;
 
-    // 공통 필드
     private FolderCreateRequest folderCreateRequest;
     private FolderUpdateRequest folderUpdateRequest;
-    private Folder existingFolder;
-    private Folder parentFolder;
+    private Folder mockFolder;
 
     @BeforeEach
     public void setUp() {
         // 공통 데이터 초기화
-        folderCreateRequest = new FolderCreateRequest(null, "Test Folder");
-        folderUpdateRequest = new FolderUpdateRequest("Updated Folder Name");
-        existingFolder = createFolder(1L, "Old Folder Name");
-        parentFolder = createFolder(2L, "Parent Folder");
+        folderCreateRequest = new FolderCreateRequest(null, TestConstants.Folder.FOLDER_NAMES.get(0));
+        folderUpdateRequest = new FolderUpdateRequest(TestConstants.Folder.FOLDER_NAMES.get(2));
+        mockFolder = createFolder(TestConstants.Folder.FOLDER_ID, TestConstants.Folder.FOLDER_NAMES.get(0));
     }
 
-    // 헬퍼 메서드: Folder 생성
+    // ==================== 헬퍼 메서드 ====================
     private Folder createFolder(Long id, String name) {
         Folder folder = Folder.builder()
                 .id(id)
-                .accountId(1L)
+                .accountId(TestConstants.Account.ACCOUNT_ID)
                 .name(name)
                 .parentFolder(null)
                 .build();
         return folder;
     }
 
-    // 헬퍼 메서드: Mock 설정
     private void mockFindFolder(Folder folder) {
-        when(folderRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.ofNullable(folder));
+        when(folderRepository.findByIdAndIsDeletedFalse(TestConstants.Folder.FOLDER_ID)).thenReturn(Optional.ofNullable(folder));
     }
 
-    /*
-        CREATE
-     */
     @Test
-    public void createFolder_whenFolderDoesNotExist_createsNewFolder() {
-        // Mock 설정
-        when(folderRepository.save(any(Folder.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    @DisplayName("폴더 생성 및 검증 -> (성공)")
+    void 폴더_생성_검증() {
+        // Given
+        when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
 
-        // when
-        FolderResponse response = folderService.createFolder(1L, folderCreateRequest);
+        // When
+        FolderResponse response = folderService.createFolder(TestConstants.Account.ACCOUNT_ID, folderCreateRequest);
 
-        // then
+        // Then
+        verify(folderRepository, times(1)).save(any(Folder.class));
         assertThat(response).isNotNull();
         assertThat(response.name()).isEqualTo(folderCreateRequest.name());
     }
 
     @Test
-    public void createFolder_whenNameIsNull_throwsException() {
-        // given
+    @DisplayName("폴더명이 NULL일 폴더 생성 검증 -> (실패)")
+    void 폴더명_NULL_폴더_생성_검증() {
+        // Given
         folderCreateRequest = new FolderCreateRequest(null, null);
 
-        // when, then
-        assertThatThrownBy(() -> folderService.createFolder(1L, folderCreateRequest))
-                .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("null");
-    }
-
-    /*
-        UPDATE
-     */
-    @Test
-    public void updateFolder_whenFolderExists_updatesFolder() {
-        // Mock 설정
-        mockFindFolder(existingFolder);
-
-        // when
-        folderService.updateFolder(1L, folderUpdateRequest);
-
-        // then
-        assertThat(existingFolder.getName()).isEqualTo(folderUpdateRequest.name());
-    }
-
-
-    /*
-        DELETE
-     */
-    @Test
-    public void deleteFolder_whenFolderExists_deletesFolder() {
-        // Mock 설정
-        mockFindFolder(existingFolder);
-
-        // when
-        folderService.deleteFolder(1L);
-
-        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(1L);
-        verify(folderRepository, times(1)).delete(existingFolder);
+        // When & Then
+        Assertions.assertThatThrownBy(() ->
+                folderService.createFolder(TestConstants.Account.ACCOUNT_ID, folderCreateRequest)
+        ).isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    public void deleteFolder_whenFolderDoesNotExist_throwsException() {
-        // Mock 설정
-        when(folderRepository.findByIdAndIsDeletedFalse(1L))
-                .thenThrow(new EntityNotFoundException("Not Found with ID: 1"));
+    @DisplayName("폴더 업데이트 검증 -> (성공)")
+    void 폴더_업데이트_검증() {
+        // Given
+        mockFindFolder(mockFolder);
 
-        // when, then
-        assertThatThrownBy(() -> folderService.deleteFolder(1L))
-                .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("Not Found with ID: 1");
+        // When
+        folderService.updateFolder(TestConstants.Folder.FOLDER_ID, folderUpdateRequest);
+
+        // Then
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(TestConstants.Folder.FOLDER_ID);
+        assertThat(mockFolder.getName()).isEqualTo(folderUpdateRequest.name());
+    }
+
+    @Test
+    @DisplayName("폴더 삭제 및 검증 -> (성공)")
+    void 폴더_삭제_검증() {
+        // Given
+        mockFindFolder(mockFolder);
+
+        // When
+        folderService.deleteFolder(TestConstants.Folder.FOLDER_ID);
+
+        // Then
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(TestConstants.Folder.FOLDER_ID);
+        verify(folderRepository, times(1)).delete(mockFolder);
+    }
+
+    @Test
+    @DisplayName("존재하지 않는 폴더 삭제 검증 -> (실패)")
+    void 존재하지_않는_폴더_삭제_검증() {
+        // When, Then
+        assertThatThrownBy(() -> folderService.deleteFolder(TestConstants.Folder.FOLDER_ID))
+                .isInstanceOf(NoSuchElementException.class);
     }
 }

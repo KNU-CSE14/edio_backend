@@ -1,14 +1,14 @@
 package com.edio.common.security;
 
+import com.edio.common.TestConstants;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
-import com.edio.user.domain.enums.AccountLoginType;
-import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,7 +25,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -57,39 +56,40 @@ public class CustomOAuth2UserServiceTest {
     public void setUp() {
         // 테스트용 데이터 생성
         mockMember = Member.builder()
-                .email("test@example.com")
-                .name("Test User")
-                .givenName("Test")
-                .familyName("User")
-                .profileUrl("http://example.com/profile.jpg")
+                .id(TestConstants.Account.MEMBER_ID)
+                .email(TestConstants.Account.EMAIL)
+                .name(TestConstants.Account.NAME)
+                .givenName(TestConstants.Account.GIVEN_NAME)
+                .familyName(TestConstants.Account.FAMILY_NAME)
+                .profileUrl(TestConstants.Account.PROFILE_URL)
                 .build();
 
         mockAccount = Account.builder()
-                .loginId("test@example.com")
-                .password("oauth_password")
+                .id(TestConstants.Account.ACCOUNT_ID)
+                .loginId(TestConstants.Account.EMAIL)
+                .password(TestConstants.Account.PASSWORD)
                 .member(mockMember)
-                .loginType(AccountLoginType.GOOGLE)
-                .roles(AccountRole.ROLE_USER)
+                .loginType(TestConstants.Account.LOGIN_TYPE)
+                .roles(TestConstants.Account.ROLE)
                 .build();
-        ReflectionTestUtils.setField(mockAccount, "id", 1L);
 
         mockFolder = Folder.builder()
-                .accountId(1L)
+                .id(TestConstants.Folder.FOLDER_ID)
+                .accountId(TestConstants.Account.ACCOUNT_ID)
                 .parentFolder(null)
-                .name("Default")
+                .name(TestConstants.Folder.FOLDER_NAME)
                 .build();
-        ReflectionTestUtils.setField(mockFolder, "id", 1L);
 
         // 더미 OAuth2User 생성 (mock)
         dummyOAuth2User = mock(OAuth2User.class);
 
         // OAuth2 공급자가 제공하는 사용자 정보를 모방하기 위한 속성 맵 생성
         Map<String, Object> attributes = Map.of(
-                "email", "test@example.com",
-                "name", "Test User",
-                "given_name", "Test",
-                "family_name", "User",
-                "picture", "http://example.com/profile.jpg"
+                "email", TestConstants.Account.EMAIL,
+                "name", TestConstants.Account.NAME,
+                "given_name", TestConstants.Account.GIVEN_NAME,
+                "family_name", TestConstants.Account.FAMILY_NAME,
+                "picture", TestConstants.Account.PROFILE_URL
         );
         // getAttributes()가 속성 맵을 반환하도록 Mock 처리
         when(dummyOAuth2User.getAttributes()).thenReturn(attributes);
@@ -102,23 +102,18 @@ public class CustomOAuth2UserServiceTest {
         ReflectionTestUtils.setField(customOAuth2UserService, "defaultOAuth2UserService", defaultOAuth2UserService);
     }
 
-    /**
-     * 기존 계정이 존재하는 경우 테스트
-     */
     @Test
+    @DisplayName("기존 계정이 존재할 때 loadUser -> (성공)")
     public void 기존계정이_존재할_때_loadUser_정상동작_테스트() {
-        // 기존 계정이 존재한다고 가정하고, accountRepository.findByLoginIdAndIsDeleted()가 testAccount를 반환하도록 설정
-        when(accountRepository.findByLoginIdAndIsDeletedFalse(eq("test@example.com")))
-                .thenReturn(Optional.of(mockAccount));
+        // When
+        when(accountRepository.findByLoginIdAndIsDeletedFalse(TestConstants.Account.EMAIL)).thenReturn(Optional.of(mockAccount));
 
         when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
 
-        // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
-        // 검증: 기존 계정이 이미 존재하므로 신규 등록(save 관련 메서드 호출)이 발생하지 않아야 함
-        verify(accountRepository, times(1))
-                .findByLoginIdAndIsDeletedFalse("test@example.com");
+        // Then: 기존 계정이 이미 존재하므로 신규 등록(save 관련 메서드 호출)이 발생하지 않아야 함
+        verify(accountRepository, times(1)).findByLoginIdAndIsDeletedFalse(TestConstants.Account.EMAIL);
         verify(memberRepository, never()).save(any(Member.class));
         verify(accountRepository, never()).save(any(Account.class));
         verify(folderRepository, never()).save(any(Folder.class));
@@ -128,17 +123,14 @@ public class CustomOAuth2UserServiceTest {
         CustomUserDetails userDetails = (CustomUserDetails) result;
         assertEquals(mockAccount.getId(), userDetails.getAccountId());
         assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
-//        }
     }
 
-    /**
-     * 신규 계정이 생성되는 경우 테스트
-     */
     @Test
+    @DisplayName("신규 계정일 때 loadUser -> (성공)")
     public void 신규계정일_때_loadUser_정상동작_테스트() {
+        // When
         // 신규 계정이므로 findBy...는 빈 Optional 반환
-        when(accountRepository.findByLoginIdAndIsDeletedFalse(eq("test@example.com")))
-                .thenReturn(Optional.empty());
+        when(accountRepository.findByLoginIdAndIsDeletedFalse(TestConstants.Account.EMAIL)).thenReturn(Optional.empty());
 
         // 내부 save 메서드들이 호출되었을 때, 더미 객체들을 반환하도록 stub
         when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
@@ -150,9 +142,8 @@ public class CustomOAuth2UserServiceTest {
         // CustomOAuth2UserService의 loadUser 호출
         OAuth2User result = customOAuth2UserService.loadUser(userRequest);
 
-        // then: 신규 계정 생성과 관련한 repository의 save 메서드들이 호출되었는지 검증
-        verify(accountRepository, times(1))
-                .findByLoginIdAndIsDeletedFalse("test@example.com");
+        // Then: 신규 계정 생성과 관련한 repository의 save 메서드들이 호출되었는지 검증
+        verify(accountRepository, times(1)).findByLoginIdAndIsDeletedFalse(TestConstants.Account.EMAIL);
         verify(memberRepository, times(1)).save(any(Member.class));
         verify(accountRepository, times(1)).save(any(Account.class));
         verify(folderRepository, times(1)).save(any(Folder.class));
@@ -162,6 +153,5 @@ public class CustomOAuth2UserServiceTest {
         CustomUserDetails userDetails = (CustomUserDetails) result;
         assertEquals(mockAccount.getId(), userDetails.getAccountId());
         assertEquals(mockAccount.getLoginId(), userDetails.getUsername());
-
     }
 }

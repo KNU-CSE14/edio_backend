@@ -1,5 +1,6 @@
 package com.edio.common.security.jwt;
 
+import com.edio.common.TestConstants;
 import com.edio.common.properties.JwtProperties;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
@@ -10,10 +11,12 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -21,7 +24,9 @@ import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class) // Mockito 확장 활성화
@@ -49,14 +54,7 @@ class JwtTokenProviderTest {
         jwtTokenProvider = new JwtTokenProvider(userDetailsService, jwtProperties);
     }
 
-    /**
-     * 토큰 생성 헬퍼 메서드
-     *
-     * @param subject    토큰의 subject (예: 로그인 ID)
-     * @param auth       auth 값 (예: ROLE_USER), null인 경우 auth 클레임 없이 생성
-     * @param expiration 토큰 만료 시간, null인 경우 만료 시간 미설정
-     * @return 생성된 JWT 토큰 문자열
-     */
+    // ==================== 헬퍼 메서드 ====================
     private String createToken(String subject, Object auth, Date expiration) {
         Claims claims = Jwts.claims().setSubject(subject);
         if (auth != null) {
@@ -75,69 +73,63 @@ class JwtTokenProviderTest {
     }
 
     @Test
+    @DisplayName("정상 토큰 인증 정보 반환 -> (성공)")
     void 정상_토큰_인증정보_반환() {
-        // given
-        Long accountId = 1L;
-        Long rootFolderId = 1L;
-        String loginId = "629jyh7@gmail.com";
-        String token = createToken(loginId, "ROLE_USER", null);
+        // Given
+        String token = createToken(TestConstants.Account.EMAIL, TestConstants.Account.ROLE, null);
 
         // Mock 사용자 정보 생성
         CustomUserDetails userDetails = new CustomUserDetails(
-                accountId,
-                rootFolderId,
-                loginId,
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                TestConstants.Account.ACCOUNT_ID,
+                TestConstants.Folder.ROOT_FOLDER_ID,
+                TestConstants.Account.EMAIL,
+                Collections.singleton(new SimpleGrantedAuthority(String.valueOf(TestConstants.Account.ROLE))),
                 Collections.emptyMap()
         );
-        when(userDetailsService.loadUserByUsername(loginId)).thenReturn(userDetails);
 
-        // when
+        // When
+        when(userDetailsService.loadUserByUsername(TestConstants.Account.EMAIL)).thenReturn(userDetails);
+
         Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
-        // then
-        assertNotNull(authentication, "Authentication 객체는 null이 아니어야 합니다.");
-        assertEquals(loginId, authentication.getName(), "로그인 ID가 일치해야 합니다.");
-        assertEquals("ROLE_USER", authentication.getAuthorities().iterator().next().getAuthority(), "권한은 ROLE_USER여야 합니다.");
-
-        // verify: loadUserByUsername 메서드가 한 번 호출되었는지 검증
-        verify(userDetailsService, times(1)).loadUserByUsername(loginId);
+        // Then
+        assertNotNull(authentication);
+        assertEquals(TestConstants.Account.EMAIL, authentication.getName());
+        assertEquals(String.valueOf(TestConstants.Account.ROLE), authentication.getAuthorities().iterator().next().getAuthority());
+        verify(userDetailsService, times(1)).loadUserByUsername(TestConstants.Account.EMAIL);
     }
 
     @Test
+    @DisplayName("잘못된 토큰으로 예외 발생 -> (실패)")
     void 잘못된_토큰_예외발생() {
-        // given
-        String invalidToken = "invalid.token.value";
-
-        // when & then
-        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
-                () -> jwtTokenProvider.getAuthentication(invalidToken),
-                "잘못된 토큰일 경우 InsufficientAuthenticationException 예외가 발생해야 합니다.");
+        // When & Then
+        assertThatThrownBy(() ->
+                jwtTokenProvider.getAuthentication(TestConstants.Account.INVALID_TOKEN)
+        ).isInstanceOf(InsufficientAuthenticationException.class);
     }
 
     @Test
+    @DisplayName("만료된 토큰으로 예외 발생 -> (실패)")
     void 만료된_토큰_예외발생() {
-        // given
-        String subject = "expired-user@gmail.com";
+        // Given
         Date expiredDate = new Date(System.currentTimeMillis() - 60000); // 현재 시간보다 1분 이전
-        String expiredToken = createToken(subject, "ROLE_USER", expiredDate);
+        String expiredToken = createToken(TestConstants.Account.EMAIL, TestConstants.Account.ROLE, expiredDate);
 
-        // when & then
-        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
-                () -> jwtTokenProvider.getAuthentication(expiredToken),
-                "만료된 토큰일 경우 InsufficientAuthenticationException 예외가 발생해야 합니다.");
+        // When & Then
+        assertThatThrownBy(() ->
+                jwtTokenProvider.getAuthentication(expiredToken)
+        ).isInstanceOf(InsufficientAuthenticationException.class);
     }
 
     @Test
+    @DisplayName("Auth 클레임이 없을 경우 예외 발생 -> (실패)")
     void auth_클레임_없을때_예외발생() {
-        // given
-        String subject = "no-auth-user@gmail.com";
-        // auth 클레임 없이 토큰 생성
-        String tokenWithoutAuth = createToken(subject, null, null);
+        // Given
+        String tokenWithoutAuth = createToken(TestConstants.Account.EMAIL, null, null);
 
-        // when & then
-        assertThrows(org.springframework.security.authentication.InsufficientAuthenticationException.class,
-                () -> jwtTokenProvider.getAuthentication(tokenWithoutAuth),
-                "auth 클레임이 없으면 InsufficientAuthenticationException 예외가 발생해야 합니다.");
+        // When & Then
+        assertThatThrownBy(() ->
+                jwtTokenProvider.getAuthentication(tokenWithoutAuth)
+        ).isInstanceOf(InsufficientAuthenticationException.class);
     }
 }
