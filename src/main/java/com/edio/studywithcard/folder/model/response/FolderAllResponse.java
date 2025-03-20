@@ -29,13 +29,18 @@ public record FolderAllResponse(
 
     private record SubDeck(
             Long id,
+            Long parentId,
+            Long categoryId,
             String name,
-            String description,
-            boolean isShared,
-            boolean isFavorite
+            String description
     ) {
         private static FolderAllResponse.SubDeck from(Deck deck) {
-            return new FolderAllResponse.SubDeck(deck.getId(), deck.getName(), deck.getDescription(), deck.isShared(), deck.isFavorite());
+            return new FolderAllResponse.SubDeck(
+                    deck.getId(),
+                    deck.getFolder().getId(),
+                    deck.getCategory().getId(),
+                    deck.getName(),
+                    deck.getDescription());
         }
     }
 }
