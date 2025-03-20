@@ -88,7 +88,7 @@ public class CardServiceTest {
         // When
         cardService.upsert(ACCOUNT_ID, wrapper);
 
-        // When: 카드 저장 및 첨부파일 처리 검증
+        // Then: 카드 저장 및 첨부파일 처리 검증
         ArgumentCaptor<List<Card>> captor = ArgumentCaptor.forClass(List.class);
         verify(cardRepository, times(1)).saveAll(captor.capture());
         List<Card> savedCards = captor.getValue();
@@ -122,37 +122,39 @@ public class CardServiceTest {
     }
 
     @Test
-    @DisplayName("기존 카드 수정 및 첨부파일 검증 -> (성공)")
-    void 기존_카드_수정_첨부파일_업데이트_검증() throws Exception {
-        // Given: 기존 카드 수정 요청
+    @DisplayName("기존 카드 수정 및 첨부파일 검증(이미지 수정, 오디오 삭제) -> (성공)")
+    void 기존_카드_수정_첨부파일_업데이트_검증(){
+        // Given
         request = createCardRequest(CARD_ID, CARD_NAMES.get(1), CARD_DESCRIPTIONS.get(1));
-        newImageFile = mockMultipartFile(EMPTY_FLAG, IMAGE_MIME_JPEG);
-        newAudioFile = mockMultipartFile(!EMPTY_FLAG, AUDIO_MIME_MPEG);
+        newImageFile = mockMultipartFile(EMPTY_FLAG, IMAGE_MIME_JPEG); // 새로운 파일(삭제 후 추가)
+        newAudioFile = mockMultipartFile(!EMPTY_FLAG, AUDIO_MIME_MPEG); // 빈 파일(삭제)
         request.setImage(newImageFile);
         request.setAudio(newAudioFile);
         CardBulkRequestWrapper wrapper = createWrapper(request);
 
-        // 기존 카드 및 첨부파일 설정
+        // 기존에 저장된 이미지, 오디오 첨부파일 설정
+        AttachmentCardTarget imageTarget = AttachmentCardTarget.builder()
+                .attachment(Attachment.builder().
+                        fileKey(OLD_IMAGE_KEY).
+                        fileType(IMAGE_MIME_JPEG).
+                        build())
+                .build();
+
+        AttachmentCardTarget audioTarget = AttachmentCardTarget.builder()
+                .attachment(Attachment.builder().
+                        fileKey(OLD_AUDIO_KEY).
+                        fileType(AUDIO_MIME_MPEG).
+                        build())
+                .build();
+
+        // 기존 카드에 첨부파일 적용
         Card existingCard = Card.builder()
                 .name(CARD_NAMES.get(0))
                 .description(CARD_DESCRIPTIONS.get(0))
                 .deck(mockDeck)
+                .attachmentCardTargets(List.of(imageTarget, audioTarget))
                 .build();
-        // 기존에 저장된 이미지, 오디오 첨부파일 설정
-        Attachment oldImageAttachment = Attachment.builder().fileKey(OLD_IMAGE_KEY).fileType(IMAGE_MIME_JPEG).build();
-        Attachment oldAudioAttachment = Attachment.builder().fileKey(OLD_AUDIO_KEY).fileType(AUDIO_MIME_MPEG).build();
 
-        // Entity에서는 Setter를 제공하지 않기 때문에 ReflectionTestUtils로 값 지정
-        AttachmentCardTarget imageTarget = new AttachmentCardTarget() {
-        };
-        ReflectionTestUtils.setField(imageTarget, ATTACHMENT_FIELD, oldImageAttachment);
-
-        AttachmentCardTarget audioTarget = new AttachmentCardTarget() {
-        };
-        ReflectionTestUtils.setField(audioTarget, ATTACHMENT_FIELD, oldAudioAttachment);
-        ReflectionTestUtils.setField(existingCard, ATTACHMENT_CARD_TARGET_FIELD, List.of(imageTarget, audioTarget));
-
-        // repository 스텁 설정: cardId에 대해 기존 카드 반환
         when(cardRepository.findByIdAndIsDeletedFalse(CARD_ID)).thenReturn(Optional.of(existingCard));
 
         // When: 기존 카드 업데이트 실행
@@ -162,7 +164,7 @@ public class CardServiceTest {
         assertEquals(CARD_NAMES.get(1), existingCard.getName());
         assertEquals(CARD_DESCRIPTIONS.get(1), existingCard.getDescription());
 
-        // Then: bulk 삭제 검증 - 두 요청 모두 기존 파일 키가 삭제 대상에 포함되어야 함
+        // bulk 삭제 검증 - 두 요청 모두 기존 파일 키가 삭제 대상에 포함되어야 함
         ArgumentCaptor<List<String>> deleteCaptor = ArgumentCaptor.forClass(List.class);
         verify(attachmentService, times(1)).deleteAllAttachments(deleteCaptor.capture());
         List<String> deletedKeys = deleteCaptor.getValue();
@@ -171,16 +173,20 @@ public class CardServiceTest {
         assertTrue(deletedKeys.contains(OLD_IMAGE_KEY));
         assertTrue(deletedKeys.contains(OLD_AUDIO_KEY));
 
-        // 두 번 호출되도록 검증 (첫 번째: newAttachments, 두 번째: updateAttachments에서 파일이 존재하는 항목)
+        /*
+            두 번 호출되도록 검증
+            첫 번째: newAttachments - 카드 신규 생성
+            두 번째: updateAttachments - 카드 업데이트
+         */
         ArgumentCaptor<List<AttachmentBulkData>> saveCaptor = ArgumentCaptor.forClass(List.class);
         verify(attachmentService, times(2)).saveAllAttachments(saveCaptor.capture());
         List<List<AttachmentBulkData>> allSaveCalls = saveCaptor.getAllValues();
 
-        // 첫 번째 호출은 newAttachments인데, 이 경우 빈 리스트여야 함
+        // 첫 번째 호출 newAttachments(신규 생성시에 동작)
         List<AttachmentBulkData> firstCallAttachments = allSaveCalls.get(0);
         assertTrue(firstCallAttachments.isEmpty(), "첫 번째 호출은 빈 리스트여야 합니다.");
 
-        // 두 번째 호출은 processUpdateAttachments에서 호출되며, 새 이미지 파일만 포함된 리스트여야 함
+        // 두 번째 호출 processUpdateAttachments(새 이미지 파일만 포함된 리스트)
         List<AttachmentBulkData> secondCallAttachments = allSaveCalls.get(1);
         assertEquals(1, secondCallAttachments.size(), "두 번째 호출에는 이미지 첨부파일 항목만 있어야 합니다.");
         AttachmentBulkData imageBulkData = secondCallAttachments.get(0);
