@@ -1,6 +1,5 @@
 package com.edio.studywithcard.card.service;
 
-import com.edio.common.TestConstants;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.enums.AttachmentFolder;
@@ -25,10 +24,17 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
+import static com.edio.common.TestConstants.Attachment.*;
+import static com.edio.common.TestConstants.Card.*;
+import static com.edio.common.TestConstants.Deck.DECK_ID;
+import static com.edio.common.TestConstants.File.EMPTY_FLAG;
+import static com.edio.common.util.TestDataUtil.createCardRequest;
+import static com.edio.common.util.TestDataUtil.createWrapper;
+import static com.edio.common.util.TestFileUtil.mockMultipartFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -60,54 +66,27 @@ public class CardServiceTest {
     @BeforeEach
     void setUp() {
         mockFolder = mock(Folder.class);
-        when(mockFolder.getAccountId()).thenReturn(TestConstants.Account.ACCOUNT_ID);
+        when(mockFolder.getAccountId()).thenReturn(ACCOUNT_ID);
 
         mockDeck = mock(Deck.class);
         when(mockDeck.getFolder()).thenReturn(mockFolder);
     }
 
-    // ==================== 헬퍼 메서드 ====================
-
-    private CardBulkRequest createCardRequest(Long cardId, String name, String description) {
-        CardBulkRequest request = new CardBulkRequest();
-        request.setCardId(cardId);
-        request.setDeckId(TestConstants.Deck.DECK_ID);
-        request.setName(name);
-        request.setDescription(description);
-        return request;
-    }
-
-    private MultipartFile mockMultipartFile(boolean isEmpty, String contentType) {
-        MultipartFile file = mock(MultipartFile.class);
-        lenient().when(file.isEmpty()).thenReturn(isEmpty);
-        lenient().when(file.getContentType()).thenReturn(contentType);
-        return file;
-    }
-
-    private CardBulkRequestWrapper createWrapper(CardBulkRequest request) {
-        CardBulkRequestWrapper wrapper = new CardBulkRequestWrapper() {
-        };
-        wrapper.setRequests(Collections.singletonList(request));
-        return wrapper;
-    }
-
-    // ==================== 테스트 ====================
-
     @Test
     @DisplayName("카드 생성 및 첨부파일 검증 -> (성공)")
     void 신규_카드_생성_첨부파일_검즘() throws Exception {
         // Given
-        request = createCardRequest(null, TestConstants.Card.CARD_NAMES.get(0), TestConstants.Card.CARD_DESCRIPTIONS.get(0));
-        imageFile = mockMultipartFile(TestConstants.File.EMPTY_FLAG, TestConstants.Attachment.IMAGE_MIME_JPEG);
-        audioFile = mockMultipartFile(TestConstants.File.EMPTY_FLAG, TestConstants.Attachment.AUDIO_MIME_MPEG);
+        request = createCardRequest(null, CARD_NAMES.get(0), CARD_DESCRIPTIONS.get(0));
+        imageFile = mockMultipartFile(EMPTY_FLAG, IMAGE_MIME_JPEG);
+        audioFile = mockMultipartFile(EMPTY_FLAG, AUDIO_MIME_MPEG);
         request.setImage(imageFile);
         request.setAudio(audioFile);
         wrapper = createWrapper(request);
 
-        when(deckRepository.findByIdAndIsDeletedFalse(TestConstants.Deck.DECK_ID)).thenReturn(Optional.of(mockDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(DECK_ID)).thenReturn(Optional.of(mockDeck));
 
         // When
-        cardService.upsert(TestConstants.Account.ACCOUNT_ID, wrapper);
+        cardService.upsert(ACCOUNT_ID, wrapper);
 
         // When: 카드 저장 및 첨부파일 처리 검증
         ArgumentCaptor<List<Card>> captor = ArgumentCaptor.forClass(List.class);
@@ -115,8 +94,8 @@ public class CardServiceTest {
         List<Card> savedCards = captor.getValue();
         assertEquals(1, savedCards.size());
         Card savedCard = savedCards.get(0);
-        assertEquals(TestConstants.Card.CARD_NAMES.get(0), savedCard.getName());
-        assertEquals(TestConstants.Card.CARD_DESCRIPTIONS.get(0), savedCard.getDescription());
+        assertEquals(CARD_NAMES.get(0), savedCard.getName());
+        assertEquals(CARD_DESCRIPTIONS.get(0), savedCard.getDescription());
         assertEquals(mockDeck, savedCard.getDeck());
 
         // Then: 첨부파일 벌크 처리 검증
@@ -146,42 +125,42 @@ public class CardServiceTest {
     @DisplayName("기존 카드 수정 및 첨부파일 검증 -> (성공)")
     void 기존_카드_수정_첨부파일_업데이트_검증() throws Exception {
         // Given: 기존 카드 수정 요청
-        request = createCardRequest(TestConstants.Card.CARD_ID, TestConstants.Card.CARD_NAMES.get(1), TestConstants.Card.CARD_DESCRIPTIONS.get(1));
-        newImageFile = mockMultipartFile(TestConstants.File.EMPTY_FLAG, TestConstants.Attachment.IMAGE_MIME_JPEG);
-        newAudioFile = mockMultipartFile(!TestConstants.File.EMPTY_FLAG, TestConstants.Attachment.AUDIO_MIME_MPEG);
+        request = createCardRequest(CARD_ID, CARD_NAMES.get(1), CARD_DESCRIPTIONS.get(1));
+        newImageFile = mockMultipartFile(EMPTY_FLAG, IMAGE_MIME_JPEG);
+        newAudioFile = mockMultipartFile(!EMPTY_FLAG, AUDIO_MIME_MPEG);
         request.setImage(newImageFile);
         request.setAudio(newAudioFile);
         CardBulkRequestWrapper wrapper = createWrapper(request);
 
         // 기존 카드 및 첨부파일 설정
         Card existingCard = Card.builder()
-                .name(TestConstants.Card.CARD_NAMES.get(0))
-                .description(TestConstants.Card.CARD_DESCRIPTIONS.get(0))
+                .name(CARD_NAMES.get(0))
+                .description(CARD_DESCRIPTIONS.get(0))
                 .deck(mockDeck)
                 .build();
         // 기존에 저장된 이미지, 오디오 첨부파일 설정
-        Attachment oldImageAttachment = Attachment.builder().fileKey(TestConstants.Attachment.OLD_IMAGE_KEY).fileType(TestConstants.Attachment.IMAGE_MIME_JPEG).build();
-        Attachment oldAudioAttachment = Attachment.builder().fileKey(TestConstants.Attachment.OLD_AUDIO_KEY).fileType(TestConstants.Attachment.AUDIO_MIME_MPEG).build();
+        Attachment oldImageAttachment = Attachment.builder().fileKey(OLD_IMAGE_KEY).fileType(IMAGE_MIME_JPEG).build();
+        Attachment oldAudioAttachment = Attachment.builder().fileKey(OLD_AUDIO_KEY).fileType(AUDIO_MIME_MPEG).build();
 
         // Entity에서는 Setter를 제공하지 않기 때문에 ReflectionTestUtils로 값 지정
         AttachmentCardTarget imageTarget = new AttachmentCardTarget() {
         };
-        ReflectionTestUtils.setField(imageTarget, TestConstants.Attachment.ATTACHMENT_FIELD, oldImageAttachment);
+        ReflectionTestUtils.setField(imageTarget, ATTACHMENT_FIELD, oldImageAttachment);
 
         AttachmentCardTarget audioTarget = new AttachmentCardTarget() {
         };
-        ReflectionTestUtils.setField(audioTarget, TestConstants.Attachment.ATTACHMENT_FIELD, oldAudioAttachment);
-        ReflectionTestUtils.setField(existingCard, TestConstants.Attachment.ATTACHMENT_CARD_TARGET_FIELD, List.of(imageTarget, audioTarget));
+        ReflectionTestUtils.setField(audioTarget, ATTACHMENT_FIELD, oldAudioAttachment);
+        ReflectionTestUtils.setField(existingCard, ATTACHMENT_CARD_TARGET_FIELD, List.of(imageTarget, audioTarget));
 
         // repository 스텁 설정: cardId에 대해 기존 카드 반환
-        when(cardRepository.findByIdAndIsDeletedFalse(TestConstants.Card.CARD_ID)).thenReturn(Optional.of(existingCard));
+        when(cardRepository.findByIdAndIsDeletedFalse(CARD_ID)).thenReturn(Optional.of(existingCard));
 
         // When: 기존 카드 업데이트 실행
-        cardService.upsert(TestConstants.Account.ACCOUNT_ID, wrapper);
+        cardService.upsert(ACCOUNT_ID, wrapper);
 
         // Then: 카드 정보 업데이트 검증
-        assertEquals(TestConstants.Card.CARD_NAMES.get(1), existingCard.getName());
-        assertEquals(TestConstants.Card.CARD_DESCRIPTIONS.get(1), existingCard.getDescription());
+        assertEquals(CARD_NAMES.get(1), existingCard.getName());
+        assertEquals(CARD_DESCRIPTIONS.get(1), existingCard.getDescription());
 
         // Then: bulk 삭제 검증 - 두 요청 모두 기존 파일 키가 삭제 대상에 포함되어야 함
         ArgumentCaptor<List<String>> deleteCaptor = ArgumentCaptor.forClass(List.class);
@@ -189,8 +168,8 @@ public class CardServiceTest {
         List<String> deletedKeys = deleteCaptor.getValue();
 
         assertEquals(2, deletedKeys.size());
-        assertTrue(deletedKeys.contains(TestConstants.Attachment.OLD_IMAGE_KEY));
-        assertTrue(deletedKeys.contains(TestConstants.Attachment.OLD_AUDIO_KEY));
+        assertTrue(deletedKeys.contains(OLD_IMAGE_KEY));
+        assertTrue(deletedKeys.contains(OLD_AUDIO_KEY));
 
         // 두 번 호출되도록 검증 (첫 번째: newAttachments, 두 번째: updateAttachments에서 파일이 존재하는 항목)
         ArgumentCaptor<List<AttachmentBulkData>> saveCaptor = ArgumentCaptor.forClass(List.class);
@@ -210,6 +189,6 @@ public class CardServiceTest {
         assertEquals(AttachmentFolder.IMAGE.name(), imageBulkData.getFolder());
         assertEquals(FileTarget.CARD.name(), imageBulkData.getTarget());
         assertEquals(existingCard, imageBulkData.getCard());
-        assertEquals(TestConstants.Attachment.OLD_IMAGE_KEY, imageBulkData.getOldFileKey());
+        assertEquals(OLD_IMAGE_KEY, imageBulkData.getOldFileKey());
     }
 }

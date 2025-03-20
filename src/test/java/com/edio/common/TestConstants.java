@@ -28,7 +28,7 @@ public final class TestConstants {
     /*
      * 계정 관련 상수
      */
-    public static class Account {
+    public static class User {
         public static final Long ACCOUNT_ID = DEFAULT_ID;
         public static final Long MEMBER_ID = DEFAULT_ID;
         public static final String EMAIL = DEFAULT_EMAIL;

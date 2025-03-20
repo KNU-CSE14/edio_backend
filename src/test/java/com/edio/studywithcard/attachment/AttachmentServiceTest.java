@@ -1,6 +1,5 @@
 package com.edio.studywithcard.attachment;
 
-import com.edio.common.TestConstants;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
 import com.edio.studywithcard.attachment.domain.AttachmentDeckTarget;
@@ -26,6 +25,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.edio.common.TestConstants.File.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -62,21 +62,21 @@ public class AttachmentServiceTest {
         // S3 업로드 후 응답 객체
         fileInfoResponse = new FileInfoResponse(
                 String.format(
-                        TestConstants.File.FILE_PATH,
-                        TestConstants.File.BUCKET_NAME,
-                        TestConstants.File.REGION,
-                        TestConstants.File.FILE_KEY),
-                TestConstants.File.FILE_KEY
+                        FILE_PATH,
+                        BUCKET_NAME,
+                        REGION,
+                        FILE_KEY),
+                FILE_KEY
         );
 
         // 파일 목록
-        fileKeys.add(TestConstants.File.FILE_KEY);
+        fileKeys.add(FILE_KEY);
 
         // bulkData에 들어갈 Dummy 파일 생성
         mockFile = new MockMultipartFile(
-                TestConstants.File.MOCK_FILE_TYPE,
-                TestConstants.File.FILE_NAME,
-                TestConstants.File.FILE_TYPE,
+                MOCK_FILE_TYPE,
+                FILE_NAME,
+                FILE_TYPE,
                 new byte[1024]
         );
 
@@ -85,18 +85,18 @@ public class AttachmentServiceTest {
         bulkData = new AttachmentBulkData(
                 mockFile,
                 mockCard,
-                TestConstants.File.FOLDER_TARGET,   // IMAGE
-                TestConstants.File.FILE_TARGET,     // CARD
+                FOLDER_TARGET,   // IMAGE
+                FILE_TARGET,     // CARD
                 null        // 기존 파일 키 (신규 첨부라면 null)
         );
 
         mockAttachment = Attachment.builder()
-                .fileName(TestConstants.File.FILE_NAME)
+                .fileName(FILE_NAME)
                 .filePath(fileInfoResponse.filePath())
                 .fileKey(fileInfoResponse.fileKey())
-                .fileSize(TestConstants.File.FILE_SIZE)
-                .fileType(TestConstants.File.FILE_TYPE)
-                .fileTarget(TestConstants.File.FILE_TARGET)
+                .fileSize(FILE_SIZE)
+                .fileType(FILE_TYPE)
+                .fileTarget(FILE_TARGET)
                 .build();
         mockDeck = mock(Deck.class);
     }
@@ -107,7 +107,7 @@ public class AttachmentServiceTest {
         // Given
         List<AttachmentBulkData> bulkDataList = List.of(bulkData);
 
-        when(s3Service.uploadFile(mockFile, TestConstants.File.S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
+        when(s3Service.uploadFile(mockFile, S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
 
         // When
         attachmentService.saveAllAttachments(bulkDataList);
@@ -120,7 +120,7 @@ public class AttachmentServiceTest {
         assertEquals(1, savedAttachments.size());
         Attachment savedAttachment = savedAttachments.get(0);
 
-        assertEquals(TestConstants.File.FILE_NAME, savedAttachment.getFileName());
+        assertEquals(FILE_NAME, savedAttachment.getFileName());
         assertEquals(fileInfoResponse.fileKey(), savedAttachment.getFileKey());
         assertEquals(fileInfoResponse.filePath(), savedAttachment.getFilePath());
         assertEquals(mockFile.getSize(), savedAttachment.getFileSize());
@@ -143,19 +143,19 @@ public class AttachmentServiceTest {
     @DisplayName("첨부파일 저장 시 파일 매핑 -> (성공)")
     void 첨부파일_저장_매핑() {
         // Given
-        when(s3Service.uploadFile(mockFile, TestConstants.File.S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
+        when(s3Service.uploadFile(mockFile, S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
 
         when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockAttachment);
 
         // When
-        Attachment attachment = attachmentService.saveAttachment(mockFile, TestConstants.File.S3_FOLDER_NAME, TestConstants.File.FILE_TARGET);
+        Attachment attachment = attachmentService.saveAttachment(mockFile, S3_FOLDER_NAME, FILE_TARGET);
 
         // Then
         assertNotNull(attachment);
-        assertEquals(TestConstants.File.FILE_NAME, attachment.getFileName());
-        assertEquals(TestConstants.File.FILE_KEY, attachment.getFileKey());
-        assertEquals(TestConstants.File.FILE_SIZE, attachment.getFileSize());
-        verify(s3Service, times(1)).uploadFile(mockFile, TestConstants.File.S3_FOLDER_NAME);
+        assertEquals(FILE_NAME, attachment.getFileName());
+        assertEquals(FILE_KEY, attachment.getFileKey());
+        assertEquals(FILE_SIZE, attachment.getFileSize());
+        verify(s3Service, times(1)).uploadFile(mockFile, S3_FOLDER_NAME);
         verify(attachmentRepository, times(1)).save(any(Attachment.class));
     }
 

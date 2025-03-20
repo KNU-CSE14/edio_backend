@@ -1,6 +1,5 @@
 package com.edio.studywithcard.deck.service;
 
-import com.edio.common.TestConstants;
 import com.edio.studywithcard.attachment.service.AttachmentService;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
@@ -23,6 +22,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.Category.CATEGORY_ID;
+import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
+import static com.edio.common.TestConstants.Deck.*;
+import static com.edio.common.TestConstants.Folder.FOLDER_ID;
+import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
+import static com.edio.common.TestConstants.NON_EXISTENT_ID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -54,40 +59,40 @@ public class DeckServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockFolder = Folder.builder().name(TestConstants.Folder.FOLDER_NAME).build();
-        mockCategory = Category.builder().name(TestConstants.Category.CATEGORY_NAME).build();
+        mockFolder = Folder.builder().name(FOLDER_NAME).build();
+        mockCategory = Category.builder().name(CATEGORY_NAME).build();
         mockDeck = Deck.builder()
-                .name(TestConstants.Deck.DECK_NAMES.get(0))
-                .description(TestConstants.Deck.DECK_DESCRIPTIONS.get(0))
+                .name(DECK_NAMES.get(0))
+                .description(DECK_DESCRIPTIONS.get(0))
                 .folder(mockFolder)
                 .category(mockCategory)
-                .isShared(TestConstants.Deck.IS_SHARED)
-                .isFavorite(TestConstants.Deck.IS_FAVORITE)
+                .isShared(IS_SHARED)
+                .isFavorite(IS_FAVORITE)
                 .build();
         deckCreateRequest = new DeckCreateRequest(
-                TestConstants.Folder.FOLDER_ID,
-                TestConstants.Category.CATEGORY_ID,
-                TestConstants.Deck.DECK_NAMES.get(1),
-                TestConstants.Deck.DECK_DESCRIPTIONS.get(1),
-                TestConstants.Deck.IS_SHARED);
+                FOLDER_ID,
+                CATEGORY_ID,
+                DECK_NAMES.get(1),
+                DECK_DESCRIPTIONS.get(1),
+                IS_SHARED);
         deckUpdateRequest = new DeckUpdateRequest(
-                TestConstants.Deck.DECK_ID,
-                TestConstants.Category.CATEGORY_ID,
+                DECK_ID,
+                CATEGORY_ID,
                 null,
-                TestConstants.Deck.DECK_NAMES.get(2),
-                TestConstants.Deck.DECK_DESCRIPTIONS.get(2),
-                !TestConstants.Deck.IS_FAVORITE);
-        deckDeleteRequest = new DeckDeleteRequest(TestConstants.Deck.DECK_ID);
+                DECK_NAMES.get(2),
+                DECK_DESCRIPTIONS.get(2),
+                !IS_FAVORITE);
+        deckDeleteRequest = new DeckDeleteRequest(DECK_ID);
     }
 
     @Test
     @DisplayName("덱 ID 조회 -> (성공)")
     void 덱_ID_조회() {
         // Given
-        when(deckRepository.findByIdAndIsDeletedFalse(TestConstants.Deck.DECK_ID)).thenReturn(Optional.of(mockDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(DECK_ID)).thenReturn(Optional.of(mockDeck));
 
         // When
-        DeckResponse response = deckService.getDeck(TestConstants.Deck.DECK_ID);
+        DeckResponse response = deckService.getDeck(DECK_ID);
 
         // Then
         assertNotNull(response);
@@ -100,7 +105,7 @@ public class DeckServiceTest {
     void 존재하지_않는_덱_ID_조회() {
         // When & Then
         assertThatThrownBy(() ->
-                deckService.getDeck(TestConstants.NON_EXISTENT_ID)
+                deckService.getDeck(NON_EXISTENT_ID)
         ).isInstanceOf(NoSuchElementException.class);
     }
 
@@ -128,7 +133,7 @@ public class DeckServiceTest {
     @DisplayName("덱 업데이트 및 검증 -> (성공)")
     void 덱_업데이트_검증() {
         // Given
-        when(deckRepository.findByIdAndIsDeletedFalse(TestConstants.Deck.DECK_ID)).thenReturn(Optional.of(mockDeck));
+        when(deckRepository.findByIdAndIsDeletedFalse(DECK_ID)).thenReturn(Optional.of(mockDeck));
 
         // When
         deckService.updateDeck(deckUpdateRequest, null);
@@ -136,8 +141,8 @@ public class DeckServiceTest {
         // Then
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
         verify(categoryRepository, times(1)).getReferenceById(1L);
-        assertEquals(TestConstants.Deck.DECK_NAMES.get(2), mockDeck.getName());
-        assertEquals(TestConstants.Deck.DECK_DESCRIPTIONS.get(2), mockDeck.getDescription());
+        assertEquals(DECK_NAMES.get(2), mockDeck.getName());
+        assertEquals(DECK_DESCRIPTIONS.get(2), mockDeck.getDescription());
         assertTrue(mockDeck.isFavorite());
     }
 

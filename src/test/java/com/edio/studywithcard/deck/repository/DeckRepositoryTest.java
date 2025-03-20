@@ -1,6 +1,5 @@
 package com.edio.studywithcard.deck.repository;
 
-import com.edio.common.TestConstants;
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
@@ -16,6 +15,12 @@ import org.springframework.context.annotation.Import;
 
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
+import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
+import static com.edio.common.TestConstants.Deck.DECK_DESCRIPTION;
+import static com.edio.common.TestConstants.Deck.DECK_NAME;
+import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
+import static com.edio.common.TestConstants.NON_EXISTENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -39,18 +44,18 @@ public class DeckRepositoryTest {
     @BeforeEach
     void setUp() {
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(TestConstants.Account.ACCOUNT_ID)
-                .name(TestConstants.Folder.FOLDER_NAME)
+                .accountId(ACCOUNT_ID)
+                .name(FOLDER_NAME)
                 .build());
         testCategory = categoryRepository.save(Category.builder()
-                .name(TestConstants.Category.CATEGORY_NAME)
+                .name(CATEGORY_NAME)
                 .build());
 
         testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
-                .name(TestConstants.Deck.DECK_NAME)
-                .description(TestConstants.Deck.DECK_DESCRIPTION)
+                .name(DECK_NAME)
+                .description(DECK_DESCRIPTION)
                 .build());
     }
 
@@ -73,7 +78,7 @@ public class DeckRepositoryTest {
     void findDeckByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                deckRepository.findByIdAndIsDeletedFalse(TestConstants.NON_EXISTENT_ID)
+                deckRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
