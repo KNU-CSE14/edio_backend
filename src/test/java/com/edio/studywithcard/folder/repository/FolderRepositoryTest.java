@@ -1,6 +1,5 @@
 package com.edio.studywithcard.folder.repository;
 
-import com.edio.common.TestConstants;
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.folder.domain.Folder;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +12,9 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.ACCOUNT_IDS;
+import static com.edio.common.TestConstants.Folder.FOLDER_NAMES;
+import static com.edio.common.TestConstants.NON_EXISTENT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -31,16 +33,16 @@ public class FolderRepositoryTest {
     void setUp() {
         // Given
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(TestConstants.Account.ACCOUNT_IDS.get(0)) // 1L
-                .name(TestConstants.Folder.FOLDER_NAMES.get(0))
+                .accountId(ACCOUNT_IDS.get(0)) // 1L
+                .name(FOLDER_NAMES.get(0))
                 .build());
         testFolder2 = folderRepository.save(Folder.builder()
-                .accountId(TestConstants.Account.ACCOUNT_IDS.get(0)) // 1L
-                .name(TestConstants.Folder.FOLDER_NAMES.get(1))
+                .accountId(ACCOUNT_IDS.get(0)) // 1L
+                .name(FOLDER_NAMES.get(1))
                 .build());
         testFolder3 = folderRepository.save(Folder.builder()
-                .accountId(TestConstants.Account.ACCOUNT_IDS.get(1)) // 2L
-                .name(TestConstants.Folder.FOLDER_NAMES.get(2))
+                .accountId(ACCOUNT_IDS.get(1)) // 2L
+                .name(FOLDER_NAMES.get(2))
                 .build());
     }
 
@@ -61,7 +63,7 @@ public class FolderRepositoryTest {
     void findFolderByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                folderRepository.findByIdAndIsDeletedFalse(TestConstants.NON_EXISTENT_ID)
+                folderRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
@@ -101,7 +103,7 @@ public class FolderRepositoryTest {
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
 
         // When
-        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(TestConstants.Account.ACCOUNT_IDS.get(0));
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(ACCOUNT_IDS.get(0));
 
         // Then
         assertThat(folders).hasSize(2);
@@ -115,7 +117,7 @@ public class FolderRepositoryTest {
         folderRepository.saveAll(List.of(testFolder, testFolder2, testFolder3));
 
         // When
-        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(TestConstants.NON_EXISTENT_ID);
+        List<Folder> folders = folderRepository.findByAccountIdAndIsDeletedFalse(NON_EXISTENT_ID);
 
         // Then
         assertThat(folders).isEmpty();

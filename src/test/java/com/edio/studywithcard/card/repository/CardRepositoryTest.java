@@ -1,6 +1,5 @@
 package com.edio.studywithcard.card.repository;
 
-import com.edio.common.TestConstants;
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.category.domain.Category;
@@ -19,6 +18,15 @@ import org.springframework.context.annotation.Import;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
+import static com.edio.common.TestConstants.Card.CARD_DESCRIPTIONS;
+import static com.edio.common.TestConstants.Card.CARD_NAMES;
+import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
+import static com.edio.common.TestConstants.Deck.DECK_DESCRIPTION;
+import static com.edio.common.TestConstants.Deck.DECK_NAME;
+import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
+import static com.edio.common.TestConstants.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.NON_EXISTENT_IDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -49,27 +57,27 @@ public class CardRepositoryTest {
     void setUp() {
         // Given
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(TestConstants.Account.ACCOUNT_ID)
-                .name(TestConstants.Folder.FOLDER_NAME)
+                .accountId(ACCOUNT_ID)
+                .name(FOLDER_NAME)
                 .build());
         testCategory = categoryRepository.save(Category.builder()
-                .name(TestConstants.Category.CATEGORY_NAME)
+                .name(CATEGORY_NAME)
                 .build());
         testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
-                .name(TestConstants.Deck.DECK_NAME)
-                .description(TestConstants.Deck.DECK_DESCRIPTION)
+                .name(DECK_NAME)
+                .description(DECK_DESCRIPTION)
                 .build());
         testCard = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name(TestConstants.Card.CARD_NAMES.get(0))
-                .description(TestConstants.Card.CARD_DESCRIPTIONS.get(0))
+                .name(CARD_NAMES.get(0))
+                .description(CARD_DESCRIPTIONS.get(0))
                 .build());
         testCard2 = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name(TestConstants.Card.CARD_NAMES.get(1))
-                .description(TestConstants.Card.CARD_DESCRIPTIONS.get(1))
+                .name(CARD_NAMES.get(1))
+                .description(CARD_DESCRIPTIONS.get(1))
                 .build());
     }
 
@@ -89,7 +97,7 @@ public class CardRepositoryTest {
     void findCardByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                cardRepository.findByIdAndIsDeletedFalse(TestConstants.NON_EXISTENT_ID)
+                cardRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
@@ -141,7 +149,7 @@ public class CardRepositoryTest {
     @DisplayName("존재하지 않는 ID 리스트로 카드 조회 -> (실패)")
     void findCardsByNonExistentIds() {
         // When
-        List<Card> cards = cardRepository.findAllById(TestConstants.NON_EXISTENT_IDS);
+        List<Card> cards = cardRepository.findAllById(NON_EXISTENT_IDS);
 
         // Then
         assertThat(cards).isEmpty();

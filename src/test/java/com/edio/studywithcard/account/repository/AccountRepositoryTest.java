@@ -1,6 +1,5 @@
 package com.edio.studywithcard.account.repository;
 
-import com.edio.common.TestConstants;
 import com.edio.common.config.JpaConfig;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
@@ -15,6 +14,10 @@ import org.springframework.context.annotation.Import;
 
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.User.NON_EXISTENT_LOGIN_ID;
+import static com.edio.common.util.TestUserUtil.account;
+import static com.edio.common.util.TestUserUtil.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -33,19 +36,8 @@ public class AccountRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        testMember = memberRepository.save(Member.builder()
-                .email(TestConstants.Account.EMAIL)
-                .name(TestConstants.Account.NAME)
-                .givenName(TestConstants.Account.GIVEN_NAME)
-                .familyName(TestConstants.Account.FAMILY_NAME)
-                .profileUrl(TestConstants.Account.PROFILE_URL)
-                .build());
-        testAccount = accountRepository.save(Account.builder()
-                .loginId(TestConstants.Account.EMAIL)
-                .member(testMember)
-                .loginType(TestConstants.Account.LOGIN_TYPE)
-                .roles(TestConstants.Account.ROLE)
-                .build());
+        testMember = memberRepository.save(member());
+        testAccount = accountRepository.save(account(testMember));
     }
 
     @Test
@@ -67,7 +59,7 @@ public class AccountRepositoryTest {
     void findAccountByNonExistentLoginId() {
         // When & Then
         assertThatThrownBy(() ->
-                accountRepository.findByLoginIdAndIsDeletedFalse(TestConstants.Account.NON_EXISTENT_LOGIN_ID)
+                accountRepository.findByLoginIdAndIsDeletedFalse(NON_EXISTENT_LOGIN_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
@@ -91,7 +83,7 @@ public class AccountRepositoryTest {
     void findAccountByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                accountRepository.findByIdAndIsDeletedFalse(TestConstants.Account.NON_EXISTENT_ID)
+                accountRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }

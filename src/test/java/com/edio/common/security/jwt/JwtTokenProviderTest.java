@@ -1,6 +1,5 @@
 package com.edio.common.security.jwt;
 
-import com.edio.common.TestConstants;
 import com.edio.common.properties.JwtProperties;
 import com.edio.common.security.CustomUserDetails;
 import com.edio.common.security.CustomUserDetailsService;
@@ -24,6 +23,8 @@ import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
+import static com.edio.common.TestConstants.User.*;
+import static com.edio.common.TestConstants.Folder.ROOT_FOLDER_ID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -76,27 +77,27 @@ class JwtTokenProviderTest {
     @DisplayName("정상 토큰 인증 정보 반환 -> (성공)")
     void 정상_토큰_인증정보_반환() {
         // Given
-        String token = createToken(TestConstants.Account.EMAIL, TestConstants.Account.ROLE, null);
+        String token = createToken(EMAIL, ROLE, null);
 
         // Mock 사용자 정보 생성
         CustomUserDetails userDetails = new CustomUserDetails(
-                TestConstants.Account.ACCOUNT_ID,
-                TestConstants.Folder.ROOT_FOLDER_ID,
-                TestConstants.Account.EMAIL,
-                Collections.singleton(new SimpleGrantedAuthority(String.valueOf(TestConstants.Account.ROLE))),
+                ACCOUNT_ID,
+                ROOT_FOLDER_ID,
+                EMAIL,
+                Collections.singleton(new SimpleGrantedAuthority(String.valueOf(ROLE))),
                 Collections.emptyMap()
         );
 
         // When
-        when(userDetailsService.loadUserByUsername(TestConstants.Account.EMAIL)).thenReturn(userDetails);
+        when(userDetailsService.loadUserByUsername(EMAIL)).thenReturn(userDetails);
 
         Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
         // Then
         assertNotNull(authentication);
-        assertEquals(TestConstants.Account.EMAIL, authentication.getName());
-        assertEquals(String.valueOf(TestConstants.Account.ROLE), authentication.getAuthorities().iterator().next().getAuthority());
-        verify(userDetailsService, times(1)).loadUserByUsername(TestConstants.Account.EMAIL);
+        assertEquals(EMAIL, authentication.getName());
+        assertEquals(String.valueOf(ROLE), authentication.getAuthorities().iterator().next().getAuthority());
+        verify(userDetailsService, times(1)).loadUserByUsername(EMAIL);
     }
 
     @Test
@@ -104,7 +105,7 @@ class JwtTokenProviderTest {
     void 잘못된_토큰_예외발생() {
         // When & Then
         assertThatThrownBy(() ->
-                jwtTokenProvider.getAuthentication(TestConstants.Account.INVALID_TOKEN)
+                jwtTokenProvider.getAuthentication(INVALID_TOKEN)
         ).isInstanceOf(InsufficientAuthenticationException.class);
     }
 
@@ -113,7 +114,7 @@ class JwtTokenProviderTest {
     void 만료된_토큰_예외발생() {
         // Given
         Date expiredDate = new Date(System.currentTimeMillis() - 60000); // 현재 시간보다 1분 이전
-        String expiredToken = createToken(TestConstants.Account.EMAIL, TestConstants.Account.ROLE, expiredDate);
+        String expiredToken = createToken(EMAIL, ROLE, expiredDate);
 
         // When & Then
         assertThatThrownBy(() ->
@@ -125,7 +126,7 @@ class JwtTokenProviderTest {
     @DisplayName("Auth 클레임이 없을 경우 예외 발생 -> (실패)")
     void auth_클레임_없을때_예외발생() {
         // Given
-        String tokenWithoutAuth = createToken(TestConstants.Account.EMAIL, null, null);
+        String tokenWithoutAuth = createToken(EMAIL, null, null);
 
         // When & Then
         assertThatThrownBy(() ->
