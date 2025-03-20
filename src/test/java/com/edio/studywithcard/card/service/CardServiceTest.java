@@ -74,7 +74,7 @@ public class CardServiceTest {
 
     @Test
     @DisplayName("카드 생성 및 첨부파일 검증 -> (성공)")
-    void 신규_카드_생성_첨부파일_검즘() throws Exception {
+    void 신규_카드_생성_첨부파일_검증() throws Exception {
         // Given
         request = createCardRequest(null, CARD_NAMES.get(0), CARD_DESCRIPTIONS.get(0));
         imageFile = mockMultipartFile(EMPTY_FLAG, IMAGE_MIME_JPEG);
