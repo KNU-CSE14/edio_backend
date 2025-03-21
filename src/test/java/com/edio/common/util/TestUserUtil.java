@@ -1,6 +1,5 @@
 package com.edio.common.util;
 
-import com.edio.common.TestConstants;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
 
