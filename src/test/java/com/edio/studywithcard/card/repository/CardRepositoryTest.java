@@ -14,17 +14,24 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
+import static com.edio.common.TestConstants.Card.CARD_DESCRIPTIONS;
+import static com.edio.common.TestConstants.Card.CARD_NAMES;
+import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
+import static com.edio.common.TestConstants.Deck.DECK_DESCRIPTION;
+import static com.edio.common.TestConstants.Deck.DECK_NAME;
+import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
+import static com.edio.common.TestConstants.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.NON_EXISTENT_IDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@ActiveProfiles("h2")
 public class CardRepositoryTest {
 
     @Autowired
@@ -39,15 +46,6 @@ public class CardRepositoryTest {
     @Autowired
     private CategoryRepository categoryRepository;
 
-    private static final Long accountId = 1L;
-    private static final String folderName = "testFolder";
-    private static final String categoryName = "testCategory";
-    private static final String deckName = "testDeck";
-    private static final String deckDescription = "deckDescription";
-    private static final List<String> cardNames = List.of("testCard", "testCard2");
-    private static final List<String> cardDescription = List.of("cardDescription", "cardDescription2");
-    private static final List<Long> nonExistentIds = List.of(999L, 1000L);
-
     private Card testCard;
     private Card testCard2;
 
@@ -59,27 +57,27 @@ public class CardRepositoryTest {
     void setUp() {
         // Given
         testFolder = folderRepository.save(Folder.builder()
-                .accountId(accountId)
-                .name(folderName)
+                .accountId(ACCOUNT_ID)
+                .name(FOLDER_NAME)
                 .build());
         testCategory = categoryRepository.save(Category.builder()
-                .name(categoryName)
+                .name(CATEGORY_NAME)
                 .build());
         testDeck = deckRepository.save(Deck.builder()
                 .folder(testFolder)
                 .category(testCategory)
-                .name(deckName)
-                .description(deckDescription)
+                .name(DECK_NAME)
+                .description(DECK_DESCRIPTION)
                 .build());
         testCard = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name(cardNames.get(0))
-                .description(cardDescription.get(0))
+                .name(CARD_NAMES.get(0))
+                .description(CARD_DESCRIPTIONS.get(0))
                 .build());
         testCard2 = cardRepository.save(Card.builder()
                 .deck(testDeck)
-                .name(cardNames.get(1))
-                .description(cardDescription.get(1))
+                .name(CARD_NAMES.get(1))
+                .description(CARD_DESCRIPTIONS.get(1))
                 .build());
     }
 
@@ -99,7 +97,7 @@ public class CardRepositoryTest {
     void findCardByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                cardRepository.findByIdAndIsDeletedFalse(nonExistentIds.get(0))
+                cardRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
@@ -151,7 +149,7 @@ public class CardRepositoryTest {
     @DisplayName("존재하지 않는 ID 리스트로 카드 조회 -> (실패)")
     void findCardsByNonExistentIds() {
         // When
-        List<Card> cards = cardRepository.findAllById(nonExistentIds);
+        List<Card> cards = cardRepository.findAllById(NON_EXISTENT_IDS);
 
         // Then
         assertThat(cards).isEmpty();

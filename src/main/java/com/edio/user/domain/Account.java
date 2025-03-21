@@ -5,13 +5,14 @@ import com.edio.user.domain.enums.AccountLoginType;
 import com.edio.user.domain.enums.AccountRole;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "account")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PUBLIC)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
+@SuperBuilder
 public class Account extends BaseEntity {
 
     @Column(nullable = false, unique = true)

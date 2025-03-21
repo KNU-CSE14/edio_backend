@@ -14,13 +14,9 @@ public abstract class BaseTest {
                 .load();
 
         Map<String, String> mapping = Map.ofEntries(
-                Map.entry("spring.datasource.username", "DB_USERNAME"),
-                Map.entry("spring.datasource.password", "DB_PASSWORD"),
-                Map.entry("spring.datasource.url", "DB_URL"),
                 Map.entry("google.client-id", "GOOGLE_CLIENT_ID"),
                 Map.entry("google.client-secret", "GOOGLE_CLIENT_SECRET"),
                 Map.entry("jwt.secret", "JWT_SECRET"),
-                Map.entry("spring.profiles.active", "SPRING_PROFILES_ACTIVE"),
                 Map.entry("redirect.url", "REDIRECT_URL"),
                 Map.entry("AWS_REGION", "AWS_REGION"),
                 Map.entry("AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY_ID"),

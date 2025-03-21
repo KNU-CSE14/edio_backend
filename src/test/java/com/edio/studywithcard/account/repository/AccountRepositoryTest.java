@@ -3,8 +3,6 @@ package com.edio.studywithcard.account.repository;
 import com.edio.common.config.JpaConfig;
 import com.edio.user.domain.Account;
 import com.edio.user.domain.Member;
-import com.edio.user.domain.enums.AccountLoginType;
-import com.edio.user.domain.enums.AccountRole;
 import com.edio.user.repository.AccountRepository;
 import com.edio.user.repository.MemberRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,16 +11,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 
 import java.util.NoSuchElementException;
 
+import static com.edio.common.TestConstants.User.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.User.NON_EXISTENT_LOGIN_ID;
+import static com.edio.common.util.TestUserUtil.account;
+import static com.edio.common.util.TestUserUtil.member;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @DataJpaTest
 @Import(JpaConfig.class)
-@ActiveProfiles("h2")
 public class AccountRepositoryTest {
 
     @Autowired
@@ -31,32 +31,13 @@ public class AccountRepositoryTest {
     @Autowired
     private MemberRepository memberRepository;
 
-    private static final String email = "testUser@gmail.com";
-    private static final String name = "Hong Gildong";
-    private static final String givenName = "gildong";
-    private static final String familyName = "Hong";
-    private static final String profileUrl = "http://example.com/profile.jpg";
-    private static final String nonExistentLoginId = "nonexistent@gmail.com";
-    private static final Long nonExistentId = 999L;
-
     private Member testMember;
     private Account testAccount;
 
     @BeforeEach
     void setUp() {
-        testMember = memberRepository.save(Member.builder()
-                .email(email)
-                .name(name)
-                .givenName(givenName)
-                .familyName(familyName)
-                .profileUrl(profileUrl)
-                .build());
-        testAccount = accountRepository.save(Account.builder()
-                .loginId(email)
-                .member(testMember)
-                .loginType(AccountLoginType.GOOGLE)
-                .roles(AccountRole.ROLE_USER)
-                .build());
+        testMember = memberRepository.save(member());
+        testAccount = accountRepository.save(account(testMember));
     }
 
     @Test
@@ -69,8 +50,8 @@ public class AccountRepositoryTest {
         // Then
         assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
         assertThat(account.isDeleted()).isFalse();
-        assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
-        assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
+        assertThat(account.getLoginType()).isEqualTo(testAccount.getLoginType());
+        assertThat(account.getRoles()).isEqualTo(testAccount.getRoles());
     }
 
     @Test
@@ -78,7 +59,7 @@ public class AccountRepositoryTest {
     void findAccountByNonExistentLoginId() {
         // When & Then
         assertThatThrownBy(() ->
-                accountRepository.findByLoginIdAndIsDeletedFalse(nonExistentLoginId)
+                accountRepository.findByLoginIdAndIsDeletedFalse(NON_EXISTENT_LOGIN_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
@@ -93,8 +74,8 @@ public class AccountRepositoryTest {
         // Then
         assertThat(account.getLoginId()).isEqualTo(testAccount.getLoginId());
         assertThat(account.isDeleted()).isFalse();
-        assertThat(account.getLoginType()).isEqualTo(AccountLoginType.GOOGLE);
-        assertThat(account.getRoles()).isEqualTo(AccountRole.ROLE_USER);
+        assertThat(account.getLoginType()).isEqualTo(testAccount.getLoginType());
+        assertThat(account.getRoles()).isEqualTo(testAccount.getRoles());
     }
 
     @Test
@@ -102,7 +83,7 @@ public class AccountRepositoryTest {
     void findAccountByNonExistentId() {
         // When & Then
         assertThatThrownBy(() ->
-                accountRepository.findByIdAndIsDeletedFalse(nonExistentId)
+                accountRepository.findByIdAndIsDeletedFalse(NON_EXISTENT_ID)
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }

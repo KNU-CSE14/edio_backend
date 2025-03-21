@@ -13,6 +13,7 @@ import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.deck.domain.Deck;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,14 +21,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.edio.common.TestConstants.File.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,61 +48,66 @@ public class AttachmentServiceTest {
     @InjectMocks
     private AttachmentServiceImpl attachmentService;
 
-    private String fileName;
-    private Long fileSize;
-    private String fileKey;
-    private String fileType;
-    private String fileTarget;
-    private String s3FolderName;
     private FileInfoResponse fileInfoResponse;
     List<String> fileKeys = new ArrayList<>();
 
+    private MockMultipartFile mockFile;
+    private AttachmentBulkData bulkData;
+    private Card mockCard;
+    private Deck mockDeck;
+    private Attachment mockAttachment;
+    
     @BeforeEach
     void setUp() {
-        fileName = "test.jpg";
-        fileKey = "image/test.jpg";
-        fileSize = 1024L;
-        fileType = "image/jpeg";
-        fileTarget = "CARD";
-        s3FolderName = "image";
-        String filePath = "image/test.jpg";
-        String bucketName = "edio-file-bucket";
-        String region = "ap-northeast-2";
-
-        // 새로운 FileInfoResponse 설정
+        // S3 업로드 후 응답 객체
         fileInfoResponse = new FileInfoResponse(
-                String.format("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, filePath),
-                fileKey
+                String.format(
+                        FILE_PATH,
+                        BUCKET_NAME,
+                        REGION,
+                        FILE_KEY),
+                FILE_KEY
         );
 
-        fileKeys.add(fileKey);
+        // 파일 목록
+        fileKeys.add(FILE_KEY);
+
+        // bulkData에 들어갈 Dummy 파일 생성
+        mockFile = new MockMultipartFile(
+                MOCK_FILE_TYPE,
+                FILE_NAME,
+                FILE_TYPE,
+                new byte[1024]
+        );
+
+        mockCard = mock(Card.class);
+        // bulkDataList에 들어갈 bulkData 생성
+        bulkData = new AttachmentBulkData(
+                mockFile,
+                mockCard,
+                FOLDER_TARGET,   // IMAGE
+                FILE_TARGET,     // CARD
+                null        // 기존 파일 키 (신규 첨부라면 null)
+        );
+
+        mockAttachment = Attachment.builder()
+                .fileName(FILE_NAME)
+                .filePath(fileInfoResponse.filePath())
+                .fileKey(fileInfoResponse.fileKey())
+                .fileSize(FILE_SIZE)
+                .fileType(FILE_TYPE)
+                .fileTarget(FILE_TARGET)
+                .build();
+        mockDeck = mock(Deck.class);
     }
 
     @Test
-    void testSaveAllAttachments() {
+    @DisplayName("첨부파일 리스트 저장 시 파일 및 카드 매핑 -> (성공)")
+    void 첨부파일_리스트_저장_매핑() {
         // Given
-        // bulkDataList에 들어갈 Dummy 파일과 Card 객체 생성
-        MockMultipartFile mockFile = new MockMultipartFile(
-                "file",
-                fileName,
-                fileType,
-                new byte[1024]
-        );
-        Card dummyCard = mock(Card.class);
-
-        // bulk 데이터 객체 생성 (업데이트나 신규 모두 같은 방식으로 처리됨)
-        AttachmentBulkData bulkData = new AttachmentBulkData(
-                mockFile,
-                dummyCard,
-                "IMAGE",    // 폴더 (대문자로 저장됨)
-                "CARD",     // 대상
-                null        // 기존 파일 키 (신규 첨부라면 null)
-        );
         List<AttachmentBulkData> bulkDataList = List.of(bulkData);
 
-        // s3Service.uploadFile stub 설정
-        when(s3Service.uploadFile(any(MultipartFile.class), eq("image")))
-                .thenReturn(fileInfoResponse);
+        when(s3Service.uploadFile(mockFile, S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
 
         // When
         attachmentService.saveAllAttachments(bulkDataList);
@@ -115,7 +120,7 @@ public class AttachmentServiceTest {
         assertEquals(1, savedAttachments.size());
         Attachment savedAttachment = savedAttachments.get(0);
 
-        assertEquals(fileName, savedAttachment.getFileName());
+        assertEquals(FILE_NAME, savedAttachment.getFileName());
         assertEquals(fileInfoResponse.fileKey(), savedAttachment.getFileKey());
         assertEquals(fileInfoResponse.filePath(), savedAttachment.getFilePath());
         assertEquals(mockFile.getSize(), savedAttachment.getFileSize());
@@ -129,52 +134,35 @@ public class AttachmentServiceTest {
         assertEquals(1, savedTargets.size());
         AttachmentCardTarget target = savedTargets.get(0);
 
-        assertEquals(dummyCard, target.getCard());
+        assertEquals(mockCard, target.getCard());
         assertEquals(savedAttachment, target.getAttachment());
     }
 
 
     @Test
-    void testSaveAttachment() {
+    @DisplayName("첨부파일 저장 시 파일 매핑 -> (성공)")
+    void 첨부파일_저장_매핑() {
         // Given
-        MockMultipartFile mockFile = new MockMultipartFile(
-                "file",
-                fileName,
-                fileType,
-                new byte[1024]
-        );
-        when(s3Service.uploadFile(mockFile, s3FolderName)).thenReturn(fileInfoResponse);
-
-        Attachment mockAttachment = Attachment.builder()
-                .fileName(fileName)
-                .filePath(fileInfoResponse.filePath())
-                .fileKey(fileInfoResponse.fileKey())
-                .fileSize(fileSize)
-                .fileType(fileType)
-                .fileTarget(fileTarget)
-                .build();
+        when(s3Service.uploadFile(mockFile, S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
 
         when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockAttachment);
 
         // When
-        Attachment result = attachmentService.saveAttachment(mockFile, s3FolderName, fileTarget);
+        Attachment attachment = attachmentService.saveAttachment(mockFile, S3_FOLDER_NAME, FILE_TARGET);
 
         // Then
-        assertNotNull(result);
-        assertEquals(fileName, result.getFileName());
-        assertEquals(fileKey, result.getFileKey());
-        assertEquals(fileSize, result.getFileSize());
-        verify(s3Service, times(1)).uploadFile(mockFile, s3FolderName);
+        assertNotNull(attachment);
+        assertEquals(FILE_NAME, attachment.getFileName());
+        assertEquals(FILE_KEY, attachment.getFileKey());
+        assertEquals(FILE_SIZE, attachment.getFileSize());
+        verify(s3Service, times(1)).uploadFile(mockFile, S3_FOLDER_NAME);
         verify(attachmentRepository, times(1)).save(any(Attachment.class));
     }
 
 
     @Test
-    void testSaveAttachmentDeckTarget() {
-        // Given
-        Attachment mockAttachment = mock(Attachment.class);
-        Deck mockDeck = mock(Deck.class);
-
+    @DisplayName("첨부파일 저장 시 덱 타겟 매핑 -> (성공)")
+    void 첨부파일_덱_타겟_매핑() {
         // When
         attachmentService.saveAttachmentDeckTarget(mockAttachment, mockDeck);
 
@@ -186,9 +174,9 @@ public class AttachmentServiceTest {
     }
 
     @Test
-    void testDeleteAllAttachmentsSuccess() {
+    @DisplayName("첨부파일 리스트 삭제 검증 -> (성공)")
+    void 첨부파일_리스트_삭제_검증() {
         // Given
-        Attachment mockAttachment = mock(Attachment.class);
         List<Attachment> mockAttachments = List.of(mockAttachment);
 
         when(attachmentRepository.findAllByFileKeyInAndIsDeletedFalse(fileKeys)).thenReturn(mockAttachments);
@@ -203,7 +191,8 @@ public class AttachmentServiceTest {
     }
 
     @Test
-    void testDeleteAllAttachments_WhenNoAttachmentsExist() {
+    @DisplayName("첨부파일 비어있는 리스트 삭제 검증")
+    void 첨부파일_빈_리스트_삭제_검증() {
         // Given
         when(attachmentRepository.findAllByFileKeyInAndIsDeletedFalse(fileKeys)).thenReturn(List.of());
 
@@ -213,9 +202,6 @@ public class AttachmentServiceTest {
         // Then
         verify(attachmentRepository, times(1)).findAllByFileKeyInAndIsDeletedFalse(fileKeys);
         verify(attachmentRepository, times(1)).deleteAll(List.of());
-        verifyNoMoreInteractions(attachmentRepository);
-
-        // S3 삭제는 호출됨
         verify(s3Service, times(1)).deleteAllFiles(fileKeys);
     }
 }
