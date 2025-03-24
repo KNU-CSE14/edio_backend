@@ -16,11 +16,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
         try {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, authException.getMessage());
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.getWriter().write(authException.getMessage());
         } catch (IOException e) {
             log.error(e.getMessage());
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            response.getWriter().write(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
         }
     }
 }
