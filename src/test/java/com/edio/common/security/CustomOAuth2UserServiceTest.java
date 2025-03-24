@@ -21,8 +21,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.Folder.ROOT_FOLDER_ID;
 import static com.edio.common.TestConstants.User.*;
-import static com.edio.common.TestConstants.Folder.FOLDER_ID;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
 import static com.edio.common.util.TestUserUtil.account;
 import static com.edio.common.util.TestUserUtil.member;
@@ -51,7 +51,7 @@ public class CustomOAuth2UserServiceTest {
 
     private Member mockMember = member();
     private Account mockAccount = account(mockMember);
-    private Folder mockFolder;
+    private Folder mockRootFolder;
 
     private OAuth2User dummyOAuth2User;
     private OAuth2UserRequest userRequest;
@@ -59,8 +59,8 @@ public class CustomOAuth2UserServiceTest {
     @BeforeEach
     public void setUp() {
         // 테스트용 데이터 생성
-        mockFolder = Folder.builder()
-                .id(FOLDER_ID)
+        mockRootFolder = Folder.builder()
+                .id(ROOT_FOLDER_ID)
                 .accountId(ACCOUNT_ID)
                 .parentFolder(null)
                 .name(FOLDER_NAME)
@@ -121,7 +121,7 @@ public class CustomOAuth2UserServiceTest {
         // 내부 save 메서드들이 호출되었을 때, 더미 객체들을 반환하도록 stub
         when(memberRepository.save(any(Member.class))).thenReturn(mockMember);
         when(accountRepository.save(any(Account.class))).thenReturn(mockAccount);
-        when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
+        when(folderRepository.save(any(Folder.class))).thenReturn(mockRootFolder);
 
         when(defaultOAuth2UserService.loadUser(any(OAuth2UserRequest.class))).thenReturn(dummyOAuth2User);
 

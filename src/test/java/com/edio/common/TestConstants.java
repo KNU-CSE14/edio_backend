@@ -67,8 +67,8 @@ public final class TestConstants {
         폴더 관련 상수
      */
     public static class Folder {
-        public static final Long FOLDER_ID = DEFAULT_ID;
         public static final Long ROOT_FOLDER_ID = DEFAULT_ID;
+        public static final Long SUB_FOLDER_ID = 2L;
         public static final String FOLDER_NAME = "Default";
         public static final List<String> FOLDER_NAMES = List.of("testFolder", "testFolder2", "testFolder3");
     }
