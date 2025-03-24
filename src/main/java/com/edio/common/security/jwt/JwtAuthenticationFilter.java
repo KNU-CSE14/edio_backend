@@ -46,18 +46,11 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
         try{
             String accessToken = resolveAccessAndRefreshToken(httpRequest, "accessToken");
-            if (accessToken != null) {
-                boolean isValid = jwtTokenProvider.validateToken(accessToken);
-                if (isValid) {
-                    setAuthentication(accessToken);
-                } else { // 토큰 검증 실패
-                    throw new InsufficientAuthenticationException(ErrorMessages.TOKEN_INVALID.getMessage());
-                }
+            if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+                setAuthentication(accessToken);
             } else {
+                // accessToken이 없거나 유효하지 않으면 refreshToken 처리
                 handleRefreshToken(httpRequest, httpResponse);
-                if (httpResponse.isCommitted()) {
-                    return;
-                }
             }
         }catch(AuthenticationException e){
             SecurityContextHolder.clearContext();
