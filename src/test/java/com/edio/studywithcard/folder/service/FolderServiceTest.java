@@ -17,9 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.Folder.*;
 import static com.edio.common.TestConstants.User.ACCOUNT_ID;
-import static com.edio.common.TestConstants.Folder.FOLDER_ID;
-import static com.edio.common.TestConstants.Folder.FOLDER_NAMES;
 import static com.edio.common.util.TestDataUtil.createFolder;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -37,21 +36,23 @@ public class FolderServiceTest {
 
     private FolderCreateRequest folderCreateRequest;
     private FolderUpdateRequest folderUpdateRequest;
-    private Folder mockFolder;
+    private Folder mockRootFolder;
+    private Folder mockSubFolder;
 
     @BeforeEach
     public void setUp() {
         // 공통 데이터 초기화
-        folderCreateRequest = new FolderCreateRequest(null, FOLDER_NAMES.get(0));
+        folderCreateRequest = new FolderCreateRequest(ROOT_FOLDER_ID, FOLDER_NAMES.get(0));
         folderUpdateRequest = new FolderUpdateRequest(FOLDER_NAMES.get(2));
-        mockFolder = createFolder(FOLDER_ID, FOLDER_NAMES.get(0));
+        mockRootFolder = createFolder(ROOT_FOLDER_ID, FOLDER_NAMES.get(0), null);
+        mockSubFolder = createFolder(SUB_FOLDER_ID, FOLDER_NAMES.get(0), mockRootFolder);
     }
 
     @Test
     @DisplayName("폴더 생성 및 검증 -> (성공)")
     void 폴더_생성_검증() {
         // Given
-        when(folderRepository.save(any(Folder.class))).thenReturn(mockFolder);
+        when(folderRepository.save(any(Folder.class))).thenReturn(mockSubFolder);
 
         // When
         FolderResponse response = folderService.createFolder(ACCOUNT_ID, folderCreateRequest);
@@ -66,7 +67,7 @@ public class FolderServiceTest {
     @DisplayName("폴더명이 NULL일 폴더 생성 검증 -> (실패)")
     void 폴더명_NULL_폴더_생성_검증() {
         // Given
-        folderCreateRequest = new FolderCreateRequest(null, null);
+        folderCreateRequest = new FolderCreateRequest(SUB_FOLDER_ID, null);
 
         // When & Then
         Assertions.assertThatThrownBy(() ->
@@ -78,35 +79,46 @@ public class FolderServiceTest {
     @DisplayName("폴더 업데이트 검증 -> (성공)")
     void 폴더_업데이트_검증() {
         // Given
-        when(folderRepository.findByIdAndIsDeletedFalse(FOLDER_ID)).thenReturn(Optional.ofNullable(mockFolder));
+        when(folderRepository.findByIdAndIsDeletedFalse(SUB_FOLDER_ID)).thenReturn(Optional.ofNullable(mockSubFolder));
 
         // When
-        folderService.updateFolder(FOLDER_ID, folderUpdateRequest);
+        folderService.updateFolder(SUB_FOLDER_ID, folderUpdateRequest);
 
         // Then
-        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(FOLDER_ID);
-        assertThat(mockFolder.getName()).isEqualTo(folderUpdateRequest.name());
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(SUB_FOLDER_ID);
+        assertThat(mockSubFolder.getName()).isEqualTo(folderUpdateRequest.name());
     }
 
     @Test
     @DisplayName("폴더 삭제 및 검증 -> (성공)")
     void 폴더_삭제_검증() {
         // Given
-        when(folderRepository.findByIdAndIsDeletedFalse(FOLDER_ID)).thenReturn(Optional.ofNullable(mockFolder));
+        when(folderRepository.findByIdAndIsDeletedFalse(SUB_FOLDER_ID)).thenReturn(Optional.ofNullable(mockSubFolder));
 
         // When
-        folderService.deleteFolder(FOLDER_ID);
+        folderService.deleteFolder(SUB_FOLDER_ID);
 
         // Then
-        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(FOLDER_ID);
-        verify(folderRepository, times(1)).delete(mockFolder);
+        verify(folderRepository, times(1)).findByIdAndIsDeletedFalse(SUB_FOLDER_ID);
+        verify(folderRepository, times(1)).delete(mockSubFolder);
     }
 
     @Test
     @DisplayName("존재하지 않는 폴더 삭제 검증 -> (실패)")
     void 존재하지_않는_폴더_삭제_검증() {
         // When, Then
-        assertThatThrownBy(() -> folderService.deleteFolder(FOLDER_ID))
+        assertThatThrownBy(() -> folderService.deleteFolder(SUB_FOLDER_ID))
                 .isInstanceOf(NoSuchElementException.class);
+    }
+
+    @Test
+    @DisplayName("최상위 폴더 삭제 검증 -> (실패)")
+    void 최상위_폴더_삭제_검증() {
+        // Given
+        when(folderRepository.findByIdAndIsDeletedFalse(ROOT_FOLDER_ID)).thenReturn(Optional.ofNullable(mockRootFolder));
+
+        // When & Then
+        assertThatThrownBy(() -> folderService.deleteFolder(ROOT_FOLDER_ID))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 }

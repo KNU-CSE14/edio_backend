@@ -25,8 +25,8 @@ import java.util.Optional;
 import static com.edio.common.TestConstants.Category.CATEGORY_ID;
 import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
 import static com.edio.common.TestConstants.Deck.*;
-import static com.edio.common.TestConstants.Folder.FOLDER_ID;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
+import static com.edio.common.TestConstants.Folder.ROOT_FOLDER_ID;
 import static com.edio.common.TestConstants.NON_EXISTENT_ID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
@@ -70,7 +70,7 @@ public class DeckServiceTest {
                 .isFavorite(IS_FAVORITE)
                 .build();
         deckCreateRequest = new DeckCreateRequest(
-                FOLDER_ID,
+                ROOT_FOLDER_ID,
                 CATEGORY_ID,
                 DECK_NAMES.get(1),
                 DECK_DESCRIPTIONS.get(1),

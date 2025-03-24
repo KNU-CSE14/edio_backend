@@ -13,12 +13,12 @@ public class TestDataUtil {
 
     private TestDataUtil() { }
 
-    public static Folder createFolder(Long id, String name) {
+    public static Folder createFolder(Long id, String name, Folder folder) {
         return Folder.builder()
                 .id(id)
                 .accountId(ACCOUNT_ID)
                 .name(name)
-                .parentFolder(null)
+                .parentFolder(folder)
                 .build();
     }
 
