@@ -7,9 +7,10 @@ import static com.edio.common.TestConstants.User.*;
 
 public class TestUserUtil {
 
-    private TestUserUtil() { }
+    private TestUserUtil() {
+    }
 
-    public static Member member() {
+    public static Member createMember() {
         return Member.builder()
                 .id(MEMBER_ID)
                 .email(EMAIL)
@@ -20,7 +21,7 @@ public class TestUserUtil {
                 .build();
     }
 
-    public static Account account(Member member) {
+    public static Account createAccount(Member member) {
         return Account.builder()
                 .id(ACCOUNT_ID)
                 .loginId(EMAIL)

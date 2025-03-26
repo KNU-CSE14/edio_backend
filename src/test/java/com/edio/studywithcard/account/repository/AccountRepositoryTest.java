@@ -16,8 +16,8 @@ import java.util.NoSuchElementException;
 
 import static com.edio.common.TestConstants.User.NON_EXISTENT_ID;
 import static com.edio.common.TestConstants.User.NON_EXISTENT_LOGIN_ID;
-import static com.edio.common.util.TestUserUtil.account;
-import static com.edio.common.util.TestUserUtil.member;
+import static com.edio.common.util.TestUserUtil.createAccount;
+import static com.edio.common.util.TestUserUtil.createMember;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -36,8 +36,8 @@ public class AccountRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        testMember = memberRepository.save(member());
-        testAccount = accountRepository.save(account(testMember));
+        testMember = memberRepository.save(createMember());
+        testAccount = accountRepository.save(createAccount(testMember));
     }
 
     @Test
