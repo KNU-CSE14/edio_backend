@@ -29,10 +29,11 @@ public record FolderAllResponse(
 
     private record SubDeck(
             Long id,
-            Long parentId,
+            Long folderId,
             Long categoryId,
             String name,
-            String description
+            String description,
+            String imagePath
     ) {
         private static FolderAllResponse.SubDeck from(Deck deck) {
             return new FolderAllResponse.SubDeck(
@@ -40,7 +41,13 @@ public record FolderAllResponse(
                     deck.getFolder().getId(),
                     deck.getCategory().getId(),
                     deck.getName(),
-                    deck.getDescription());
+                    deck.getDescription(),
+                    deck.getAttachmentDeckTargets()
+                            .stream()
+                            .filter(target -> !target.getAttachment().isDeleted())
+                            .map(target -> target.getAttachment().getFilePath())
+                            .findFirst()
+                            .orElse(null));
         }
     }
 }

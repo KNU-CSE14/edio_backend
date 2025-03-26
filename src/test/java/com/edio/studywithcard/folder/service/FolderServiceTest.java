@@ -3,9 +3,11 @@ package com.edio.studywithcard.folder.service;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
+import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -46,6 +48,24 @@ public class FolderServiceTest {
         folderUpdateRequest = new FolderUpdateRequest(FOLDER_NAMES.get(2));
         mockRootFolder = createFolder(ROOT_FOLDER_ID, FOLDER_NAMES.get(0), null);
         mockSubFolder = createFolder(SUB_FOLDER_ID, FOLDER_NAMES.get(0), mockRootFolder);
+    }
+
+    @Test
+    @DisplayName("폴더 조회 및 검증 -> (성공)")
+    void 폴더_조회_검증(){
+        // When
+        FolderAllResponse response = folderService.getAllFolders(ROOT_FOLDER_ID, null);
+
+        // Then
+        assertThat(response).isNotNull();
+        assertThat(response.id()).isEqualTo(ROOT_FOLDER_ID);
+        assertThat(response.name()).isEqualTo(FOLDER_NAMES.get(0));
+
+        // 하위 폴더 정보도 검증
+        assertThat(response.subFolders())
+                .asInstanceOf(InstanceOfAssertFactories.list(FolderAllResponse.class))
+                .hasSize(1);
+        assertThat(response.subFolders().get(0).name()).isEqualTo(FOLDER_NAMES.get(0));
     }
 
     @Test
