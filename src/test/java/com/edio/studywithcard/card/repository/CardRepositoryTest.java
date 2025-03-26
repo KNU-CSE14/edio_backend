@@ -8,6 +8,8 @@ import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -17,8 +19,8 @@ import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static com.edio.common.TestConstants.User.ACCOUNT_ID;
 import static com.edio.common.TestConstants.Card.CARD_DESCRIPTIONS;
 import static com.edio.common.TestConstants.Card.CARD_NAMES;
 import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
@@ -27,6 +29,7 @@ import static com.edio.common.TestConstants.Deck.DECK_NAME;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
 import static com.edio.common.TestConstants.NON_EXISTENT_ID;
 import static com.edio.common.TestConstants.NON_EXISTENT_IDS;
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -45,6 +48,9 @@ public class CardRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private Card testCard;
     private Card testCard2;
@@ -102,33 +108,24 @@ public class CardRepositoryTest {
         ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /*
-        TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
-    @DisplayName("Soft Delete And NotFoundCard -> (성공)")
-    void softDeleteCard(){
-        // Given
-        cardRepository.save(testCard);
-        entityManager.flush();
-        entityManager.clear();
-
+    @DisplayName("카드 Soft Delete 동작 확인 -> (성공)")
+    void softDeleteCard() {
         // When
         cardRepository.delete(testCard);
-        entityManager.flush();
-        entityManager.clear();
+        entityManager.flush(); // DB에 반영
+        entityManager.clear(); // 1차 캐시 초기화
 
+        Optional<Card> card;
         // Then
-        Optional<Card> deletedCard = cardRepository.findByIdAndIsDeletedFalse(testCard.getId());
-        assertThat(deletedCard).isEmpty();
+        card = cardRepository.findById(testCard.getId());
+        assertThat(card).isPresent();
+        assertThat(card.get().isDeleted()).isTrue();
 
-        Long count = (Long) entityManager.createQuery(
-                "SELECT COUNT(c) FROM card c where c.id = :id")
-                .setParameter("id", 1L)
-                .getSingleResult();
-
-        assertThat(count).isEqualTo(1);
+        // isDeleted = false 조건으로 조회
+        card = cardRepository.findByIdAndIsDeletedFalse(testCard.getId());
+        assertThat(card).isEmpty();
     }
-    */
 
     @Test
     @DisplayName("여러 카드 리스트 저장 후 조회 -> (성공)")

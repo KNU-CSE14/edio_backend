@@ -6,6 +6,8 @@ import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,13 +16,14 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static com.edio.common.TestConstants.User.ACCOUNT_ID;
 import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
 import static com.edio.common.TestConstants.Deck.DECK_DESCRIPTION;
 import static com.edio.common.TestConstants.Deck.DECK_NAME;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
 import static com.edio.common.TestConstants.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.User.ACCOUNT_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -36,6 +39,9 @@ public class DeckRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     private Deck testDeck;
     private Folder testFolder;
@@ -83,31 +89,22 @@ public class DeckRepositoryTest {
         ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /*
-        TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
-    @DisplayName("Soft Delete And NotFoundDeck -> (성공)")
-    void softDeleteCard(){
-        // Given
-        deckRepository.save(testDeck);
-        entityManager.flush();
-        entityManager.clear();
-
+    @DisplayName("덱 Soft Delete 동작 확인 -> (성공)")
+    void softDeleteDeck() {
         // When
         deckRepository.delete(testDeck);
-        entityManager.flush();
-        entityManager.clear();
+        entityManager.flush(); // DB에 반영
+        entityManager.clear(); // 1차 캐시 초기화
 
+        Optional<Deck> deck;
         // Then
-        Optional<Deck> deletedDeck = deckRepository.findByIdAndIsDeletedFalse(testDeck.getId());
-        assertThat(deletedDeck).isEmpty();
+        deck = deckRepository.findById(testDeck.getId());
+        assertThat(deck).isPresent();
+        assertThat(deck.get().isDeleted()).isTrue();
 
-        Long count = (Long) entityManager.createQuery(
-                "SELECT COUNT(d) FROM deck d where d.id = :id")
-                .setParameter("id", testDeck.getId())
-                .getSingleResult();
-
-        assertThat(count).isEqualTo(1);
+        // isDeleted = false 조건으로 조회
+        deck = deckRepository.findByIdAndIsDeletedFalse(testDeck.getId());
+        assertThat(deck).isEmpty();
     }
-    */
 }

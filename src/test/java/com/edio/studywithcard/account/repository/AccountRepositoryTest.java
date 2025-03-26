@@ -87,33 +87,4 @@ public class AccountRepositoryTest {
                         .orElseThrow()
         ).isInstanceOf(NoSuchElementException.class);
     }
-
-     /*
-        TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정 (계정 삭제 API 추가 필요)
-    @Test
-    @DisplayName("Soft Delete And NotFoundAccount -> (성공)")
-    void softDeleteAccount(){
-        // Given
-        memberRepository.save(testMember);
-        accountRepository.save(testAccount);
-        entityManager.flush();
-        entityManager.clear();
-
-        // When
-        accountRepository.delete(testAccount);
-        entityManager.flush();
-        entityManager.clear();
-
-        // Then
-        Optional<Account> deletedAccount = accountRepository.findByIdAndIsDeletedFalse(testAccount.getId());
-        assertThat(deletedAccount).isEmpty();
-
-        Long count = (Long) entityManager.createQuery(
-                "SELECT COUNT(a) FROM account a where a.id = :id")
-                .setParameter("id", 1L)
-                .getSingleResult();
-
-        assertThat(count).isEqualTo(1);
-    }
-    */
 }
