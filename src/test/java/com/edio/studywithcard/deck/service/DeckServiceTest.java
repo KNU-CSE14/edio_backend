@@ -28,6 +28,7 @@ import static com.edio.common.TestConstants.Deck.*;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
 import static com.edio.common.TestConstants.Folder.ROOT_FOLDER_ID;
 import static com.edio.common.TestConstants.NON_EXISTENT_ID;
+import static com.edio.common.util.TestDataUtil.*;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -59,16 +60,10 @@ public class DeckServiceTest {
 
     @BeforeEach
     void setUp() {
-        mockFolder = Folder.builder().name(FOLDER_NAME).build();
-        mockCategory = Category.builder().name(CATEGORY_NAME).build();
-        mockDeck = Deck.builder()
-                .name(DECK_NAMES.get(0))
-                .description(DECK_DESCRIPTIONS.get(0))
-                .folder(mockFolder)
-                .category(mockCategory)
-                .isShared(IS_SHARED)
-                .isFavorite(IS_FAVORITE)
-                .build();
+        mockFolder = createFolder(ROOT_FOLDER_ID, FOLDER_NAME, null);
+        mockCategory = createCategory(CATEGORY_NAME);
+        mockDeck = createDeck(mockFolder, mockCategory, DECK_NAMES.get(0), DECK_DESCRIPTIONS.get(0));
+
         deckCreateRequest = new DeckCreateRequest(
                 ROOT_FOLDER_ID,
                 CATEGORY_ID,

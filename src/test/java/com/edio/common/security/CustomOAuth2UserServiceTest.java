@@ -21,11 +21,12 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
 import static com.edio.common.TestConstants.Folder.ROOT_FOLDER_ID;
 import static com.edio.common.TestConstants.User.*;
-import static com.edio.common.TestConstants.Folder.FOLDER_NAME;
-import static com.edio.common.util.TestUserUtil.account;
-import static com.edio.common.util.TestUserUtil.member;
+import static com.edio.common.util.TestDataUtil.createFolder;
+import static com.edio.common.util.TestUserUtil.createAccount;
+import static com.edio.common.util.TestUserUtil.createMember;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,8 +50,8 @@ public class CustomOAuth2UserServiceTest {
     @InjectMocks
     private CustomOAuth2UserService customOAuth2UserService;
 
-    private Member mockMember = member();
-    private Account mockAccount = account(mockMember);
+    private Member mockMember;
+    private Account mockAccount;
     private Folder mockRootFolder;
 
     private OAuth2User dummyOAuth2User;
@@ -59,12 +60,9 @@ public class CustomOAuth2UserServiceTest {
     @BeforeEach
     public void setUp() {
         // 테스트용 데이터 생성
-        mockRootFolder = Folder.builder()
-                .id(ROOT_FOLDER_ID)
-                .accountId(ACCOUNT_ID)
-                .parentFolder(null)
-                .name(FOLDER_NAME)
-                .build();
+        mockMember = createMember();
+        mockAccount = createAccount(mockMember);
+        mockRootFolder = createFolder(ROOT_FOLDER_ID, FOLDER_NAME, null);
 
         // 더미 OAuth2User 생성 (mock)
         dummyOAuth2User = mock(OAuth2User.class);

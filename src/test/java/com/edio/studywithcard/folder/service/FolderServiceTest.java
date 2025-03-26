@@ -1,5 +1,7 @@
 package com.edio.studywithcard.folder.service;
 
+import com.edio.studywithcard.category.domain.Category;
+import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.model.request.FolderCreateRequest;
 import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
@@ -7,7 +9,6 @@ import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -19,11 +20,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import static com.edio.common.TestConstants.Category.CATEGORY_NAME;
+import static com.edio.common.TestConstants.Deck.DECK_DESCRIPTIONS;
+import static com.edio.common.TestConstants.Deck.DECK_NAMES;
 import static com.edio.common.TestConstants.Folder.*;
 import static com.edio.common.TestConstants.User.ACCOUNT_ID;
-import static com.edio.common.util.TestDataUtil.createFolder;
+import static com.edio.common.util.TestDataUtil.*;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.InstanceOfAssertFactories.list;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -40,19 +45,32 @@ public class FolderServiceTest {
     private FolderUpdateRequest folderUpdateRequest;
     private Folder mockRootFolder;
     private Folder mockSubFolder;
+    private Deck mockDeck;
+    private Category mockCategory;
 
     @BeforeEach
     public void setUp() {
         // 공통 데이터 초기화
         folderCreateRequest = new FolderCreateRequest(ROOT_FOLDER_ID, FOLDER_NAMES.get(0));
         folderUpdateRequest = new FolderUpdateRequest(FOLDER_NAMES.get(2));
+
         mockRootFolder = createFolder(ROOT_FOLDER_ID, FOLDER_NAMES.get(0), null);
         mockSubFolder = createFolder(SUB_FOLDER_ID, FOLDER_NAMES.get(0), mockRootFolder);
+
+        mockCategory = createCategory(CATEGORY_NAME);
+        mockDeck = createDeck(mockRootFolder, mockCategory, DECK_NAMES.get(0), DECK_DESCRIPTIONS.get(0));
+
+        // 루트 폴더에 덱, 서브 폴더 추가
+        mockRootFolder.getDecks().add(mockDeck);
+        mockRootFolder.getChildrenFolders().add(mockSubFolder);
     }
 
     @Test
-    @DisplayName("폴더 조회 및 검증 -> (성공)")
-    void 폴더_조회_검증(){
+    @DisplayName("폴더 조회 및 검증(최상위 폴더/덱 1개, 하위 폴더 1개) -> (성공)")
+    void 폴더_조회_검증() {
+        // Given
+        when(folderRepository.findById(ROOT_FOLDER_ID)).thenReturn(Optional.of(mockRootFolder));
+
         // When
         FolderAllResponse response = folderService.getAllFolders(ROOT_FOLDER_ID, null);
 
@@ -61,11 +79,14 @@ public class FolderServiceTest {
         assertThat(response.id()).isEqualTo(ROOT_FOLDER_ID);
         assertThat(response.name()).isEqualTo(FOLDER_NAMES.get(0));
 
-        // 하위 폴더 정보도 검증
+        // 하위 폴더 검증
         assertThat(response.subFolders())
-                .asInstanceOf(InstanceOfAssertFactories.list(FolderAllResponse.class))
+                .asInstanceOf(list(FolderAllResponse.class))
                 .hasSize(1);
         assertThat(response.subFolders().get(0).name()).isEqualTo(FOLDER_NAMES.get(0));
+
+        // 덱 검증
+        assertThat(response.decks().size()).isEqualTo(1);
     }
 
     @Test
