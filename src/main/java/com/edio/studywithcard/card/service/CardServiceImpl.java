@@ -13,9 +13,7 @@ import com.edio.studywithcard.card.model.request.CardBulkRequestWrapper;
 import com.edio.studywithcard.card.repository.CardRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.repository.DeckRepository;
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
@@ -111,11 +109,11 @@ public class CardServiceImpl implements CardService {
         newCards.add(card);
 
         // 이미지 첨부파일이 존재하면 벌크 데이터에 추가
-        if (!request.getImage().isEmpty()) {
+        if (request.getImage() != null && !request.getImage().isEmpty()) {
             newAttachments.add(new AttachmentBulkData(request.getImage(), card, AttachmentFolder.IMAGE.name(), FileTarget.CARD.name(), null));
         }
         // 오디오 첨부파일이 존재하면 벌크 데이터에 추가
-        if (!request.getAudio().isEmpty()) {
+        if (request.getAudio() != null && !request.getAudio().isEmpty()) {
             newAttachments.add(new AttachmentBulkData(request.getAudio(), card, AttachmentFolder.AUDIO.name(), FileTarget.CARD.name(), null));
         }
     }
@@ -181,7 +179,7 @@ public class CardServiceImpl implements CardService {
                 .collect(Collectors.toList());
 
         attachmentService.deleteAllAttachments(oldFileKeys);
-        
+
         // 파일이 존재하는 항목만 새 파일 업로드 대상으로 처리
         List<AttachmentBulkData> attachmentsToUpload = updateAttachments.stream()
                 .filter(data -> data.getFile() != null)
