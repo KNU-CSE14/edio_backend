@@ -7,7 +7,6 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
-import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.repository.FolderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,19 +21,6 @@ import java.util.List;
 public class FolderServiceImpl implements FolderService {
 
     private final FolderRepository folderRepository;
-
-    /*
-        Folder 조회 (1depth)
-     */
-    @Override
-    @Transactional(readOnly = true)
-    public FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId) {
-        Long targetFolderId = (folderId == null) ? rootFolderId : folderId;
-
-        Folder folder = folderRepository.findById(targetFolderId).get();
-
-        return FolderWithDeckResponse.from(folder);
-    }
 
     /*
         Folder 조회 (all depth)
@@ -138,7 +124,7 @@ public class FolderServiceImpl implements FolderService {
     public void deleteFolder(Long folderId) {
         Folder existingFolder = folderRepository.findByIdAndIsDeletedFalse(folderId).get();
 
-        if(existingFolder.getParentFolder() == null){
+        if (existingFolder.getParentFolder() == null) {
             throw new IllegalArgumentException(ErrorMessages.BAD_REQUEST.getMessage());
         }
         folderRepository.delete(existingFolder);

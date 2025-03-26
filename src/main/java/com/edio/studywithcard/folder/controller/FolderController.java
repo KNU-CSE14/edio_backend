@@ -7,7 +7,6 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
-import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import com.edio.studywithcard.folder.service.FolderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,15 +28,6 @@ public class FolderController implements FolderApiDoc {
             @RequestParam(value = "folderId", required = false) Long folderId
     ) {
         return folderService.getAllFolders(userDetails.getRootFolderId(), folderId);
-    }
-
-    @GetMapping("/folder")
-    @Override
-    public FolderWithDeckResponse getFolderWithDeck(
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam(value = "folderId", required = false) Long folderId
-    ) {
-        return folderService.getFolderWithDeck(userDetails.getRootFolderId(), folderId);
     }
 
     @GetMapping("/folder/my-folders")
