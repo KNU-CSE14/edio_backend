@@ -1,4 +1,4 @@
-package com.edio.studywithcard.attachment;
+package com.edio.studywithcard.attachment.service;
 
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.attachment.domain.AttachmentCardTarget;
@@ -7,8 +7,6 @@ import com.edio.studywithcard.attachment.model.response.FileInfoResponse;
 import com.edio.studywithcard.attachment.repository.AttachmentCardTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentDeckTargetRepository;
 import com.edio.studywithcard.attachment.repository.AttachmentRepository;
-import com.edio.studywithcard.attachment.service.AttachmentServiceImpl;
-import com.edio.studywithcard.attachment.service.S3Service;
 import com.edio.studywithcard.card.domain.Card;
 import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.deck.domain.Deck;
@@ -56,7 +54,7 @@ public class AttachmentServiceTest {
     private Card mockCard;
     private Deck mockDeck;
     private Attachment mockAttachment;
-    
+
     @BeforeEach
     void setUp() {
         // S3 업로드 후 응답 객체

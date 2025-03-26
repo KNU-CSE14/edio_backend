@@ -2,6 +2,8 @@ package com.edio.studywithcard.folder.repository;
 
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.folder.domain.Folder;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -11,10 +13,11 @@ import org.springframework.context.annotation.Import;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
-import static com.edio.common.TestConstants.User.ACCOUNT_IDS;
 import static com.edio.common.TestConstants.Folder.FOLDER_NAMES;
 import static com.edio.common.TestConstants.NON_EXISTENT_ID;
+import static com.edio.common.TestConstants.User.ACCOUNT_IDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -28,6 +31,9 @@ public class FolderRepositoryTest {
     private Folder testFolder;
     private Folder testFolder2;
     private Folder testFolder3;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -68,33 +74,24 @@ public class FolderRepositoryTest {
         ).isInstanceOf(NoSuchElementException.class);
     }
 
-    /*
-        TODO: SQLDelete 사용한 Soft Delete 코드 merge 후 추가 테스트 예정
     @Test
-    @DisplayName("Soft Delete And NotFoundFolder -> (성공)")
-    void softDeleteFolder(){
-        // Given
-        folderRepository.save(testFolder);
-        entityManager.flush();
-        entityManager.clear();
-
+    @DisplayName("폴더 Soft Delete 동작 확인 -> (성공)")
+    void softDeleteFolder() {
         // When
         folderRepository.delete(testFolder);
-        entityManager.flush();
-        entityManager.clear();
+        entityManager.flush(); // DB에 반영
+        entityManager.clear(); // 1차 캐시 초기화
 
+        Optional<Folder> folder;
         // Then
-        Optional<Folder> deletedFolder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId());
-        assertThat(deletedFolder).isEmpty();
+        folder = folderRepository.findById(testFolder.getId());
+        assertThat(folder).isPresent();
+        assertThat(folder.get().isDeleted()).isTrue();
 
-        Long count = (Long) entityManager.createQuery(
-                "SELECT COUNT(f) FROM folder f where f.id = :id")
-                .setParameter("id", testFolder.getId())
-                .getSingleResult();
-
-        assertThat(count).isEqualTo(1);
+        // isDeleted = false 조건으로 조회
+        folder = folderRepository.findByIdAndIsDeletedFalse(testFolder.getId());
+        assertThat(folder).isEmpty();
     }
-    */
 
     @Test
     @DisplayName("사용자 ID로 조회 -> (성공)")
