@@ -5,20 +5,10 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
-import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 
 import java.util.List;
 
 public interface FolderService {
-    /**
-     * Folder 하위 1depth 조회
-     *
-     * @param rootFolderId
-     * @param folderId
-     * @return
-     */
-    FolderWithDeckResponse getFolderWithDeck(Long rootFolderId, Long folderId);
-
     /**
      * Folder 하위 all-depth 조회
      *
