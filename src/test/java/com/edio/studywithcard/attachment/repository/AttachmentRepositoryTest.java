@@ -2,8 +2,6 @@ package com.edio.studywithcard.attachment.repository;
 
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.attachment.domain.Attachment;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,9 +21,6 @@ public class AttachmentRepositoryTest {
 
     @Autowired
     private AttachmentRepository attachmentRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private Attachment testAttachment;
 
@@ -57,8 +52,7 @@ public class AttachmentRepositoryTest {
     void softDeleteAttachment() {
         // When
         attachmentRepository.deleteAll(List.of(testAttachment));
-        entityManager.flush(); // DB에 반영
-        entityManager.clear(); // 1차 캐시 초기화
+        attachmentRepository.flush();
 
         // Then
         Optional<Attachment> attachment = attachmentRepository.findById(testAttachment.getId());

@@ -6,8 +6,6 @@ import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.folder.domain.Folder;
 import com.edio.studywithcard.folder.repository.FolderRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -39,9 +37,6 @@ public class DeckRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     private Deck testDeck;
     private Folder testFolder;
@@ -94,8 +89,7 @@ public class DeckRepositoryTest {
     void softDeleteDeck() {
         // When
         deckRepository.delete(testDeck);
-        entityManager.flush(); // DB에 반영
-        entityManager.clear(); // 1차 캐시 초기화
+        deckRepository.flush();
 
         Optional<Deck> deck;
         // Then

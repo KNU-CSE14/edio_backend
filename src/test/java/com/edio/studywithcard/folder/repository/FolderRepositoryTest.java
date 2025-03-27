@@ -2,8 +2,6 @@ package com.edio.studywithcard.folder.repository;
 
 import com.edio.common.config.JpaConfig;
 import com.edio.studywithcard.folder.domain.Folder;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -31,9 +29,6 @@ public class FolderRepositoryTest {
     private Folder testFolder;
     private Folder testFolder2;
     private Folder testFolder3;
-
-    @PersistenceContext
-    private EntityManager entityManager;
 
     @BeforeEach
     void setUp() {
@@ -79,8 +74,7 @@ public class FolderRepositoryTest {
     void softDeleteFolder() {
         // When
         folderRepository.delete(testFolder);
-        entityManager.flush(); // DB에 반영
-        entityManager.clear(); // 1차 캐시 초기화
+        folderRepository.flush();
 
         Optional<Folder> folder;
         // Then
