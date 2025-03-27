@@ -18,9 +18,9 @@ public class DeckController implements DeckApiDoc {
 
     private final DeckService deckService;
 
-    @GetMapping(DeckApiUrls.DECK_URL)
+    @GetMapping(DeckApiUrls.DECK_DETAIL_URL)
     @Override
-    public DeckResponse getDeck(@RequestParam(value = "id") Long id) {
+    public DeckResponse getDeck(@PathVariable Long id) {
         return deckService.getDeck(id);
     }
 
@@ -44,7 +44,7 @@ public class DeckController implements DeckApiDoc {
         deckService.moveDeck(request);
     }
 
-    @DeleteMapping(DeckApiUrls.DECK_DELETE_URL)
+    @DeleteMapping(DeckApiUrls.DECK_DETAIL_URL)
     @Override
     public void deleteDeck(@PathVariable Long id) {
         deckService.deleteDeck(id);
