@@ -5,7 +5,6 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
 import com.edio.studywithcard.deck.repository.DeckRepository;
@@ -55,7 +54,6 @@ public class DeckServiceTest {
     private Category mockCategory;
     private DeckCreateRequest deckCreateRequest;
     private DeckUpdateRequest deckUpdateRequest;
-    private DeckDeleteRequest deckDeleteRequest;
 
     @BeforeEach
     void setUp() {
@@ -82,7 +80,6 @@ public class DeckServiceTest {
                 DECK_NAMES.get(2),
                 DECK_DESCRIPTIONS.get(2),
                 !IS_FAVORITE);
-        deckDeleteRequest = new DeckDeleteRequest(DECK_ID);
     }
 
     @Test
@@ -153,7 +150,7 @@ public class DeckServiceTest {
         when(deckRepository.findByIdAndIsDeletedFalse(1L)).thenReturn(Optional.of(mockDeck));
 
         // When
-        deckService.deleteDeck(deckDeleteRequest);
+        deckService.deleteDeck(DECK_ID);
 
         // Then
         verify(deckRepository, times(1)).findByIdAndIsDeletedFalse(1L);
