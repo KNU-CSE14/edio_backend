@@ -78,8 +78,6 @@ public final class TestConstants {
      */
     public static class Deck {
         public static final Long DECK_ID = DEFAULT_ID;
-        public static final String DECK_NAME_FILED = "name";
-        public static final String DECK_DESCRIPTION_FILED = "description";
         public static final String DECK_NAME = "testDeck";
         public static final String DECK_DESCRIPTION = "deckDescription";
         public static final List<String> DECK_NAMES = List.of("testDeck", "newDeck", "updateDeck");
