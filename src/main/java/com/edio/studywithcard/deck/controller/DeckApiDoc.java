@@ -2,7 +2,6 @@ package com.edio.studywithcard.deck.controller;
 
 import com.edio.common.model.response.SwaggerCommonResponses;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -50,8 +49,8 @@ public interface DeckApiDoc {
     void moveDeck(DeckMoveRequest request);
 
     /**
-     * @param request (id) 삭제할 Deck의 ID
+     * @param id 삭제할 Deck의 ID
      */
     @Operation(summary = "Deck 삭제", description = "Deck을 삭제합니다.")
-    void deleteDeck(@RequestBody DeckDeleteRequest request);
+    void deleteDeck(Long id);
 }

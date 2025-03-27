@@ -1,7 +1,6 @@
 package com.edio.studywithcard.deck.controller;
 
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -198,42 +197,36 @@ class DeckControllerTest {
         then(deckService).should().moveDeck(eq(request));
     }
 
-    @DisplayName("DELETE : " + DeckApiUrls.DECK_URL + " -> (Deck 조회 실패)")
+    @DisplayName("DELETE : " + DeckApiUrls.DECK_DELETE_URL + " -> (Deck 조회 실패)")
     @WithMockUser
     @Test
     void test_deleteDeck() throws Exception {
         long deckId = 1L;
-        DeckDeleteRequest request = new DeckDeleteRequest(deckId);
 
-        willDoNothing().given(deckService).deleteDeck(eq(request));
+        willDoNothing().given(deckService).deleteDeck(deckId);
 
-        mockMvc.perform(delete(DeckApiUrls.DECK_URL)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(request))
+        mockMvc.perform(delete(DeckApiUrls.DECK_URL + "/" + deckId)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        then(deckService).should().deleteDeck(eq(request));
+        then(deckService).should().deleteDeck(deckId);
     }
 
-    @DisplayName("DELETE : " + DeckApiUrls.DECK_URL + " -> (Deck 조회 실패)")
+    @DisplayName("DELETE : " + DeckApiUrls.DECK_DELETE_URL + " -> (Deck 조회 실패)")
     @WithMockUser
     @Test
     void test_deleteDeck_notFoundEntity() throws Exception {
         long deckId = 1L;
-        DeckDeleteRequest request = new DeckDeleteRequest(deckId);
 
-        willThrow(EntityNotFoundException.class).given(deckService).deleteDeck(eq(request));
+        willThrow(EntityNotFoundException.class).given(deckService).deleteDeck(deckId);
 
-        mockMvc.perform(delete(DeckApiUrls.DECK_URL)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(request))
+        mockMvc.perform(delete(DeckApiUrls.DECK_URL + "/" + deckId)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        then(deckService).should().deleteDeck(eq(request));
+        then(deckService).should().deleteDeck(deckId);
     }
 
     private static Stream<Arguments> getCreateDeckTestParams() {

@@ -9,7 +9,6 @@ import com.edio.studywithcard.category.domain.Category;
 import com.edio.studywithcard.category.repository.CategoryRepository;
 import com.edio.studywithcard.deck.domain.Deck;
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -156,8 +155,8 @@ public class DeckServiceImpl implements DeckService {
      */
     @Override
     @Transactional
-    public void deleteDeck(DeckDeleteRequest request) {
-        Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(request.id()).get();
+    public void deleteDeck(Long id) {
+        Deck existingDeck = deckRepository.findByIdAndIsDeletedFalse(id).get();
 
         // 기존 첨부파일 삭제(Bulk)
         List<String> fileKeys = existingDeck.getAttachmentDeckTargets().stream()

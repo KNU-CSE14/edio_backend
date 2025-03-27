@@ -1,7 +1,6 @@
 package com.edio.studywithcard.deck.service;
 
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -21,5 +20,5 @@ public interface DeckService {
     void moveDeck(DeckMoveRequest request);
 
     // 덱 삭제
-    void deleteDeck(DeckDeleteRequest request);
+    void deleteDeck(Long id);
 }
