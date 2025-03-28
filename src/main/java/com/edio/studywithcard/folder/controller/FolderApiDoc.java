@@ -8,7 +8,6 @@ import com.edio.studywithcard.folder.model.request.FolderUpdateRequest;
 import com.edio.studywithcard.folder.model.response.AccountFolderResponse;
 import com.edio.studywithcard.folder.model.response.FolderAllResponse;
 import com.edio.studywithcard.folder.model.response.FolderResponse;
-import com.edio.studywithcard.folder.model.response.FolderWithDeckResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,14 +25,6 @@ public interface FolderApiDoc {
      */
     @Operation(summary = "Folder 전체 조회", description = "Folder 계층 전체를 조회합니다.")
     FolderAllResponse getAllFolders(CustomUserDetails userDetails, Long folderId);
-
-    /**
-     * @param userDetails 루트 폴더 ID
-     * @param folderId    조회 기준 폴더 ID
-     * @return
-     */
-    @Operation(summary = "Folder 조회", description = "Folder를 조회합니다.")
-    FolderWithDeckResponse getFolderWithDeck(CustomUserDetails userDetails, Long folderId);
 
     /**
      * @param userDetails 사용자 ID

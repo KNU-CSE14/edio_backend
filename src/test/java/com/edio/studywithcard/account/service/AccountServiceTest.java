@@ -18,8 +18,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static com.edio.common.TestConstants.User.ACCOUNT_ID;
-import static com.edio.common.util.TestUserUtil.account;
-import static com.edio.common.util.TestUserUtil.member;
+import static com.edio.common.util.TestUserUtil.createAccount;
+import static com.edio.common.util.TestUserUtil.createMember;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 
@@ -37,8 +37,8 @@ public class AccountServiceTest {
 
     @BeforeEach
     public void setUp() {
-        mockMember = member();
-        mockAccount = account(mockMember);
+        mockMember = createMember();
+        mockAccount = createAccount(mockMember);
     }
 
     @Test

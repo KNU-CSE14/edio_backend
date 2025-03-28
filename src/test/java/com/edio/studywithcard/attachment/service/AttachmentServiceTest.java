@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.edio.common.TestConstants.File.*;
+import static com.edio.common.util.TestDataUtil.createAttachment;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.*;
@@ -88,14 +89,7 @@ public class AttachmentServiceTest {
                 null        // 기존 파일 키 (신규 첨부라면 null)
         );
 
-        mockAttachment = Attachment.builder()
-                .fileName(FILE_NAME)
-                .filePath(fileInfoResponse.filePath())
-                .fileKey(fileInfoResponse.fileKey())
-                .fileSize(FILE_SIZE)
-                .fileType(FILE_TYPE)
-                .fileTarget(FILE_TARGET)
-                .build();
+        mockAttachment = createAttachment(FILE_NAME, fileInfoResponse.filePath(), fileInfoResponse.fileKey(), FILE_SIZE, FILE_TYPE, FILE_TARGET);
         mockDeck = mock(Deck.class);
     }
 
