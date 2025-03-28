@@ -1,7 +1,6 @@
 package com.edio.studywithcard.deck.controller;
 
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -19,9 +18,9 @@ public class DeckController implements DeckApiDoc {
 
     private final DeckService deckService;
 
-    @GetMapping(DeckApiUrls.DECK_URL)
+    @GetMapping(DeckApiUrls.DECK_DETAIL_URL)
     @Override
-    public DeckResponse getDeck(@RequestParam(value = "id") Long id) {
+    public DeckResponse getDeck(@PathVariable Long id) {
         return deckService.getDeck(id);
     }
 
@@ -45,9 +44,9 @@ public class DeckController implements DeckApiDoc {
         deckService.moveDeck(request);
     }
 
-    @DeleteMapping(DeckApiUrls.DECK_URL)
+    @DeleteMapping(DeckApiUrls.DECK_DETAIL_URL)
     @Override
-    public void deleteDeck(@RequestBody DeckDeleteRequest request) {
-        deckService.deleteDeck(request);
+    public void deleteDeck(@PathVariable Long id) {
+        deckService.deleteDeck(id);
     }
 }

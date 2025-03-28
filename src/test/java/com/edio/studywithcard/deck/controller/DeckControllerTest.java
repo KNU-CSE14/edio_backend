@@ -1,7 +1,6 @@
 package com.edio.studywithcard.deck.controller;
 
 import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
-import com.edio.studywithcard.deck.model.request.DeckDeleteRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
@@ -48,7 +47,7 @@ class DeckControllerTest {
     @MockBean
     private DeckService deckService;
 
-    @DisplayName("GET : " + DeckApiUrls.DECK_URL + " -> (성공)")
+    @DisplayName("GET : " + DeckApiUrls.DECK_DETAIL_URL + " -> (성공)")
     @WithMockUser
     @Test
     void test_getDeck() throws Exception {
@@ -56,9 +55,7 @@ class DeckControllerTest {
 
         given(deckService.getDeck(eq(expected.id()))).willReturn(expected);
 
-        String response = mockMvc.perform(get(DeckApiUrls.DECK_URL)
-                        .param("id", String.valueOf(expected.id()))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+        String response = mockMvc.perform(get(DeckApiUrls.DECK_URL + "/" + expected.id()))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn()
@@ -73,7 +70,7 @@ class DeckControllerTest {
         then(deckService).should().getDeck(eq(expected.id()));
     }
 
-    @DisplayName("GET : " + DeckApiUrls.DECK_URL + " -> (Deck 조회 실패)")
+    @DisplayName("GET : " + DeckApiUrls.DECK_DETAIL_URL + " -> (Deck 조회 실패)")
     @WithMockUser
     @Test
     void test_getDeck_notFoundEntity() throws Exception {
@@ -81,9 +78,7 @@ class DeckControllerTest {
 
         given(deckService.getDeck(eq(expected.id()))).willThrow(EntityNotFoundException.class);
 
-        mockMvc.perform(get(DeckApiUrls.DECK_URL)
-                        .param("id", String.valueOf(expected.id()))
-                        .contentType(MediaType.APPLICATION_JSON_VALUE))
+        mockMvc.perform(get(DeckApiUrls.DECK_URL + "/" + expected.id()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
@@ -198,42 +193,36 @@ class DeckControllerTest {
         then(deckService).should().moveDeck(eq(request));
     }
 
-    @DisplayName("DELETE : " + DeckApiUrls.DECK_URL + " -> (Deck 조회 실패)")
+    @DisplayName("DELETE : " + DeckApiUrls.DECK_DETAIL_URL + " -> (Deck 조회 실패)")
     @WithMockUser
     @Test
     void test_deleteDeck() throws Exception {
         long deckId = 1L;
-        DeckDeleteRequest request = new DeckDeleteRequest(deckId);
 
-        willDoNothing().given(deckService).deleteDeck(eq(request));
+        willDoNothing().given(deckService).deleteDeck(deckId);
 
-        mockMvc.perform(delete(DeckApiUrls.DECK_URL)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(request))
+        mockMvc.perform(delete(DeckApiUrls.DECK_URL + "/" + deckId)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        then(deckService).should().deleteDeck(eq(request));
+        then(deckService).should().deleteDeck(deckId);
     }
 
-    @DisplayName("DELETE : " + DeckApiUrls.DECK_URL + " -> (Deck 조회 실패)")
+    @DisplayName("DELETE : " + DeckApiUrls.DECK_DETAIL_URL + " -> (Deck 조회 실패)")
     @WithMockUser
     @Test
     void test_deleteDeck_notFoundEntity() throws Exception {
         long deckId = 1L;
-        DeckDeleteRequest request = new DeckDeleteRequest(deckId);
 
-        willThrow(EntityNotFoundException.class).given(deckService).deleteDeck(eq(request));
+        willThrow(EntityNotFoundException.class).given(deckService).deleteDeck(deckId);
 
-        mockMvc.perform(delete(DeckApiUrls.DECK_URL)
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(objectMapper.writeValueAsString(request))
+        mockMvc.perform(delete(DeckApiUrls.DECK_URL + "/" + deckId)
                         .with(csrf()))
                 .andDo(print())
                 .andExpect(status().isNotFound());
 
-        then(deckService).should().deleteDeck(eq(request));
+        then(deckService).should().deleteDeck(deckId);
     }
 
     private static Stream<Arguments> getCreateDeckTestParams() {
