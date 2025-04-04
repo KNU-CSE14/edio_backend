@@ -139,17 +139,16 @@ public class AttachmentServiceTest {
     @DisplayName("첨부파일 저장 시 파일 매핑 -> (성공)")
     void 첨부파일_저장_매핑() throws IOException {
         // Given
-        // convertToWebPBytes()는 실제 이미지 변환 안 하도록 가짜 결과 설정
+        // convertToWebPBytes() 이미지 변환 X
         byte[] webpBytes = new byte[2048]; // 임의의 WebP 바이트 배열
         doReturn(webpBytes).when(attachmentService).convertToWebPBytes(any(MultipartFile.class));
 
-        // S3 업로드 가짜 응답
+        // S3 업로드 응답
         FileInfoResponse webpFileInfoResponse = new FileInfoResponse(
                 String.format(FILE_PATH, BUCKET_NAME, REGION, FILE_KEY_WEBP),
                 FILE_KEY_WEBP
         );
-        when(s3Service.uploadFile(eq(webpBytes), eq(FILE_NAME_WEBP), eq(FILE_TYPE_WEBP), eq(S3_FOLDER_NAME)))
-                .thenReturn(webpFileInfoResponse);
+        when(s3Service.uploadFile(webpBytes, FILE_NAME_WEBP, FILE_TYPE_WEBP, S3_FOLDER_NAME)).thenReturn(webpFileInfoResponse);
 
         // DB 저장 mock
         Attachment mockWebpAttachment = createAttachment(FILE_NAME_WEBP, webpFileInfoResponse.filePath(), webpFileInfoResponse.fileKey(), (long) webpBytes.length, FILE_TYPE_WEBP, FILE_TARGET);
@@ -165,7 +164,7 @@ public class AttachmentServiceTest {
         assertEquals(webpBytes.length, attachment.getFileSize());
         assertEquals(FILE_TYPE_WEBP, attachment.getFileType());
 
-        verify(s3Service, times(1)).uploadFile(eq(webpBytes), eq(FILE_NAME_WEBP), eq(FILE_TYPE_WEBP), eq(S3_FOLDER_NAME));
+        verify(s3Service, times(1)).uploadFile(webpBytes, FILE_NAME_WEBP, FILE_TYPE_WEBP, S3_FOLDER_NAME);
         verify(attachmentRepository, times(1)).save(any(Attachment.class));
     }
 
