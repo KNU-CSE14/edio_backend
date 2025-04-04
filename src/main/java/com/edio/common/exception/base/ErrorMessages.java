@@ -20,7 +20,7 @@ public enum ErrorMessages {
 
     CONFLICT("E409-001", "Conflict Occurred"), // IllegalStateException
 
-    FILE_PROCESSING_UNSUPPORTED("E415-001", "Unsupported File Type"), // UnsupportedMediaTypeStatusException
+    FILE_PROCESSING_UNSUPPORTED("E415-001", "Unsupported File Type"), // UnsupportedMediaTypeStatusException, UnsupportedOperationException
 
     FILE_PROCESSING_ERROR("E422-001", "File Processing Failed"), // IllegalStateException
     UNPROCESSABLE_STATE_MAP("E422-002", "Failed To Encode State Map"), // IllegalStateException

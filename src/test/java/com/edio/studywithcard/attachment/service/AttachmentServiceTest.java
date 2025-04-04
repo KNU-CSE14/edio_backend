@@ -17,9 +17,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,6 +47,7 @@ public class AttachmentServiceTest {
     @Mock
     private AttachmentCardTargetRepository attachmentCardTargetRepository;
 
+    @Spy
     @InjectMocks
     private AttachmentServiceImpl attachmentService;
 
@@ -133,21 +137,35 @@ public class AttachmentServiceTest {
 
     @Test
     @DisplayName("첨부파일 저장 시 파일 매핑 -> (성공)")
-    void 첨부파일_저장_매핑() {
+    void 첨부파일_저장_매핑() throws IOException {
         // Given
-        when(s3Service.uploadFile(mockFile, S3_FOLDER_NAME)).thenReturn(fileInfoResponse);
+        // convertToWebPBytes()는 실제 이미지 변환 안 하도록 가짜 결과 설정
+        byte[] webpBytes = new byte[2048]; // 임의의 WebP 바이트 배열
+        doReturn(webpBytes).when(attachmentService).convertToWebPBytes(any(MultipartFile.class));
 
-        when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockAttachment);
+        // S3 업로드 가짜 응답
+        FileInfoResponse webpFileInfoResponse = new FileInfoResponse(
+                String.format(FILE_PATH, BUCKET_NAME, REGION, FILE_KEY_WEBP),
+                FILE_KEY_WEBP
+        );
+        when(s3Service.uploadFile(eq(webpBytes), eq(FILE_NAME_WEBP), eq(FILE_TYPE_WEBP), eq(S3_FOLDER_NAME)))
+                .thenReturn(webpFileInfoResponse);
+
+        // DB 저장 mock
+        Attachment mockWebpAttachment = createAttachment(FILE_NAME_WEBP, webpFileInfoResponse.filePath(), webpFileInfoResponse.fileKey(), (long) webpBytes.length, FILE_TYPE_WEBP, FILE_TARGET);
+        when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockWebpAttachment);
 
         // When
         Attachment attachment = attachmentService.saveAttachment(mockFile, S3_FOLDER_NAME, FILE_TARGET);
 
         // Then
         assertNotNull(attachment);
-        assertEquals(FILE_NAME, attachment.getFileName());
-        assertEquals(FILE_KEY, attachment.getFileKey());
-        assertEquals(FILE_SIZE, attachment.getFileSize());
-        verify(s3Service, times(1)).uploadFile(mockFile, S3_FOLDER_NAME);
+        assertEquals(FILE_NAME_WEBP, attachment.getFileName());
+        assertEquals(FILE_KEY_WEBP, attachment.getFileKey());
+        assertEquals(webpBytes.length, attachment.getFileSize());
+        assertEquals(FILE_TYPE_WEBP, attachment.getFileType());
+
+        verify(s3Service, times(1)).uploadFile(eq(webpBytes), eq(FILE_NAME_WEBP), eq(FILE_TYPE_WEBP), eq(S3_FOLDER_NAME));
         verify(attachmentRepository, times(1)).save(any(Attachment.class));
     }
 

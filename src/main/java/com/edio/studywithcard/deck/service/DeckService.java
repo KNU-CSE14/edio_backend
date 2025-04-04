@@ -4,6 +4,7 @@ import com.edio.studywithcard.deck.model.request.DeckCreateRequest;
 import com.edio.studywithcard.deck.model.request.DeckMoveRequest;
 import com.edio.studywithcard.deck.model.request.DeckUpdateRequest;
 import com.edio.studywithcard.deck.model.response.DeckResponse;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface DeckService {
