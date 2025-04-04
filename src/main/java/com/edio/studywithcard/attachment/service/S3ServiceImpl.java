@@ -37,7 +37,7 @@ public class S3ServiceImpl implements S3Service {
     @Override
     public FileInfoResponse uploadFile(MultipartFile file, String folder) {
         // 파일 크기 검증
-        validateFileSize(file);
+        validateFileSize(file.getSize());
 
         // 고유 파일명 생성
         String fileName = generateFileName(folder, file.getOriginalFilename());
@@ -57,6 +57,34 @@ public class S3ServiceImpl implements S3Service {
         }
 
         return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", awsProperties.bucketName(), awsProperties.region(), fileName), fileName);
+    }
+
+    /*
+        webp 변환 파일 업로드
+     */
+    @Override
+    public FileInfoResponse uploadFile(byte[] fileBytes, String fileName, String contentType, String folder) {
+        // 파일 크기 검증
+        validateFileSize(fileBytes.length);
+
+        // 고유 파일명 생성
+        String fullFileName = generateFileName(folder, fileName);
+        try {
+            // 업로드
+            s3Client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(awsProperties.bucketName())
+                            .key(fullFileName)
+                            .contentType(contentType)
+                            .build(),
+                    RequestBody.fromBytes(fileBytes)
+            );
+        } catch (S3Exception e) {
+            log.error("알 수 없는 오류 발생 - 파일 등록 실패: {}", e.getMessage(), e);
+            throw new RuntimeException(ErrorMessages.INTERNAL_SERVER_ERROR.getMessage());
+        }
+
+        return FileInfoResponse.from(String.format("https://%s.s3.%s.amazonaws.com/%s", awsProperties.bucketName(), awsProperties.region(), fullFileName), fullFileName);
     }
 
     /*
@@ -97,8 +125,8 @@ public class S3ServiceImpl implements S3Service {
     /*
         File Size 검증
      */
-    private void validateFileSize(MultipartFile file) {
-        if (file.getSize() > MAX_FILE_SIZE) {
+    private void validateFileSize(long fileSize) {
+        if (fileSize > MAX_FILE_SIZE) {
             throw new MaxUploadSizeExceededException(MAX_FILE_SIZE);
         }
     }

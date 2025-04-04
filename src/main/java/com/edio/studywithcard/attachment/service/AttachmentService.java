@@ -3,6 +3,7 @@ package com.edio.studywithcard.attachment.service;
 import com.edio.studywithcard.attachment.domain.Attachment;
 import com.edio.studywithcard.card.dto.AttachmentBulkData;
 import com.edio.studywithcard.deck.domain.Deck;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;

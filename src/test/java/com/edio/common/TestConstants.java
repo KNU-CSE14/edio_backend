@@ -50,10 +50,13 @@ public final class TestConstants {
      */
     public static class File {
         public static final String FILE_NAME = "test.jpg";
+        public static final String FILE_NAME_WEBP = "test.webp";
         public static final Long FILE_SIZE = 1024L;
         public static final String FILE_KEY = "image/test.jpg";
+        public static final String FILE_KEY_WEBP = "image/test.webp";
         public static final String FILE_PATH = "https://%s.s3.%s.amazonaws.com/%s";
         public static final String FILE_TYPE = "image/jpeg";
+        public static final String FILE_TYPE_WEBP = "image/webp";
         public static final String FILE_TARGET = "CARD";
         public static final String FOLDER_TARGET = "IMAGE";
         public static final String S3_FOLDER_NAME = "image";

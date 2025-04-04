@@ -6,6 +6,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.UnsupportedMediaTypeStatusException;
@@ -65,13 +66,13 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * UnsupportedMediaTypeStatusException
+     * UnsupportedMediaTypeStatusException, UnsupportedOperationException
      *
      * @param ex
      * @return 415
      */
-    @ExceptionHandler(UnsupportedMediaTypeStatusException.class)
-    public ResponseEntity<String> handleUnsupportedMediaTypeStatusException(UnsupportedMediaTypeStatusException ex) {
+    @ExceptionHandler({UnsupportedMediaTypeStatusException.class, UnsupportedOperationException.class})
+    public ResponseEntity<String> handleUnsupportedMediaTypeException(RuntimeException ex) {
         log.error(ERROR_OCCURRED, ex.getMessage());
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNSUPPORTED_MEDIA_TYPE);
     }
