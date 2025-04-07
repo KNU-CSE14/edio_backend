@@ -20,7 +20,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -32,8 +31,8 @@ import java.util.List;
 @Slf4j
 public class AttachmentServiceImpl implements AttachmentService {
 
-    private static final String MIME_TYPE_WEBP  = "image/webp";
-    private static final String FILE_EXTENSION_WEBP  = ".webp";
+    private static final String MIME_TYPE_WEBP = "image/webp";
+    private static final String FILE_EXTENSION_WEBP = ".webp";
 
     private final S3Service s3Service;
 
@@ -93,17 +92,15 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     @Transactional
     public Attachment saveAttachment(MultipartFile file, String folder, String target) {
-
         // 이미지가 아닐 경우 예외 처리
-        if(file.getContentType() == null || !file.getContentType().startsWith(AttachmentFolder.IMAGE.name().toLowerCase())){
+        if (file.getContentType() == null || !file.getContentType().startsWith(AttachmentFolder.IMAGE.name().toLowerCase())) {
             log.error("{}: filename = {}, contentType = {}", ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage(), file.getOriginalFilename(), file.getContentType());
             throw new UnsupportedOperationException(ErrorMessages.FILE_PROCESSING_UNSUPPORTED.getMessage());
         }
 
         try {
             // WebP 변환 및 업로드
-            String baseName = FilenameUtils.getBaseName(file.getOriginalFilename());
-            String fileName = baseName + FILE_EXTENSION_WEBP;
+            String fileName = FilenameUtils.getBaseName(file.getOriginalFilename()) + FILE_EXTENSION_WEBP;
 
             byte[] webpBytes = convertToWebPBytes(file);
             FileInfoResponse fileInfo = s3Service.uploadFile(webpBytes, fileName, MIME_TYPE_WEBP, folder.toLowerCase());
@@ -114,7 +111,7 @@ public class AttachmentServiceImpl implements AttachmentService {
                             .fileName(fileName)
                             .fileKey(fileInfo.fileKey())
                             .filePath(fileInfo.filePath())
-                            .fileSize((long)webpBytes.length)
+                            .fileSize((long) webpBytes.length)
                             .fileType(MIME_TYPE_WEBP)
                             .fileTarget(target)
                             .build()

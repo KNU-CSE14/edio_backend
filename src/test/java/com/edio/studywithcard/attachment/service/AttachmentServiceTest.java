@@ -52,6 +52,7 @@ public class AttachmentServiceTest {
     private AttachmentServiceImpl attachmentService;
 
     private FileInfoResponse fileInfoResponse;
+    private FileInfoResponse webpFileInfoResponse;
     List<String> fileKeys = new ArrayList<>();
 
     private MockMultipartFile mockFile;
@@ -59,6 +60,8 @@ public class AttachmentServiceTest {
     private Card mockCard;
     private Deck mockDeck;
     private Attachment mockAttachment;
+    private Attachment mockWebpAttachment;
+    private byte[] webpBytes;
 
     @BeforeEach
     void setUp() {
@@ -70,6 +73,14 @@ public class AttachmentServiceTest {
                         REGION,
                         FILE_KEY),
                 FILE_KEY
+        );
+        webpFileInfoResponse = new FileInfoResponse(
+                String.format(
+                        FILE_PATH,
+                        BUCKET_NAME,
+                        REGION,
+                        FILE_KEY_WEBP),
+                FILE_KEY_WEBP
         );
 
         // 파일 목록
@@ -94,6 +105,8 @@ public class AttachmentServiceTest {
         );
 
         mockAttachment = createAttachment(FILE_NAME, fileInfoResponse.filePath(), fileInfoResponse.fileKey(), FILE_SIZE, FILE_TYPE, FILE_TARGET);
+        webpBytes = new byte[2048]; // 임의의 WebP 바이트 배열
+        mockWebpAttachment = createAttachment(FILE_NAME_WEBP, webpFileInfoResponse.filePath(), webpFileInfoResponse.fileKey(), (long) webpBytes.length, FILE_TYPE_WEBP, FILE_TARGET);
         mockDeck = mock(Deck.class);
     }
 
@@ -140,18 +153,10 @@ public class AttachmentServiceTest {
     void 첨부파일_저장_매핑() throws IOException {
         // Given
         // convertToWebPBytes() 이미지 변환 X
-        byte[] webpBytes = new byte[2048]; // 임의의 WebP 바이트 배열
         doReturn(webpBytes).when(attachmentService).convertToWebPBytes(any(MultipartFile.class));
 
-        // S3 업로드 응답
-        FileInfoResponse webpFileInfoResponse = new FileInfoResponse(
-                String.format(FILE_PATH, BUCKET_NAME, REGION, FILE_KEY_WEBP),
-                FILE_KEY_WEBP
-        );
+        // S3 업로드 응답, DB 저장
         when(s3Service.uploadFile(webpBytes, FILE_NAME_WEBP, FILE_TYPE_WEBP, S3_FOLDER_NAME)).thenReturn(webpFileInfoResponse);
-
-        // DB 저장 mock
-        Attachment mockWebpAttachment = createAttachment(FILE_NAME_WEBP, webpFileInfoResponse.filePath(), webpFileInfoResponse.fileKey(), (long) webpBytes.length, FILE_TYPE_WEBP, FILE_TARGET);
         when(attachmentRepository.save(any(Attachment.class))).thenReturn(mockWebpAttachment);
 
         // When
