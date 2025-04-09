@@ -15,22 +15,24 @@ import java.util.Map;
 @SpringBootApplication
 public class EdioBackendApplication {
     public static void main(String[] args) {
-        // 운영환경에서는 시스템 환경변수를 우선 사용하고, 로컬인 경우에만 .env 파일 로드
+        // .env 파일을 항상 로드
+        Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+
+        // 시스템 환경변수가 우선이며, 없을 경우 .env에서 읽음
         String profile = System.getenv("SPRING_PROFILES_ACTIVE");
+        if (profile == null || profile.isEmpty()) {
+            profile = dotenv.get("SPRING_PROFILES_ACTIVE");
+        }
 
         SpringApplication app = new SpringApplication(EdioBackendApplication.class);
 
-        if (profile == null || profile.isEmpty()) {
-            Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
-            profile = dotenv.get("SPRING_PROFILES_ACTIVE");
-
-            app.addInitializers(context -> {
-                ConfigurableEnvironment env = context.getEnvironment();
-                Map<String, Object> envVars = new HashMap<>();
-                dotenv.entries().forEach(entry -> envVars.put(entry.getKey(), entry.getValue()));
-                env.getPropertySources().addFirst(new org.springframework.core.env.MapPropertySource("dotenvProperties", envVars));
-            });
-        }
+        // 항상 dotenv 값을 환경 변수로 추가
+        app.addInitializers(context -> {
+            ConfigurableEnvironment env = context.getEnvironment();
+            Map<String, Object> envVars = new HashMap<>();
+            dotenv.entries().forEach(entry -> envVars.put(entry.getKey(), entry.getValue()));
+            env.getPropertySources().addFirst(new org.springframework.core.env.MapPropertySource("dotenvProperties", envVars));
+        });
 
         System.setProperty("spring.profiles.active", profile);
 
